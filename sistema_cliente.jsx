@@ -132,6 +132,11 @@ export default function App(){
         formulario:{cats:cf.formulario?.cats||CFG0.formulario.cats,campos:cf.formulario?.campos||CFG0.formulario.campos},
       });
     }catch(_){}
+
+    DB.listen?.("lc-ops", val => { if(Array.isArray(val)) setOps_(val); });
+    DB.listen?.("lc-cl", val => { if(Array.isArray(val)) setCl_(val); });
+    DB.listen?.("lc-pr", val => { if(Array.isArray(val)) setPr_(val); });
+
     // Detectar ?op= (QR do operador) ou ?promo (QR da promoção)
     try{
       const params=new URLSearchParams(window.location.search);

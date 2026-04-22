@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getDatabase, ref, set, get, child } from "firebase/database";
+import { getDatabase, ref, set, get, child, onValue } from "firebase/database";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB5oKSKMG89BOf7TWS4wpF2heRmphxwX34",
@@ -40,5 +40,14 @@ export const DB = {
       return local ? JSON.parse(local) : null;
     }
     return null;
+  },
+  listen: (k, callback) => {
+    return onValue(ref(database, k), (snapshot) => {
+      if (snapshot.exists()) {
+        const val = snapshot.val();
+        try { window.localStorage.setItem(k, JSON.stringify(val)); } catch (_) {}
+        callback(val);
+      }
+    });
   }
 };

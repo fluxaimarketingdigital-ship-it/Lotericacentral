@@ -128,6 +128,11 @@ export default function App(){
       if(Array.isArray(o))setOps_(o);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);
       if(f)setCfg_({...DCFG,...f,relampagos:f.relampagos||DCFG.relampagos,premioMeta:f.premioMeta||DCFG.premioMeta,noticias:f.noticias||DCFG.noticias,formulario:{...DCFG.formulario,...(f.formulario||{}),cats:f.formulario?.cats||DCFG.formulario.cats,campos:f.formulario?.campos||DCFG.formulario.campos}});}catch(_){}
     setTimeout(()=>setTela("home"),1400);
+
+    DB.listen?.("lc-ops", val => { if(Array.isArray(val)) setOps_(val); });
+    DB.listen?.("lc-cl", val => { if(Array.isArray(val)) setCl_(val); });
+    DB.listen?.("lc-pr", val => { if(Array.isArray(val)) setPr_(val); });
+    DB.listen?.("lc-cfg", val => { if(val) setCfg_(prev => ({...DCFG,...prev,...val})); });
   })();},[]);
   const ctx={tela,setTela,role,setRole,opSel,setOpSel,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg};
   return(<><style>{CSS}</style>
