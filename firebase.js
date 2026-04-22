@@ -17,36 +17,38 @@ const database = getDatabase(app);
 export const DB = {
   save: (k, v) => {
     try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (_) {}
-    set(ref(database, k), v).catch(console.error);
+    set(ref(database, k), { _k: k, data: v }).catch(console.error);
   },
   load: async (k) => {
     try {
       const snapshot = await get(child(ref(database), k));
       if (snapshot.exists()) {
-        const val = snapshot.val();
-        window.localStorage.setItem(k, JSON.stringify(val));
+        const raw = snapshot.val();
+        const val = (raw && raw._k) ? (raw.data || (k==="lc-cfg"?null:[])) : raw;
+        try { window.localStorage.setItem(k, JSON.stringify(val)); } catch (_) {}
         return val;
       } else {
         const local = window.localStorage.getItem(k);
         if (local) {
           const parsed = JSON.parse(local);
-          set(ref(database, k), parsed);
+          set(ref(database, k), { _k: k, data: parsed });
           return parsed;
         }
       }
     } catch (e) {
       console.error("Firebase Error:", e);
-      const local = window.localStorage.getItem(k);
-      return local ? JSON.parse(local) : null;
     }
-    return null;
+    return k === "lc-cfg" ? null : [];
   },
   listen: (k, callback) => {
     return onValue(ref(database, k), (snapshot) => {
       if (snapshot.exists()) {
-        const val = snapshot.val();
+        const raw = snapshot.val();
+        const val = (raw && raw._k) ? (raw.data || (k==="lc-cfg"?null:[])) : raw;
         try { window.localStorage.setItem(k, JSON.stringify(val)); } catch (_) {}
         callback(val);
+      } else {
+        callback(k === "lc-cfg" ? null : []);
       }
     });
   }
