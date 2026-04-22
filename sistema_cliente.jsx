@@ -70,8 +70,8 @@ const fmtW = v=>{const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d
 const limpo = v=>v.replace(/\D/g,"");
 
 const DB={
-  save:(k,v)=>setTimeout(()=>{try{window.storage?.set(k,JSON.stringify(v),false);}catch(_){}},0),
-  load:async k=>{try{const r=await window.storage?.get(k,false);return r?JSON.parse(r.value):null;}catch(_){return null;}},
+  save:(k,v)=>setTimeout(()=>{try{window.localStorage.setItem(k,JSON.stringify(v));}catch(_){}},0),
+  load:async k=>{try{const r=window.localStorage.getItem(k);return r?JSON.parse(r):null;}catch(_){return null;}},
 };
 
 function sortear(selecionados,cfg){

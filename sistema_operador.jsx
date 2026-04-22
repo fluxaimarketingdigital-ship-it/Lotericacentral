@@ -80,8 +80,8 @@ const mAno=d=>`${String(new Date(d).getMonth()+1).padStart(2,"0")}/${new Date(d)
 const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const hoje=()=>new Date().toISOString().slice(0,10);
 const DB={
-  save:(k,v)=>setTimeout(()=>{try{window.storage?.set(k,JSON.stringify(v),false);}catch(_){}},0),
-  load:async k=>{try{const r=await window.storage?.get(k,false);return r?JSON.parse(r.value):null;}catch(_){return null;}}
+  save:(k,v)=>setTimeout(()=>{try{window.localStorage.setItem(k,JSON.stringify(v));}catch(_){}},0),
+  load:async k=>{try{const r=window.localStorage.getItem(k);return r?JSON.parse(r):null;}catch(_){return null;}}
 };
 
 /* ═══════ QR CODE ═══════ */
