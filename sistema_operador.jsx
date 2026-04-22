@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { DB } from "./firebase.js";
 
 /* ═══════ CONFIG PADRÃO ═══════ */
 const DCFG = {
@@ -79,10 +80,7 @@ const fDT=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",h
 const mAno=d=>`${String(new Date(d).getMonth()+1).padStart(2,"0")}/${new Date(d).getFullYear()}`;
 const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const hoje=()=>new Date().toISOString().slice(0,10);
-const DB={
-  save:(k,v)=>setTimeout(()=>{try{window.localStorage.setItem(k,JSON.stringify(v));}catch(_){}},0),
-  load:async k=>{try{const r=window.localStorage.getItem(k);return r?JSON.parse(r):null;}catch(_){return null;}}
-};
+/* DB importado via firebase.js */
 
 /* ═══════ QR CODE ═══════ */
 function mkLink(id,cfg){const b=cfg?.appUrl||"";if(b&&b.startsWith("http"))return`${b}?op=${id}`;try{const h=window.location.href.split("?")[0];if(h.startsWith("http"))return`${h}?op=${id}`;}catch(_){}return`?op=${id}`;}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import Tesseract from "tesseract.js";
+import { DB } from "./firebase.js";
 
 /* ══════════════════════════════════════════
    CONFIG PADRÃO — sincroniza com lc-cfg
@@ -69,10 +70,7 @@ const brl  = v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"
 const fmtW = v=>{const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
 const limpo = v=>v.replace(/\D/g,"");
 
-const DB={
-  save:(k,v)=>setTimeout(()=>{try{window.localStorage.setItem(k,JSON.stringify(v));}catch(_){}},0),
-  load:async k=>{try{const r=window.localStorage.getItem(k);return r?JSON.parse(r):null;}catch(_){return null;}},
-};
+/* DB importado via firebase.js */
 
 function sortear(selecionados,cfg){
   const campos=cfg.formulario?.campos||[];
