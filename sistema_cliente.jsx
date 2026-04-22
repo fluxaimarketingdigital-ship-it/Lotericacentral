@@ -1,0 +1,815 @@
+import { useState, useEffect } from "react";
+
+/* ══════════════════════════════════════════
+   CONFIG PADRÃO — sincroniza com lc-cfg
+══════════════════════════════════════════ */
+const CFG0 = {
+  meta: 15,
+  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
+  relampagos: [
+    {id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje."},
+    {id:"r2",ativo:true, emoji:"🏷️",nome:"Cupom de Desconto",prob:15, desc:"10% de desconto na próxima Raspadinha. Válido 7 dias!"},
+    {id:"r3",ativo:true, emoji:"🎁",nome:"Brinde Surpresa",  prob:10, desc:"Um brinde especial esperando por você no balcão!"},
+    {id:"r4",ativo:true, emoji:"⚡",nome:"Dobro de Pontos",  prob:12, desc:"Esta visita vale 2 autenticações!"},
+    {id:"r5",ativo:false,emoji:"🌟",nome:"Sorteio do Mês",   prob:5,  desc:"Você entrou no Sorteio do Mês! Resultado dia 01."},
+  ],
+  regulamento:`REGULAMENTO — CLIENTE FIDELIZADO PREMIADO
+Lotérica Central · CNPJ 20.845.956/0001-00 · Alagoinhas-BA
+
+1. PARTICIPAÇÃO
+Clientes atendidos na lotérica que realizem cadastro pelo QR Code da promoção e validem suas visitas com o QR Code do operador de caixa.
+
+2. COMO PARTICIPAR
+• Escaneie o QR Code da Promoção (painel da lotérica).
+• Leia o regulamento e faça seu cadastro.
+• A cada atendimento, peça ao operador o QR Code do caixa.
+• Escaneie o QR Code do operador para registrar sua visita.
+
+3. PRÊMIO PRINCIPAL
+• A cada {meta} visitas autenticadas: 1 {premioNome}.
+• Retirada na lotérica em até 30 dias após notificação via WhatsApp.
+
+4. PRÊMIO RELÂMPAGO
+• Ao incluir Jogos na visita, o cliente concorre a prêmios surpresa automáticos.
+
+5. PRÊMIO OPERADORAS
+• Todo dia 05: as 2 operadoras com mais autenticações no mês ganham prêmio especial.
+
+6. LGPD — Dados usados exclusivamente neste programa.
+7. VIGÊNCIA — Permanente. Alterações com aviso prévio de 7 dias.`,
+  wts:"5575999990000",
+  formulario:{
+    cats:[
+      {id:"bc",nome:"Bancário",cor:"#003478"},
+      {id:"jg",nome:"Jogos",   cor:"#7c3aed"},
+    ],
+    campos:[
+      {id:"boleto",   nome:"Boleto",    emoji:"📄",cat:"bc",comValor:true, triggerRelampago:false,ativo:true,obrigatorio:false},
+      {id:"deposito", nome:"Depósito",  emoji:"💰",cat:"bc",comValor:true, triggerRelampago:false,ativo:true,obrigatorio:false},
+      {id:"saque",    nome:"Saque",     emoji:"💵",cat:"bc",comValor:true, triggerRelampago:false,ativo:true,obrigatorio:false},
+      {id:"pix",      nome:"PIX",       emoji:"📲",cat:"bc",comValor:true, triggerRelampago:false,ativo:true,obrigatorio:false},
+      {id:"lotofacil",nome:"Lotofácil", emoji:"🍀",cat:"jg",comValor:true, triggerRelampago:true, ativo:true,obrigatorio:false},
+      {id:"megasena", nome:"Mega-Sena", emoji:"🎰",cat:"jg",comValor:true, triggerRelampago:true, ativo:true,obrigatorio:false},
+      {id:"quina",    nome:"Quina",     emoji:"🎲",cat:"jg",comValor:true, triggerRelampago:true, ativo:true,obrigatorio:false},
+      {id:"bolao",    nome:"Bolão",     emoji:"🎯",cat:"jg",comValor:true, triggerRelampago:true, ativo:true,obrigatorio:false},
+      {id:"out_jg",   nome:"Outros Jogos",emoji:"🎮",cat:"jg",comValor:false,triggerRelampago:true,ativo:true,obrigatorio:false},
+    ],
+  },
+};
+
+const NOME = "Lotérica Central";
+const C={az:"#003478",az2:"#004fa8",azC:"#e8f0fb",ou:"#f5a800",ou2:"#d97706",ouC:"#fff8e6",vd:"#00a651",vdC:"#e6f9ef",rx:"#7c3aed",rxC:"#f3eeff",rd:"#e5001e",rdC:"#fff0f0",bg:"#f0f4fb",bd:"#dde6f5",tx:"#0d2137",sb:"#5a7a96"};
+
+const uid  = ()=>Math.random().toString(36).slice(2,9);
+const now  = ()=>new Date().toISOString();
+const fD   = d=>new Date(d).toLocaleDateString("pt-BR");
+const fDT  = d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
+const brl  = v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtW = v=>{const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
+const limpo = v=>v.replace(/\D/g,"");
+
+const DB={
+  save:(k,v)=>setTimeout(()=>{try{window.storage?.set(k,JSON.stringify(v),false);}catch(_){}},0),
+  load:async k=>{try{const r=await window.storage?.get(k,false);return r?JSON.parse(r.value):null;}catch(_){return null;}},
+};
+
+function sortear(selecionados,cfg){
+  const campos=cfg.formulario?.campos||[];
+  if(!selecionados.some(id=>campos.find(c=>c.id===id)?.triggerRelampago))return null;
+  const ativos=(cfg.relampagos||[]).filter(r=>r.ativo&&r.prob>0);
+  if(!ativos.length)return null;
+  let acum=0;const roll=Math.random();
+  for(const p of ativos){acum+=p.prob/100;if(roll<acum)return p;}
+  return null;
+}
+
+const N_GERAL=[
+  {id:"ng1",emoji:"🎰",titulo:"Mega-Sena Acumulada!",corpo:"Prêmio estimado em R$ 120 milhões! Aposte agora.",data:"2026-04-15"},
+  {id:"ng2",emoji:"🕐",titulo:"Horário de Funcionamento",corpo:"Seg–Sex: 09h às 17h\nSábado: 09h às 13h\nDomingo: Fechado",data:"2026-04-01"},
+];
+const N_VIP=[
+  {id:"nv1",emoji:"🌟",titulo:"Sorteio VIP — Exclusivo Premiados",corpo:"Você foi selecionado para o Sorteio VIP de Maio! Prêmio: R$ 500 em Raspadinhas. Resultado dia 31/05."},
+  {id:"nv2",emoji:"🎁",titulo:"Bônus para clientes premiados",corpo:"Mencione que é premiado na próxima visita e ganhe desconto em Bolões. Válido até 30/04."},
+];
+
+const CSS=`
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:#f0f4fb;font-family:'Nunito',sans-serif;}
+@keyframes up  {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop {from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes dt  {0%,100%{opacity:.25;transform:scale(.65)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes sp  {to{transform:rotate(360deg)}}
+@keyframes glw {0%,100%{box-shadow:0 0 8px rgba(245,168,0,.4)}50%{box-shadow:0 0 24px rgba(245,168,0,.8)}}
+@keyframes priz{0%{transform:scale(0)rotate(-12deg);opacity:0}75%{transform:scale(1.08)rotate(2deg)}100%{transform:scale(1)rotate(0);opacity:1}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes starPop{0%{transform:scale(0)}70%{transform:scale(1.3)}100%{transform:scale(1)}}
+`;
+
+/* ══════════════════════ APP ROOT ══════════════════════ */
+export default function App(){
+  const[tela,   setTela]   = useState("splash");
+  const[cli,    setCli_]   = useState(null);
+  const[clients,setCl_]    = useState([]);
+  const[premios,setPr_]    = useState([]);
+  const[ops,    setOps_]   = useState([]);
+  const[cfg,    setCfg_]   = useState(CFG0);
+  const[opQR,   setOpQR]   = useState(null);
+  const[relamp, setRelamp] = useState(null);
+  const setCl = d=>{setCl_(d);DB.save("lc-cl",d);};
+  const setPr = d=>{setPr_(d);DB.save("lc-pr",d);};
+  const cliAtual = cli?(clients.find(c=>c.id===cli.id)||cli):null;
+
+  useEffect(()=>{(async()=>{
+    try{
+      const[cl,pr,op,cf]=await Promise.all([DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-ops"),DB.load("lc-cfg")]);
+      if(Array.isArray(cl))setCl_(cl);
+      if(Array.isArray(pr))setPr_(pr);
+      if(Array.isArray(op))setOps_(op);
+      if(cf)setCfg_({...CFG0,...cf,
+        relampagos:cf.relampagos||CFG0.relampagos,
+        premioMeta:cf.premioMeta||CFG0.premioMeta,
+        noticias:cf.noticias||CFG0.noticias,
+        formulario:{cats:cf.formulario?.cats||CFG0.formulario.cats,campos:cf.formulario?.campos||CFG0.formulario.campos},
+      });
+    }catch(_){}
+    // Detectar ?op= (QR do operador) ou ?promo (QR da promoção)
+    try{
+      const params=new URLSearchParams(window.location.search);
+      const opId=params.get("op");
+      const promo=params.get("promo");
+      if(opId){
+        const opsArr=await DB.load("lc-ops");
+        const found=Array.isArray(opsArr)?opsArr.find(o=>o.id===opId):null;
+        setOpQR({id:opId,nome:found?.nome||"Operador"});
+      }
+      if(promo==="1"||promo==="true"){
+        setTela("regulamento");return;
+      }
+    }catch(_){}
+    setTimeout(()=>setTela("boas_vindas"),1500);
+  })();},[]);
+
+  const ctx={tela,setTela,cliente:cliAtual,setCli:setCli_,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,relamp,setRelamp};
+
+  return(<><style>{CSS}</style>
+    <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:480,margin:"0 auto",fontSize:13,color:C.tx,position:"relative"}}>
+      {tela==="splash"      && <Splash/>}
+      {tela==="boas_vindas" && <BoasVindas {...ctx}/>}
+      {tela==="regulamento" && <Regulamento {...ctx}/>}
+      {tela==="cadastro"    && <Cadastro {...ctx}/>}
+      {tela==="login"       && <Login {...ctx}/>}
+      {tela==="painel"      && <Painel {...ctx}/>}
+      {relamp && <PremioOvl relamp={relamp} setRelamp={setRelamp} cli={cliAtual} wts={cfg.wts||CFG0.wts}/>}
+    </div>
+  </>);
+}
+
+/* ══════════════════════ SPLASH ══════════════════════ */
+function Splash(){return(
+  <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},${C.az2})`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
+    <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",background:C.ou,opacity:.07}}/>
+    <div style={{textAlign:"center",animation:"pop .5s ease",zIndex:1}}>
+      <div style={{fontSize:72,marginBottom:12,filter:"drop-shadow(0 6px 20px rgba(245,168,0,.5))"}}>🏆</div>
+      <div style={{fontWeight:900,fontSize:28,color:"#fff"}}>{NOME}</div>
+      <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:6,letterSpacing:3,textTransform:"uppercase"}}>Cliente Fidelizado Premiado</div>
+      <div style={{display:"flex",gap:9,justifyContent:"center",marginTop:28}}>
+        {[0,1,2].map(i=><div key={i} style={{width:10,height:10,borderRadius:"50%",background:C.ou,animation:`dt 1.1s ${i*.22}s infinite`}}/>)}
+      </div>
+    </div>
+  </div>
+);}
+
+/* ══════════════════════ BOAS-VINDAS ══════════════════════ */
+function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
+  // Verificar se ?op= presente → ir para login direto
+  useEffect(()=>{
+    const params=new URLSearchParams(window.location.search);
+    const opId=params.get("op");
+    if(opId){
+      (async()=>{
+        const opsArr=await DB.load("lc-ops");
+        const found=Array.isArray(opsArr)?opsArr.find(o=>o.id===opId):null;
+        setOpQR({id:opId,nome:found?.nome||"Operador"});
+        setTela("login");
+      })();
+    }
+  },[]);
+
+  return(
+    <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},${C.az2})`,display:"flex",flexDirection:"column"}}>
+      {/* Hero */}
+      <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,borderRadius:"50%",background:C.ou,opacity:.08}}/>
+        <div style={{position:"absolute",bottom:-40,left:-40,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.05}}/>
+        <div style={{fontSize:76,marginBottom:16,animation:"pop .6s",filter:"drop-shadow(0 8px 24px rgba(245,168,0,.5))"}}>🏆</div>
+        <div style={{fontWeight:900,fontSize:30,color:"#fff",lineHeight:1.1,marginBottom:10}}>{NOME}</div>
+        <div style={{fontWeight:700,fontSize:12,color:C.ou,letterSpacing:3,textTransform:"uppercase",marginBottom:22}}>Cliente Fidelizado Premiado</div>
+        <div style={{fontSize:14,color:"rgba(255,255,255,.8)",lineHeight:1.8,maxWidth:340,marginBottom:32}}>
+          Acumule visitas, ganhe <strong style={{color:C.ou}}>Super Prêmio</strong> e concorra a <strong style={{color:C.ou}}>Prêmios Relâmpago</strong> toda vez que visitar a nossa Lotérica!
+        </div>
+        {/* chips */}
+        <div style={{display:"flex",gap:9,flexWrap:"wrap",justifyContent:"center",marginBottom:36}}>
+          {[["🎟️",`Prêmio a cada ${cfg.meta} visitas`],["⚡","Prêmios Relâmpago"],["📱","App 100% digital"]].map(([em,t])=>(
+            <div key={t} style={{background:"rgba(255,255,255,.12)",borderRadius:24,padding:"6px 14px",fontSize:11,fontWeight:700,color:"#fff",display:"flex",gap:6,alignItems:"center",border:"1px solid rgba(255,255,255,.18)"}}>
+              <span>{em}</span><span style={{color:"rgba(255,255,255,.85)"}}>{t}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      {/* Botões */}
+      <div style={{background:"#fff",borderRadius:"28px 28px 0 0",padding:"28px 22px 40px"}}>
+        <button onClick={()=>setTela("regulamento")}
+          style={{width:"100%",padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:17,cursor:"pointer",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,boxShadow:`0 4px 20px ${C.ou}55`,marginBottom:12}}>
+          📋 Ler Regulamento e Cadastrar
+        </button>
+        <button onClick={()=>setTela("login")}
+          style={{width:"100%",padding:14,borderRadius:14,border:`1.5px solid ${C.bd}`,fontFamily:"inherit",fontWeight:800,fontSize:15,cursor:"pointer",background:"#fff",color:C.az}}>
+          Já tenho cadastro — Entrar →
+        </button>
+        <div style={{textAlign:"center",marginTop:18,fontSize:11,color:C.sb,lineHeight:1.7}}>
+          Ao continuar você aceita os termos da promoção.<br/>Dados protegidos pela LGPD.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════ REGULAMENTO ══════════════════════ */
+function Regulamento({setTela,cfg}){
+  const [lido,setLido]=useState(false);
+  const txt=(cfg.regulamento||CFG0.regulamento)
+    .replace("{meta}",cfg.meta)
+    .replace("{premioNome}",cfg.premioMeta.nome);
+
+  function onScroll(e){
+    const el=e.target;
+    if(el.scrollTop+el.clientHeight>=el.scrollHeight-20) setLido(true);
+  }
+
+  return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
+      {/* Header */}
+      <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"22px 20px 24px",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-40,right:-40,width:150,height:150,borderRadius:"50%",background:C.ou,opacity:.08}}/>
+        <button onClick={()=>setTela("boas_vindas")} style={BV}>← Voltar</button>
+        <div style={{marginTop:12,fontWeight:900,fontSize:20,color:"#fff"}}>📋 Regulamento</div>
+        <div style={{fontSize:11,color:"rgba(255,255,255,.6)",marginTop:3}}>Leia até o final para continuar</div>
+      </div>
+      {/* Texto */}
+      <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",padding:"14px 16px 0"}}>
+        <div onScroll={onScroll}
+          style={{flex:1,overflowY:"auto",background:"#fff",borderRadius:16,padding:"18px 16px",border:`1px solid ${C.bd}`,maxHeight:"calc(100vh - 240px)"}}>
+          <pre style={{fontSize:12,color:C.tx,lineHeight:2,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{txt}</pre>
+          {/* Marca de fim */}
+          <div style={{marginTop:20,textAlign:"center",padding:"12px",background:C.vdC,borderRadius:12,border:`1px solid ${C.vd}44`,fontSize:11,color:C.vd,fontWeight:700}}>
+            ✅ Você chegou ao final do regulamento!
+          </div>
+        </div>
+        {!lido&&(
+          <div style={{background:C.azC,borderRadius:10,padding:"9px 14px",margin:"10px 0",fontSize:11,color:C.az,fontWeight:700,textAlign:"center",border:`1px solid ${C.bd}`}}>
+            👆 Role até o final para aceitar e continuar
+          </div>
+        )}
+        <button onClick={()=>setTela("cadastro")} disabled={!lido}
+          style={{width:"100%",margin:"10px 0 24px",padding:15,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:16,cursor:lido?"pointer":"not-allowed",background:lido?`linear-gradient(135deg,${C.vd},#059669)`:"#d1d5db",color:lido?"#fff":"#9ca3af",boxShadow:lido?`0 4px 16px ${C.vd}44`:"none",transition:"all .3s"}}>
+          {lido?"✅ Aceito — Fazer meu Cadastro":"Leia o regulamento para continuar"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════ CADASTRO ══════════════════════ */
+function Cadastro({setCli,clients,setCl,setTela,cfg}){
+  const[nome, setNome] =useState("");
+  const[wts,  setWts]  =useState("");
+  const[email,setEmail]=useState("");
+  const[err,  setErr]  =useState("");
+  const num=limpo(wts);
+
+  function cad(){
+    if(!nome.trim()){setErr("Informe seu nome completo.");return;}
+    if(num.length<10){setErr("Informe um WhatsApp válido com DDD.");return;}
+    if(clients.find(c=>c.whats===num)){setErr("Este WhatsApp já está cadastrado. Use a opção de login.");return;}
+    const c={id:uid(),nome:nome.trim(),whats:num,email:email.trim().toLowerCase(),cadastro:now(),auths:[]};
+    setCl([...clients,c]);setCli(c);setTela("painel");
+  }
+
+  return(
+    <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},#5b21b6)`}}>
+      <div style={{padding:"22px 20px 14px"}}>
+        <button onClick={()=>setTela("regulamento")} style={BV}>← Voltar</button>
+        <div style={{marginTop:13,fontWeight:900,fontSize:23,color:"#fff"}}>Cadastro 🎉</div>
+        <div style={{fontSize:12,color:"rgba(255,255,255,.7)",marginTop:4}}>Rápido — nome, WhatsApp e e-mail.</div>
+      </div>
+      <div style={{background:"#fff",borderRadius:"26px 26px 0 0",minHeight:"calc(100vh - 120px)",padding:"26px 22px 40px",animation:"up .35s"}}>
+        {/* Progresso */}
+        <div style={{display:"flex",gap:8,alignItems:"center",marginBottom:24,padding:"12px 14px",background:C.azC,borderRadius:13,border:`1px solid ${C.bd}`}}>
+          {[["✅","Regulamento lido"],["📝","Cadastro"],["📱","Pronto!"]].map(([em,l],i)=>(
+            <div key={l} style={{display:"flex",alignItems:"center",gap:5,flex:1}}>
+              <div style={{width:22,height:22,borderRadius:"50%",background:i===0?C.vd:i===1?C.az:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:i<2?"#fff":C.sb,flexShrink:0}}>{i<2?em:i+1}</div>
+              <div style={{fontSize:9,color:i<2?C.tx:C.sb,fontWeight:i<2?800:600,lineHeight:1.2}}>{l}</div>
+              {i<2&&<div style={{width:12,height:2,background:C.bd,borderRadius:2,flexShrink:0}}/>}
+            </div>
+          ))}
+        </div>
+
+        <Cp label="👤 Nome Completo *" value={nome} onChange={v=>{setNome(v);setErr("");}} placeholder="Como quer ser chamado(a)?" ativo={!!nome}/>
+        <label style={LS}>📱 WhatsApp (com DDD) *</label>
+        <div style={{position:"relative",margin:"5px 0 14px"}}>
+          <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} onKeyDown={e=>e.key==="Enter"&&cad()} placeholder="(00) 00000-0000" type="tel"
+            style={{width:"100%",padding:"14px 46px 14px 16px",fontSize:17,fontWeight:700,fontFamily:"inherit",border:`2px solid ${num.length>=10?C.az:C.bd}`,borderRadius:13,outline:"none",color:C.tx,background:num.length>=10?C.azC:"#fff",transition:"all .2s"}}/>
+          {num.length>=10&&<div style={{position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",fontSize:20}}>✅</div>}
+        </div>
+        <Cp label="📧 E-mail (opcional)" value={email} onChange={setEmail} placeholder="seu@email.com" type="email" sub="Para receber notificações exclusivas"/>
+        {err&&<Alerta msg={err}/>}
+
+        <button onClick={cad}
+          style={{width:"100%",marginTop:8,padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:17,cursor:"pointer",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,boxShadow:`0 4px 20px ${C.ou}55`}}>
+          Criar minha conta e participar 🏆
+        </button>
+        <div style={{textAlign:"center",marginTop:14}}>
+          <button onClick={()=>setTela("login")} style={{background:"none",border:"none",fontSize:12,color:C.sb,cursor:"pointer",fontFamily:"inherit"}}>
+            Já tenho cadastro — Entrar →
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════ LOGIN ══════════════════════ */
+function Login({setCli,clients,setTela,opQR}){
+  const[wts, setWts] =useState("");
+  const[err, setErr] =useState("");
+  const[load,setLoad]=useState(false);
+  const num=limpo(wts);
+
+  function entrar(){
+    if(num.length<10){setErr("Informe um WhatsApp válido com DDD.");return;}
+    setLoad(true);
+    setTimeout(()=>{
+      const f=clients.find(c=>c.whats===num);
+      setLoad(false);
+      if(f){setCli(f);setTela("painel");}
+      else setErr("Número não encontrado. Faça seu cadastro primeiro.");
+    },700);
+  }
+
+  return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
+      <div style={{background:`linear-gradient(150deg,${C.az},${C.az2})`,borderRadius:"0 0 34px 34px",padding:"48px 22px 44px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+        <div style={{position:"absolute",top:-50,right:-50,width:190,height:190,borderRadius:"50%",background:C.ou,opacity:.08}}/>
+        <div style={{fontSize:52,animation:"pop .5s",marginBottom:10}}>🏆</div>
+        <div style={{fontWeight:900,fontSize:22,color:"#fff"}}>{NOME}</div>
+        <div style={{fontWeight:700,fontSize:10,color:C.ou,marginTop:5,letterSpacing:3,textTransform:"uppercase"}}>Área do Cliente</div>
+        {opQR&&<div style={{marginTop:13,background:"rgba(0,166,81,.22)",borderRadius:12,padding:"10px 14px",border:"1px solid rgba(0,166,81,.45)"}}><div style={{fontWeight:800,fontSize:12,color:"#fff"}}>✅ QR do Operador detectado!</div><div style={{fontSize:11,color:"rgba(255,255,255,.8)",marginTop:2}}>Operador: <strong>{opQR.nome}</strong> — faça login para registrar.</div></div>}
+      </div>
+      <div style={{flex:1,padding:"26px 20px"}}>
+        <div style={{background:"#fff",borderRadius:22,padding:24,boxShadow:"0 8px 36px rgba(0,52,120,.1)",animation:"up .4s"}}>
+          <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:5}}>Bem-vindo(a) de volta! 👋</div>
+          <div style={{fontSize:13,color:C.sb,marginBottom:22,lineHeight:1.6}}>Informe seu <strong>WhatsApp</strong> para entrar.</div>
+          <label style={LS}>📱 WhatsApp (com DDD)</label>
+          <div style={{position:"relative",margin:"5px 0 8px"}}>
+            <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} onKeyDown={e=>e.key==="Enter"&&entrar()} placeholder="(00) 00000-0000" type="tel" autoFocus
+              style={{width:"100%",padding:"15px 48px 15px 18px",fontSize:18,fontWeight:700,fontFamily:"inherit",border:`2.5px solid ${num.length>=10?C.az:C.bd}`,borderRadius:14,outline:"none",color:C.tx,background:num.length>=10?C.azC:"#fff",transition:"all .2s"}}/>
+            {num.length>=10&&<div style={{position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",fontSize:21}}>✅</div>}
+          </div>
+          {err&&<Alerta msg={err}/>}
+          <button onClick={entrar} disabled={load}
+            style={{width:"100%",marginTop:16,padding:15,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:16,cursor:load?"not-allowed":"pointer",background:load?"#e2e8f0":`linear-gradient(135deg,${C.az},${C.az2})`,color:load?"#9ca3af":"#fff",boxShadow:load?"none":`0 5px 18px ${C.az}44`,transition:"all .3s"}}>
+            {load?<Sp label="Verificando…"/>:(opQR?"Entrar e Registrar →":"Entrar →")}
+          </button>
+          <button onClick={()=>setTela("regulamento")}
+            style={{width:"100%",marginTop:12,padding:13,borderRadius:12,background:"#fff",color:C.az,border:`1.5px solid ${C.az}33`,fontFamily:"inherit",fontWeight:800,fontSize:14,cursor:"pointer"}}>
+            Não tenho cadastro — Cadastrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════ PAINEL ══════════════════════ */
+function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRelamp,setCli,setTela}){
+  const[aba,setAba]=useState(()=>opQR?"reg":"ini");
+  useEffect(()=>{if(opQR)setAba("reg");},[opQR]);
+
+  const ABAS=[{id:"ini",l:"Início",em:"🏠"},{id:"reg",l:"Registrar",em:"📱"},{id:"pr",l:"Prêmios",em:"🎁"},{id:"not",l:"Notícias",em:"📰"},{id:"ct",l:"Conta",em:"👤"}];
+  const c=cliente;if(!c)return null;
+  const tot=c.auths?.length||0;const prog=tot%cfg.meta;const raspa=Math.floor(tot/cfg.meta);const falt=cfg.meta-prog;const pct=Math.round((prog/cfg.meta)*100);
+  const meusPr=premios.filter(p=>p.clientId===c.id);const temPr=meusPr.length>0;
+  const notsAll  = cfg.noticias||CFG0.noticias||[];
+  const notsGeral= notsAll.filter(n=>n.tipo==="geral"&&n.ativo!==false);
+  const notsVip  = notsAll.filter(n=>n.tipo==="vip"&&n.ativo!==false);
+  const noticias=[...(temPr?notsVip:[]),...notsGeral];const nBadge=temPr?notsVip.length:0;
+
+  return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
+    {/* HEADER */}
+    <div style={{background:`linear-gradient(150deg,${C.az},${C.az2})`,padding:"22px 20px 26px",position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:C.ou,opacity:.07}}/>
+      <div style={{fontSize:11,color:"rgba(255,255,255,.5)",fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,marginBottom:3}}>{NOME}</div>
+      <div style={{fontWeight:900,fontSize:22,color:"#fff",marginBottom:1}}>Olá, {c.nome?.split(" ")[0]}! 👋</div>
+      <div style={{fontSize:11,color:"rgba(255,255,255,.45)"}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
+      <div style={{marginTop:16,background:"rgba(255,255,255,.12)",borderRadius:20,padding:"15px 17px",border:"1px solid rgba(255,255,255,.18)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+          <div><div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:700,textTransform:"uppercase",letterSpacing:.8}}>Próximo Prêmio</div><div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>Faltam <span style={{color:C.ou,fontSize:24}}>{falt}</span> {falt===1?"visita":"visitas"}</div></div>
+          <div style={{textAlign:"right"}}><div style={{fontSize:10,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.8}}>Ganhos</div><div style={{fontWeight:900,fontSize:26,color:C.ou,lineHeight:1.1}}>{cfg.premioMeta.emoji} {raspa}</div></div>
+        </div>
+        <div style={{background:"rgba(0,0,0,.3)",borderRadius:8,height:9,overflow:"hidden",marginBottom:6}}><div style={{height:"100%",borderRadius:8,background:`linear-gradient(90deg,${C.ou},#ffca28)`,width:`${pct}%`,transition:"width .7s"}}/></div>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,.5)"}}><span style={{color:C.ou,fontWeight:700}}>{prog}/{cfg.meta}</span><span>Total: {tot}</span></div>
+        <div style={{display:"flex",gap:4,marginTop:12,flexWrap:"wrap"}}>
+          {Array.from({length:cfg.meta}).map((_,i)=><div key={i} style={{width:15,height:15,borderRadius:"50%",background:i<prog?C.ou:"rgba(255,255,255,.15)",border:`1.5px solid ${i<prog?C.ou:"rgba(255,255,255,.25)"}`,boxShadow:i<prog?`0 0 5px ${C.ou}99`:"none",transition:"all .2s"}}/>)}
+        </div>
+      </div>
+    </div>
+    {/* CONTEÚDO */}
+    <div style={{flex:1,padding:"14px 14px 82px"}}>
+      {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba}/>}
+      {aba==="reg"&&<FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba}/>}
+      {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts}/>}
+      {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
+      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela}/>}
+    </div>
+    {/* NAV */}
+    <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:100}}>
+      {ABAS.map(a=>{const badge=a.id==="not"&&temPr&&nBadge>0;const isReg=a.id==="reg";return(
+        <button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"9px 3px 11px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?C.azC:"#fff",borderTop:`2.5px solid ${aba===a.id?C.az:"transparent"}`,transition:"all .2s",position:"relative"}}>
+          {badge&&<div style={{position:"absolute",top:6,right:"50%",transform:"translateX(10px)",width:16,height:16,borderRadius:"50%",background:C.rd,color:"#fff",fontSize:9,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>{nBadge}</div>}
+          <div style={{fontSize:18,marginBottom:2}}>{isReg?<span style={{display:"inline-flex",width:34,height:34,borderRadius:"50%",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,alignItems:"center",justifyContent:"center",fontSize:17,boxShadow:`0 2px 10px ${C.ou}55`,animation:opQR?"glw 1.5s infinite":"none"}}>{a.em}</span>:a.em}</div>
+          <div style={{fontSize:9,fontWeight:aba===a.id?800:600,color:aba===a.id?C.az:C.sb,lineHeight:1}}>{a.l}</div>
+        </button>
+      );})}
+    </nav>
+  </div>);}
+
+/* ══════════════════════ INÍCIO ══════════════════════ */
+function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
+  const tot=c.auths?.length||0;const raspa=Math.floor(tot/cfg.meta);const prog=tot%cfg.meta;
+  return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+    <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.ou}44`}}>
+      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8}}>Operador gerou seu QR?</div><div style={{fontSize:18,fontWeight:900}}>📱 Registrar Autenticação</div></div>
+      <span style={{fontSize:38}}>🏪</span>
+    </button>
+    {temPr&&nBadge>0&&<div onClick={()=>setAba("not")} style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:16,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
+      <div style={{width:40,height:40,borderRadius:12,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🌟</div>
+      <div style={{flex:1}}><div style={{fontWeight:800,fontSize:13,color:"#fff"}}>Notícias exclusivas!</div><div style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:2}}>{nBadge} especial{nBadge>1?"is":""} para clientes premiados</div></div>
+      <div style={{background:C.ou,color:C.az,fontWeight:900,fontSize:12,width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{nBadge}</div>
+    </div>}
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
+      {[["🎯","Atendimentos",tot,C.az],[cfg.premioMeta.emoji,"Prêmios",raspa,C.ou2],["⚡","Relâmpagos",meusPr.filter(p=>p.tipo==="relampago").length,C.rx],["📅","Esta rodada",prog,C.vd]].map(([em,t,v,cor])=>(
+        <div key={t} style={{background:"#fff",borderRadius:14,padding:"12px",border:`1px solid ${C.bd}`}}><div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:26,color:cor,lineHeight:1}}>{v}</div><div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div></div>
+      ))}
+    </div>
+    {tot>0&&<div style={{background:"#fff",borderRadius:14,overflow:"hidden",border:`1px solid ${C.bd}`}}>
+      <div style={{padding:"11px 14px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Últimas Visitas</div>
+      {[...c.auths].reverse().slice(0,4).map((a,i)=><div key={a.id} style={{padding:"10px 14px",borderBottom:i<3?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:32,height:32,borderRadius:9,background:i===0?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>🏪</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"}{(a.emojis||[]).length>0&&" · "+(a.emojis||[]).slice(0,5).join(" ")}</div>
+          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}{a.nota?` · ⭐${a.nota}/10`:""}</div>
+        </div>
+        <div style={{fontWeight:900,fontSize:12,color:C.az}}>{c.auths.length-i}ª</div>
+      </div>)}
+    </div>}
+  </div>);}
+
+/* ══════════════════════════════════════════
+   FORMULÁRIO DE AUTENTICAÇÃO — COMPLETO
+   QR obrigatório · Campos dinâmicos · Avaliação
+══════════════════════════════════════════ */
+function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,setAba}){
+  const[step,  setStep]   = useState(opQR?"form":"qr");
+  const[codM,  setCodM]   = useState("");
+  const[errQR, setErrQR]  = useState("");
+  const[sel,   setSel]    = useState({});
+  const[obs,   setObs]    = useState("");
+  const[nota,  setNota]   = useState(0);
+  const[opLoc, setOpLoc]  = useState(opQR||null);
+  const[errF,  setErrF]   = useState("");
+  const[novoProg,setNP]   = useState(null);
+
+  const form    = cfg.formulario||CFG0.formulario;
+  const cats    = form.cats||[];
+  const campos  = (form.campos||[]).filter(f=>f.ativo);
+  const sels    = Object.keys(sel).filter(k=>sel[k]!==false&&sel[k]!=="");
+  const total   = Object.values(sel).reduce((s,v)=>s+(typeof v==="string"?(parseFloat(v)||0):0),0);
+  const temTrig = sels.some(id=>campos.find(f=>f.id===id)?.triggerRelampago);
+  const obrigF  = campos.filter(f=>f.obrigatorio&&!sels.includes(f.id));
+  const trigF   = campos.filter(f=>f.triggerRelampago&&f.ativo);
+
+  function toggle(id){setSel(p=>{const n={...p};if(n[id]!==undefined&&n[id]!==false){delete n[id];}else{n[id]=true;}return n;});setErrF("");}
+  function setVal(id,v){setSel(p=>({...p,[id]:v}));}
+
+  const[validando,setValidando]=useState(false);
+
+  async function validarCod(){
+    const cod=codM.trim();
+    if(!cod){setErrQR("Informe o código do operador.");return;}
+    setValidando(true);setErrQR("");
+    // Tenta recarregar ops do storage (garante dados frescos)
+    let opsAtual=ops;
+    try{const fresh=await DB.load("lc-ops");if(Array.isArray(fresh)&&fresh.length>0)opsAtual=fresh;}catch(_){}
+    // Busca por ID exato ou nome (case-insensitive)
+    const op=opsAtual.find(o=>
+      o.id===cod||
+      o.id.toLowerCase()===cod.toLowerCase()||
+      o.nome.toLowerCase()===cod.toLowerCase()||
+      o.nome.toLowerCase().includes(cod.toLowerCase())
+    );
+    setValidando(false);
+    if(op){
+      setOpLoc({id:op.id,nome:op.nome});
+      setOpQR({id:op.id,nome:op.nome});
+    } else if(opsAtual.length===0){
+      // Apps separados / storage não compartilhado — aceita qualquer código
+      setOpLoc({id:cod,nome:cod});
+      setOpQR({id:cod,nome:cod});
+    } else {
+      setErrQR(`Operador "${cod}" não encontrado. Verifique o código com o operador de caixa.`);
+      return;
+    }
+    setStep("form");
+  }
+
+  function gravar(){
+    if(obrigF.length>0){setErrF(`Obrigatório: ${obrigF.map(f=>f.nome).join(", ")}`);return;}
+    if(nota===0){setErrF("Avalie o atendimento de 1 a 10 para continuar.");return;}
+    setErrF("");setStep("loading");
+    setTimeout(()=>{
+      const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
+      const auth={id:uid(),data:now(),opId:opLoc?.id||"",opNome:opLoc?.nome||"",selecionados:sels,emojis,total,obs,nota};
+      const auths=[...(c.auths||[]),auth];const ganhou=auths.length%cfg.meta===0;
+      const pr=sortear(sels,cfg);const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
+      const novPr=[...premios];
+      if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
+      if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
+      setPr(novPr);setNP({total:auths.length,ganhouMeta:ganhou,premioRl:pr});
+      if(pr)setTimeout(()=>setRelamp({...pr,ganhou}),1000);setStep("ok");
+    },1400);
+  }
+
+  /* LOADING */
+  if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
+    <div style={{width:58,height:58,borderRadius:"50%",border:`4px solid ${C.az}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
+    <div style={{fontWeight:800,fontSize:16,color:C.az}}>Registrando autenticação…</div>
+    <div style={{fontSize:12,color:C.sb}}>Verificando prêmios relâmpago ⚡</div>
+  </div>);
+
+  /* SUCESSO */
+  if(step==="ok"){
+    const novoTot=novoProg?.total||0;const novoPr_=novoTot%cfg.meta;const novoR=Math.floor(novoTot/cfg.meta);
+    const novoPct=Math.round((novoPr_/cfg.meta)*100);const gM=novoProg?.ganhouMeta;const pRl=novoProg?.premioRl;
+    return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"20px 0",animation:"fadeUp .5s ease"}}>
+      <div style={{fontSize:72,animation:"pop .6s",lineHeight:1}}>✅</div>
+      <div style={{fontWeight:900,fontSize:24,color:C.vd,textAlign:"center"}}>Autenticação Registrada!</div>
+      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,textAlign:"center"}}>{opLoc?.nome&&<><strong style={{color:C.tx}}>Operador:</strong> {opLoc.nome}<br/></>}Visita computada com sucesso.</div>
+      {/* progresso atualizado */}
+      <div style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:20,padding:"18px"}}>
+        <div style={{display:"flex",justifyContent:"space-between",marginBottom:13}}>
+          <div><div style={{fontSize:10,color:"rgba(255,255,255,.55)",fontWeight:700,textTransform:"uppercase"}}>Progresso</div><div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>{gM?<><span style={{color:C.ou,fontSize:22}}>{cfg.premioMeta.emoji}</span> Você ganhou!</>:<>Faltam <span style={{color:C.ou,fontSize:22}}>{cfg.meta-novoPr_}</span> visitas</>}</div></div>
+          <div style={{textAlign:"right"}}><div style={{fontSize:10,color:"rgba(255,255,255,.55)",textTransform:"uppercase"}}>Ganhos</div><div style={{fontWeight:900,fontSize:24,color:C.ou}}>{cfg.premioMeta.emoji} {novoR}</div></div>
+        </div>
+        <div style={{background:"rgba(0,0,0,.3)",borderRadius:8,height:10,overflow:"hidden",marginBottom:6}}><div style={{height:"100%",borderRadius:8,background:`linear-gradient(90deg,${C.ou},#ffca28)`,width:gM?"100%":`${novoPct}%`,transition:"width .8s ease"}}/></div>
+        <div style={{display:"flex",gap:4,flexWrap:"wrap",marginTop:10}}>
+          {Array.from({length:cfg.meta}).map((_,i)=><div key={i} style={{width:16,height:16,borderRadius:"50%",background:i<novoPr_?C.ou:gM?"rgba(0,166,81,.5)":"rgba(255,255,255,.15)",border:`1.5px solid ${i<novoPr_?C.ou:gM?C.vd:"rgba(255,255,255,.25)"}`,boxShadow:i<novoPr_?`0 0 6px ${C.ou}99`:"none",transition:"all .3s",transitionDelay:`${i*25}ms`}}/>)}
+        </div>
+      </div>
+      {/* nota dada */}
+      <div style={{width:"100%",background:"#fff",borderRadius:14,padding:"13px 14px",border:`1px solid ${C.bd}`,display:"flex",gap:10,alignItems:"center"}}>
+        <div style={{fontSize:28}}>⭐</div>
+        <div><div style={{fontWeight:800,fontSize:13,color:C.tx}}>Sua avaliação: {nota}/10</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>{nota>=9?"Excelente! Muito obrigado!":nota>=7?"Ótimo! Obrigado pelo feedback.":nota>=5?"Agradecemos a avaliação.":"Obrigado. Vamos melhorar!"}</div></div>
+      </div>
+      {gM&&<div style={{width:"100%",background:`linear-gradient(135deg,${C.vd},#059669)`,borderRadius:18,padding:"18px",textAlign:"center",animation:"pop .5s"}}><div style={{fontSize:48,marginBottom:6}}>{cfg.premioMeta.emoji}</div><div style={{fontWeight:900,fontSize:20,color:"#fff",marginBottom:6}}>Parabéns! Prêmio Conquistado!</div><div style={{fontSize:12,color:"rgba(255,255,255,.85)",lineHeight:1.7}}>{cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}</div></div>}
+      {pRl&&<div style={{width:"100%",background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:18,padding:"16px",textAlign:"center"}}><div style={{fontSize:40,marginBottom:6}}>{pRl.emoji}</div><div style={{fontWeight:800,fontSize:11,textTransform:"uppercase",letterSpacing:2,color:"rgba(255,255,255,.7)",marginBottom:5}}>⚡ Prêmio Relâmpago!</div><div style={{fontWeight:900,fontSize:18,color:"#fff",marginBottom:6}}>{pRl.nome}</div><div style={{fontSize:12,color:"rgba(255,255,255,.8)",lineHeight:1.6}}>{pRl.desc}</div></div>}
+      <a href={`https://wa.me/${cfg.wts||CFG0.wts}?text=${encodeURIComponent(`Olá! Sou *${c.nome}* e registrei minha visita na ${NOME}.${gM?` 🎉 ${cfg.premioMeta.emoji} ${cfg.premioMeta.nome}!`:""}${pRl?` ⚡ ${pRl.nome}!`:""}`)}`} target="_blank" rel="noreferrer"
+        style={{display:"block",width:"100%",background:"#25D366",color:"#fff",borderRadius:14,padding:"14px",fontWeight:800,fontSize:15,textDecoration:"none",textAlign:"center",boxShadow:"0 4px 16px rgba(37,211,102,.4)"}}>
+        📲 Avisar a Lotérica via WhatsApp
+      </a>
+      <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:14,padding:14,fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>Ver meu progresso</button>
+    </div>);}
+
+  /* QR GATE */
+  if(step==="qr")return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
+    <Tit em="📱" t="Registrar Autenticação" s="O operador precisa liberar o QR Code"/>
+    <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:18,padding:"22px 18px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:-30,right:-30,width:110,height:110,borderRadius:"50%",background:C.ou,opacity:.08}}/>
+      <div style={{fontSize:52,marginBottom:10}}>📷</div>
+      <div style={{fontWeight:900,fontSize:17,color:"#fff",marginBottom:11}}>Peça ao operador o QR Code</div>
+      {[["1️⃣","Conclua seus serviços no caixa"],["2️⃣","Peça ao operador para abrir o QR"],["3️⃣","Aponte a câmera do celular para o QR"],["4️⃣","O formulário abrirá automaticamente aqui"]].map(([n,t])=>(
+        <div key={n} style={{display:"flex",gap:9,alignItems:"center",textAlign:"left",marginBottom:8}}>
+          <span style={{fontSize:16,flexShrink:0}}>{n}</span>
+          <span style={{fontSize:12,color:"rgba(255,255,255,.8)",lineHeight:1.4}}>{t}</span>
+        </div>
+      ))}
+    </div>
+    <div style={{background:"#f9fafb",borderRadius:14,padding:"14px",border:`1px dashed ${C.bd}`}}>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Alternativa: código manual</div>
+      <div style={{display:"flex",gap:7}}>
+        <input value={codM} onChange={e=>{setCodM(e.target.value);setErrQR("");}} onKeyDown={e=>e.key==="Enter"&&validarCod()} placeholder="Código do operador…" style={{flex:1,padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"}}/>
+        <button onClick={validarCod} disabled={validando}
+          style={{background:validando?"#9ca3af":C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:validando?"not-allowed":"pointer",fontFamily:"inherit",minWidth:52}}>
+          {validando?"…":"OK"}
+        </button>
+      </div>
+      {errQR&&<div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {errQR}</div>}
+    </div>
+    <button onClick={()=>setAba("ini")} style={{background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Voltar ao Início</button>
+  </div>);
+
+  /* ════════ FORMULÁRIO ════════ */
+  return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
+
+    {/* Operador validado */}
+    <div style={{background:C.vdC,borderRadius:14,padding:"13px 15px",border:`1.5px solid ${C.vd}44`,display:"flex",gap:11,alignItems:"center"}}>
+      <div style={{width:42,height:42,borderRadius:12,background:C.vd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>✅</div>
+      <div style={{flex:1}}><div style={{fontWeight:800,fontSize:12,color:C.vd}}>QR Code validado!</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>Operador: {opLoc?.nome||"—"}</div></div>
+      <button onClick={()=>{setOpLoc(null);setOpQR(null);setStep("qr");}} style={{background:"none",border:`1px solid ${C.vd}44`,borderRadius:8,padding:"5px 10px",fontSize:11,color:C.vd,cursor:"pointer",fontFamily:"inherit"}}>Trocar</button>
+    </div>
+
+    {/* Instrução */}
+    <div style={{background:"#fff",borderRadius:14,padding:"13px 14px",border:`1px solid ${C.bd}`}}>
+      <div style={{display:"flex",gap:11,alignItems:"flex-start"}}>
+        <div style={{width:38,height:38,borderRadius:11,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>🛍️</div>
+        <div><div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:3}}>O que você fez hoje?</div><div style={{fontSize:11,color:C.sb,lineHeight:1.6}}>Selecione os produtos utilizados (opcional) e avalie o atendimento.</div></div>
+      </div>
+    </div>
+
+    {/* CAMPOS DINÂMICOS */}
+    <div style={{background:"#fff",borderRadius:16,padding:"15px 14px",border:`1px solid ${C.bd}`}}>
+      {cats.map((cat,ci)=>{
+        const cc=campos.filter(f=>f.cat===cat.id);if(cc.length===0)return null;
+        return(<div key={cat.id} style={{marginBottom:ci<cats.length-1?16:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:9}}>
+            <div style={{width:3,height:15,borderRadius:4,background:cat.cor,flexShrink:0}}/>
+            <div style={{fontWeight:800,fontSize:11,color:cat.cor,textTransform:"uppercase",letterSpacing:.5}}>{cat.nome}</div>
+            {cc.some(f=>f.triggerRelampago)&&<div style={{fontSize:9,color:C.rx,fontWeight:700,background:C.rxC,padding:"1px 7px",borderRadius:20,border:`1px solid ${C.rx}22`}}>⚡ Relâmpago</div>}
+            <div style={{fontSize:9,color:C.sb,marginLeft:"auto"}}>(opcional)</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+            {cc.map(f=>{const on=f.id in sel&&sel[f.id]!==false&&sel[f.id]!=="";return(
+              <div key={f.id} style={{display:"flex",flexDirection:"column",gap:4}}>
+                <button onClick={()=>toggle(f.id)} style={{display:"flex",alignItems:"center",gap:7,padding:"10px 10px",borderRadius:12,border:`2px solid ${on?cat.cor:C.bd}`,background:on?`${cat.cor}10`:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .18s",width:"100%"}}>
+                  <span style={{fontSize:17,flexShrink:0}}>{f.emoji}</span>
+                  <span style={{fontSize:11,fontWeight:700,color:on?cat.cor:C.tx,flex:1,textAlign:"left",lineHeight:1.2}}>{f.nome}</span>
+                  <span style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
+                    {f.triggerRelampago&&<span style={{fontSize:10}}>⚡</span>}
+                    {f.obrigatorio&&<span style={{width:6,height:6,borderRadius:"50%",background:C.rd,display:"block"}}/>}
+                    {on&&<div style={{width:17,height:17,borderRadius:"50%",background:cat.cor,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:"#fff",fontSize:10,fontWeight:900}}>✓</span></div>}
+                  </span>
+                </button>
+                {on&&f.comValor&&<div style={{position:"relative",animation:"up .15s"}}>
+                  <span style={{position:"absolute",left:9,top:"50%",transform:"translateY(-50%)",fontSize:11,color:C.sb,fontWeight:600,pointerEvents:"none"}}>R$</span>
+                  <input value={typeof sel[f.id]==="string"?sel[f.id]:""} onChange={e=>setVal(f.id,e.target.value)} type="number" min="0" step="0.01" placeholder="0,00" autoFocus
+                    style={{width:"100%",paddingLeft:26,paddingRight:8,paddingTop:8,paddingBottom:8,border:`1.5px solid ${cat.cor}66`,borderRadius:9,fontSize:13,fontFamily:"inherit",outline:"none",fontWeight:700,color:C.tx,background:"#fff"}}/>
+                </div>}
+              </div>
+            );})}
+          </div>
+        </div>);
+      })}
+    </div>
+
+    {/* ══ AVALIAÇÃO DO ATENDIMENTO 1-10 ══ */}
+    <div style={{background:"#fff",borderRadius:16,padding:"16px 14px",border:`1.5px solid ${nota>0?C.ou+88:C.bd}`}}>
+      <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:14}}>
+        <div style={{width:38,height:38,borderRadius:11,background:C.ouC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>⭐</div>
+        <div>
+          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Avaliação do Atendimento *</div>
+          <div style={{fontSize:11,color:C.sb,marginTop:2}}>De 1 (péssimo) a 10 (excelente)</div>
+        </div>
+        {nota>0&&<div style={{marginLeft:"auto",fontWeight:900,fontSize:26,color:nota>=8?C.vd:nota>=5?C.ou2:C.rd}}>{nota}</div>}
+      </div>
+      {/* Botões de 1 a 10 */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:7}}>
+        {[1,2,3,4,5,6,7,8,9,10].map(n=>{
+          const cor=n>=8?C.vd:n>=5?C.ou:C.rd;
+          const on=nota===n;
+          return(
+            <button key={n} onClick={()=>setNota(n)}
+              style={{padding:"12px 0",borderRadius:12,border:`2px solid ${on?cor:C.bd}`,background:on?`${cor}15`:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .18s",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+              <span style={{fontWeight:900,fontSize:16,color:on?cor:C.tx}}>{n}</span>
+              <span style={{fontSize:9,color:on?cor:C.sb}}>{n===1?"😞":n<=3?"😕":n<=5?"😐":n<=7?"🙂":n<=9?"😊":"🤩"}</span>
+            </button>
+          );
+        })}
+      </div>
+      {nota>0&&(
+        <div style={{marginTop:12,padding:"9px 12px",borderRadius:10,background:nota>=8?C.vdC:nota>=5?C.ouC:C.rdC,border:`1px solid ${nota>=8?C.vd:nota>=5?C.ou:C.rd}44`,fontSize:11,fontWeight:700,color:nota>=8?C.vd:nota>=5?C.ou2:C.rd,textAlign:"center"}}>
+          {nota>=9?"🤩 Excelente! Muito obrigado pelo feedback!":nota>=7?"😊 Ótimo! Agradecemos sua avaliação.":nota>=5?"🙂 Obrigado! Continuaremos melhorando.":nota>=3?"😕 Entendemos. Trabalharemos para melhorar.":"😞 Sentimos muito. Sua opinião nos ajuda."}
+        </div>
+      )}
+    </div>
+
+    {/* OBSERVAÇÃO */}
+    <div style={{background:"#fff",borderRadius:14,padding:"13px 14px",border:`1px solid ${C.bd}`}}>
+      <label style={{fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5,display:"block",marginBottom:6}}>💬 Observação (opcional)</label>
+      <textarea value={obs} onChange={e=>setObs(e.target.value)} placeholder="Algum detalhe desta visita…" rows={2}
+        style={{width:"100%",padding:"10px 12px",borderRadius:11,border:`1.5px solid ${C.bd}`,fontSize:12,fontFamily:"inherit",outline:"none",resize:"none",color:C.tx,lineHeight:1.6,background:"#fff"}}/>
+    </div>
+
+    {/* RESUMO */}
+    {sels.length>0&&<div style={{background:C.azC,borderRadius:12,padding:"11px 13px",border:`1px solid ${C.bd}`,fontSize:11,color:C.az,animation:"up .2s"}}>
+      <div style={{marginBottom:total>0?5:0}}><strong>Selecionados:</strong> {sels.map(id=>campos.find(f=>f.id===id)?.emoji||"").join(" ")} ({sels.length})</div>
+      {total>0&&<div><strong>Total:</strong> {brl(total)}</div>}
+      {temTrig&&<div style={{color:C.rx,fontWeight:800,marginTop:5}}>⚡ Você concorre ao Prêmio Relâmpago!</div>}
+    </div>}
+
+    {/* DICA RELÂMPAGO */}
+    {!temTrig&&trigF.length>0&&<div style={{background:C.rxC,borderRadius:12,padding:"11px 13px",border:`1px solid ${C.rx}22`,fontSize:11,color:C.rx,lineHeight:1.6}}>
+      ⚡ Selecione <strong>{trigF.slice(0,2).map(f=>f.nome).join(" ou ")}</strong> para concorrer ao Prêmio Relâmpago!
+    </div>}
+
+    {errF&&<Alerta msg={errF}/>}
+
+    <button onClick={gravar}
+      style={{padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:17,cursor:"pointer",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",boxShadow:`0 4px 18px ${C.vd}44`}}>
+      ✅ Confirmar Autenticação!
+    </button>
+    <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Cancelar</button>
+  </div>);}
+
+/* ══════════════════════ PRÊMIOS ══════════════════════ */
+function Premios({meusPr,c,wts}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+  <Tit em="🎁" t="Meus Prêmios" s="Todos os prêmios conquistados"/>
+  {meusPr.length===0&&<Vz em="🎟️" msg="Nenhum prêmio ainda. Continue acumulando e inclua Jogos para o Relâmpago!"/>}
+  {[...meusPr].reverse().map(p=><div key={p.id} style={{background:"#fff",borderRadius:15,padding:"14px",border:`1.5px solid ${p.tipo==="relampago"?C.ou+"44":C.vd+"44"}`,display:"flex",gap:12,alignItems:"flex-start"}}>
+    <div style={{width:46,height:46,borderRadius:12,flexShrink:0,background:p.tipo==="relampago"?C.ouC:C.vdC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{p.emoji||"🎟️"}</div>
+    <div style={{flex:1}}><div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:4}}><div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div><span style={{background:p.tipo==="relampago"?C.ouC:C.vdC,color:p.tipo==="relampago"?C.ou2:C.vd,fontSize:9,fontWeight:800,padding:"2px 8px",borderRadius:20,whiteSpace:"nowrap"}}>{p.tipo==="relampago"?"⚡ Relâmpago":"🎟️ Meta"}</span></div>
+    <div style={{fontSize:11,color:C.sb,lineHeight:1.6}}>{p.desc}</div><div style={{fontSize:10,color:C.sb,marginTop:5}}>📅 {fDT(p.data)}</div>
+    <a href={`https://wa.me/${wts}?text=${encodeURIComponent(`Olá! Sou *${c.nome}* e ganhei *${p.nome}*. Gostaria de retirar!`)}`} target="_blank" rel="noreferrer" style={{display:"inline-block",marginTop:9,background:"#25D366",color:"#fff",borderRadius:9,padding:"6px 13px",fontSize:11,fontWeight:800,textDecoration:"none"}}>📲 Retirar via WhatsApp</a></div>
+  </div>)}
+</div>);}
+
+/* ══════════════════════ NOTÍCIAS ══════════════════════ */
+function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+  <Tit em="📰" t="Notícias"/>
+  {temPr&&<div style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:12,padding:"11px 14px",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:22}}>🌟</span><div><div style={{fontWeight:800,fontSize:12,color:"#fff"}}>Conteúdo exclusivo ativo</div><div style={{fontSize:10,color:"rgba(255,255,255,.7)",marginTop:1}}>Você recebe notícias especiais por ser cliente premiado!</div></div></div>}
+  {noticias.map(n=>{const excl=n.tipo==="vip";return(<div key={n.id} style={{background:"#fff",borderRadius:15,overflow:"hidden",border:`1px solid ${excl?C.rx+"44":C.bd}`}}>
+    <div style={{height:4,background:excl?C.rx:C.az}}/>
+    <div style={{padding:"13px 14px"}}>
+      <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:9}}>
+        <div style={{width:38,height:38,borderRadius:11,flexShrink:0,background:excl?C.rxC:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{n.emoji}</div>
+        <div style={{flex:1}}><div style={{display:"flex",gap:5,alignItems:"center",flexWrap:"wrap"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{n.titulo}</div>{excl&&<span style={{background:C.rxC,color:C.rx,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>🌟 Exclusiva</span>}</div>{n.data&&<div style={{fontSize:10,color:C.sb,marginTop:2}}>{n.data}</div>}</div>
+      </div>
+      <div style={{fontSize:12,color:C.sb,lineHeight:1.8,whiteSpace:"pre-line"}}>{n.corpo}</div>
+    </div>
+  </div>);})}
+  <a href={`https://wa.me/${wts}?text=${encodeURIComponent("Olá! Tenho uma dúvida sobre o programa Fidelizado Premiado.")}`} target="_blank" rel="noreferrer" style={{display:"block",background:"#25D366",color:"#fff",borderRadius:15,padding:"14px",fontWeight:800,fontSize:14,textDecoration:"none",textAlign:"center"}}>📲 Falar com a Lotérica</a>
+</div>);}
+
+/* ══════════════════════ CONTA ══════════════════════ */
+function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela}){
+  const[sub,setSub]=useState("dados");
+  return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
+    <Tit em="👤" t="Minha Conta"/>
+    <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`}}>{[["dados","Meus Dados"],["reg","Regulamento"]].map(s=><button key={s[0]} onClick={()=>setSub(s[0])} style={{flex:1,padding:"8px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:12,background:sub===s[0]?C.az:"transparent",color:sub===s[0]?"#fff":C.sb,transition:"all .2s"}}>{s[1]}</button>)}</div>
+    {sub==="dados"&&<>
+      <div style={{background:"#fff",borderRadius:16,overflow:"hidden",border:`1px solid ${C.bd}`}}>
+        {[["👤","Nome",c.nome],["📱","WhatsApp",fmtW(c.whats)],["📧","E-mail",c.email||"—"],["📅","Membro desde",fD(c.cadastro)]].map(([em,lbl,val])=>(
+          <div key={lbl} style={{padding:"12px 17px",borderBottom:`1px solid ${C.bd}22`,display:"flex",alignItems:"center",gap:12}}>
+            <span style={{fontSize:22,flexShrink:0}}>{em}</span>
+            <div><div style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{lbl}</div><div style={{fontWeight:700,fontSize:14,color:C.tx,marginTop:1}}>{val}</div></div>
+          </div>
+        ))}
+      </div>
+      {temPr&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:15,padding:"13px 15px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:32}}>🏆</span><div><div style={{fontWeight:900,fontSize:14,color:C.az}}>Cliente Premiado!</div><div style={{fontSize:11,color:C.az,opacity:.8,marginTop:2}}>Notícias e ofertas exclusivas ativas.</div></div></div>}
+      <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"17px"}}>
+        <div style={{fontWeight:800,fontSize:11,color:"rgba(255,255,255,.55)",marginBottom:12,textTransform:"uppercase",letterSpacing:1}}>🏆 Histórico</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,textAlign:"center"}}>
+          {[[tot,"Atendimentos","#fff"],[raspa,"Prêmios",C.ou],[meusPr.filter(p=>p.tipo==="relampago").length,"Relâmpagos","#c4b5fd"]].map(([v,l,cor])=>(
+            <div key={l}><div style={{fontWeight:900,fontSize:24,color:cor,lineHeight:1}}>{v}</div><div style={{fontSize:9,color:"rgba(255,255,255,.5)",marginTop:2,textTransform:"uppercase",letterSpacing:.5}}>{l}</div></div>
+          ))}
+        </div>
+      </div>
+      <button onClick={()=>{setCli(null);setTela("boas_vindas");}} style={{background:"#fff",color:C.rd,border:`1.5px solid ${C.rd}33`,borderRadius:13,padding:13,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Sair da conta</button>
+    </>}
+    {sub==="reg"&&<div style={{background:"#fff",borderRadius:13,padding:"14px",border:`1px solid ${C.bd}`,maxHeight:500,overflowY:"auto"}}>
+      <pre style={{fontSize:11,color:C.tx,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{cfg.regulamento.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}</pre>
+    </div>}
+  </div>);}
+
+/* ══════════════════════ OVERLAY RELÂMPAGO ══════════════════════ */
+function PremioOvl({relamp,setRelamp,cli,wts}){
+  const msg=`🎉 *${relamp.nome}*\nOlá, ${cli?.nome?.split(" ")[0]}!\n\n${relamp.desc}`;
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999,padding:20,backdropFilter:"blur(8px)"}}>
+    {["⭐","✨","🎉","⚡","🌟","🎊"].map((e,i)=><div key={i} style={{position:"absolute",fontSize:22,top:`${12+i*13}%`,left:`${6+i*16}%`,animation:`pop ${.3+i*.15}s ease both`,opacity:.7}}>{e}</div>)}
+    <div style={{background:"#fff",borderRadius:26,padding:"28px 22px",textAlign:"center",maxWidth:340,width:"100%",animation:"priz .5s ease",boxShadow:"0 24px 70px rgba(0,0,0,.45)"}}>
+      <div style={{fontSize:72,marginBottom:8,animation:"pop .5s"}}>{relamp.emoji}</div>
+      <div style={{fontWeight:800,fontSize:11,textTransform:"uppercase",letterSpacing:2,color:C.rx,marginBottom:8}}>⚡ Prêmio Relâmpago!</div>
+      <div style={{fontWeight:900,fontSize:21,color:C.tx,lineHeight:1.2,marginBottom:10}}>{relamp.nome}</div>
+      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,marginBottom:22}}>{relamp.desc}</div>
+      <a href={`https://wa.me/${wts}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" onClick={()=>setRelamp(null)} style={{display:"block",background:"#25D366",color:"#fff",borderRadius:13,padding:"13px 20px",fontWeight:800,fontSize:14,textDecoration:"none",marginBottom:10,boxShadow:"0 4px 14px rgba(37,211,102,.4)"}}>📲 Avisar a Lotérica pelo WhatsApp</a>
+      <button onClick={()=>setRelamp(null)} style={{background:C.bg,color:C.sb,border:"none",borderRadius:11,padding:"11px 20px",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar</button>
+    </div>
+  </div>);}
+
+/* ══════════════════════ MICRO ══════════════════════ */
+function Tit({em,t,s}){return(<div style={{marginBottom:4}}><div style={{fontWeight:900,fontSize:19,color:C.tx}}>{em} {t}</div>{s&&<div style={{fontSize:11,color:C.sb,marginTop:2}}>{s}</div>}</div>);}
+function Vz({em,msg}){return(<div style={{textAlign:"center",padding:"34px 20px",color:C.sb}}><div style={{fontSize:44,marginBottom:9,opacity:.4}}>{em}</div><div style={{fontSize:12,lineHeight:1.8}}>{msg}</div></div>);}
+function Alerta({msg}){return(<div style={{background:C.rdC,border:`1px solid ${C.rd}33`,borderRadius:10,padding:"9px 12px",fontSize:12,color:C.rd,fontWeight:700,marginBottom:10}}>⚠️ {msg}</div>);}
+function Cp({label,value,onChange,placeholder,type="text",sub,ativo}){return(<div style={{marginBottom:14}}><label style={LS}>{label}</label>{sub&&<div style={{fontSize:10,color:C.sb,marginBottom:5,lineHeight:1.4}}>{sub}</div>}<input value={value} onChange={e=>onChange(e.target.value)} type={type} placeholder={placeholder} style={{width:"100%",padding:"13px 15px",fontSize:15,fontWeight:600,fontFamily:"inherit",border:`2px solid ${ativo?C.az:C.bd}`,borderRadius:13,outline:"none",color:C.tx,background:ativo?C.azC:"#fff",transition:"all .2s",marginTop:5}}/></div>);}
+function Sp({label}){return(<span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10}}><span style={{width:17,height:17,border:"3px solid #9ca3af",borderTopColor:"transparent",borderRadius:"50%",display:"inline-block",animation:"sp .7s linear infinite"}}/>{label}</span>);}
+const LS={fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5,display:"block"};
+const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRadius:9,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"};
