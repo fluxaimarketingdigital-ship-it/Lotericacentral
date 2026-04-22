@@ -615,12 +615,12 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       
       // Extrair total e blocos
       let totalAchado = 0;
-      const matchTotal = txt.match(/TOTAL\s*(?:DOS ITENS|RECEBIDO|PAGO)?[\s:\.]*R\$?\s*([0-9\.,]+)/);
+      const matchTotal = txt.match(/TOTAL.*?([0-9]+[.,][0-9]{2})/i);
       if(matchTotal) {
           totalAchado = parseFloat(matchTotal[1].replace('.','').replace(',','.'));
       } else {
           // caso não ache a palavra TOTAL explícita e clara, soma as partes "VALOR: R$"
-          const matchesValor = [...txt.matchAll(/VALOR[\s:\.]*R\$?\s*([0-9\.,]+)/g)];
+          const matchesValor = [...txt.matchAll(/(?:VALOR|R\$|RS).*?([0-9]+[.,][0-9]{2})/ig)];
           matchesValor.forEach(m => {
               totalAchado += parseFloat(m[1].replace('.','').replace(',','.'));
           });
@@ -646,10 +646,10 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       
       // Auto-preenchimento inteligente de transações separadas
       let newSel = {};
-      const blocos = txt.split(/JOGO\/SERVI[CÇ]O|SERVI[CÇ]O|JOGO/);
+      const blocos = txt.split(/JOGO\/?SERVI[CÇS]O|SERVI[CÇS]O|JOGO/i);
       if(blocos.length > 1) {
          blocos.slice(1).forEach(b => {
-             const matchVal = b.match(/VALOR[\s\.:]*R\$?[\s]*([0-9\.,]+)/);
+             const matchVal = b.match(/(?:VALOR|R\$|RS).*?([0-9]+[.,][0-9]{2})/i);
              let val = true;
              if(matchVal) {
                  val = parseFloat(matchVal[1].replace('.','').replace(',','.')).toFixed(2);
