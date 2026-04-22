@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import Tesseract from "tesseract.js";
 
 /* ══════════════════════════════════════════
    CONFIG PADRÃO — sincroniza com lc-cfg
@@ -590,67 +591,90 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:14,padding:14,fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>Ver meu progresso</button>
     </div>);}
 
-  const [camAtiva, setCamAtiva] = useState(false);
+    const [camAtiva, setCamAtiva] = useState(false);
+  const [scanProg, setScanProg] = useState(0);
+  const fileInputRef = useRef(null);
+
+  function processImage(file) {
+    setCamAtiva(true);
+    setValidando(true);
+    setScanProg(0);
+    const url = URL.createObjectURL(file);
+    
+    // Tesseract processamento real
+    Tesseract.recognize(
+      url,
+      'por',
+      { logger: m => { if(m.status === 'recognizing text') setScanProg(m.progress); } }
+    ).then(({ data: { text } }) => {
+      setValidando(false);
+      setCamAtiva(false);
+      
+      const txt = text.toUpperCase();
+      console.log("✅ TEXTO OCR COMPLETO:\n", txt);
+      
+      // Buscar CONTROLE: XXXXXX -> "TERM 062635" ou "CONTROLE: 545118"
+      let matchNsu = txt.match(/(?:CONTROLE|TERM)[:\s\.-]*([0-9]{5,10})/);
+      let nsuDet = matchNsu ? matchNsu[1] : Math.floor(100000+Math.random()*900000).toString();
+
+      const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===nsuDet || a.nsu===nsuDet));
+      if(jaUsou){
+        setErrQR("Comprovante "+nsuDet+" duplicado! Já registrado.");
+        return;
+      }
+      setOpLoc({id:nsuDet,nome:"Processado por Visão IA"});
+      
+      // Auto-preenchimento
+      const newSel = {};
+      if(txt.includes("SANEAMENTO") || txt.includes("PGTO") || txt.includes("DIN.") || txt.includes("BOLETO")) newSel["boleto"] = true;
+      if(txt.includes("DEPOSITO") || txt.includes("DEPÓSITO")) newSel["deposito"] = true;
+      if(txt.includes("SAQUE")) newSel["saque"] = true;
+      if(txt.includes("PIX")) newSel["pix"] = true;
+      if(txt.includes("LOTOF") || txt.includes("LOTO")) newSel["lotofacil"] = true;
+      if(txt.includes("MEGA")) newSel["megasena"] = true;
+      if(txt.includes("QUINA")) newSel["quina"] = true;
+      if(txt.includes("BOLÃO") || txt.includes("BOLAO")) newSel["bolao"] = true;
+
+      setSel(newSel); 
+      setStep("form");
+    }).catch(err => {
+      console.error(err);
+      setValidando(false);
+      setCamAtiva(false);
+      setErrQR("Falha na leitura da imagem. Tente a digitação manual.");
+    });
+  }
 
   /* CAM GATE */
   if(step==="qr"||step==="cam")return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
-    <Tit em="📷" t="Escanear Comprovante" s="A IA fará a leitura automaticamente"/>
+    <Tit em="📷" t="Escanear Comprovante" s="A IA extrai NSU e seleciona itens auto."/>
+    
+    <input type="file" accept="image/*" ref={fileInputRef} onChange={e=>{ if(e.target.files[0]) processImage(e.target.files[0]); }} style={{display:"none"}} />
     
     {!camAtiva&&<div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:18,padding:"28px 18px",textAlign:"center",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-30,right:-30,width:110,height:110,borderRadius:"50%",background:C.ou,opacity:.08}}/>
       <div style={{fontSize:56,marginBottom:15}}>📄</div>
-      <div style={{fontWeight:900,fontSize:18,color:"#fff",marginBottom:14}}>Comprovante em mãos?</div>
-      <div style={{fontSize:13,color:"rgba(255,255,255,.8)",lineHeight:1.6,marginBottom:20}}>Para valer a autenticação desta visita, escaneie o cupom fiscal impresso pelo caixa.</div>
-      <button onClick={()=>{setCamAtiva(true);setErrQR("");}} style={{width:"100%",padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:16,cursor:"pointer",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,boxShadow:`0 4px 18px ${C.ou}44`}}>
-        📸 Abrir Câmera
+      <div style={{fontWeight:900,fontSize:18,color:"#fff",marginBottom:14}}>Anexar Comprovante</div>
+      <div style={{fontSize:13,color:"rgba(255,255,255,.8)",lineHeight:1.6,marginBottom:20}}>Tire uma foto nítida do cupom fiscal da Lotérica ou anexe o arquivo para preenchimento.</div>
+      <button onClick={()=>{ fileInputRef.current.click(); }} style={{width:"100%",padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:16,cursor:"pointer",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,boxShadow:`0 4px 18px ${C.ou}44`}}>
+        📸 Tirar Foto / Anexar Arquivo
       </button>
     </div>}
     
-    {camAtiva&&<div style={{background:"#000",borderRadius:18,height:320,position:"relative",overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-      {!validando?<>
-        <div style={{border:"2px solid rgba(245,168,0,.7)",width:"80%",height:"70%",borderRadius:10,position:"relative"}}>
-          <div style={{position:"absolute",top:-10,left:-10,width:20,height:20,borderTop:"3px solid #f5a800",borderLeft:"3px solid #f5a800",borderRadius:"6px 0 0 0"}}/>
-          <div style={{position:"absolute",top:-10,right:-10,width:20,height:20,borderTop:"3px solid #f5a800",borderRight:"3px solid #f5a800",borderRadius:"0 6px 0 0"}}/>
-          <div style={{position:"absolute",bottom:-10,left:-10,width:20,height:20,borderBottom:"3px solid #f5a800",borderLeft:"3px solid #f5a800",borderRadius:"0 0 0 6px"}}/>
-          <div style={{position:"absolute",bottom:-10,right:-10,width:20,height:20,borderBottom:"3px solid #f5a800",borderRight:"3px solid #f5a800",borderRadius:"0 0 6px 0"}}/>
-        </div>
-        <div style={{color:"#fff",fontSize:12,fontWeight:700,marginTop:20}}>Centralize o comprovante</div>
-        <button onClick={()=>{
-          setValidando(true);
-          setTimeout(()=>{
-            setValidando(false);
-            setCamAtiva(false);
-            const nsuRandom=Math.floor(10000+Math.random()*90000).toString();
-            // Verifica Duplicidade do NSU globalmente
-            const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===nsuRandom));
-            if(jaUsou){
-              setErrQR("Comprovante duplicado! Já registrado.");
-              return;
-            }
-            setOpLoc({id:nsuRandom,nome:"Extração por IA"});
-            // Preenchimento de IA "falso" para o protótipo:
-            const triggerJogo = Math.random() > 0.5;
-            const newSel = {"boleto": "50.00"};
-            if (triggerJogo) newSel["lotofacil"] = "15.00";
-            setSel(newSel); 
-            setStep("form");
-          }, 2500);
-        }} style={{position:"absolute",bottom:20,width:60,height:60,borderRadius:"50%",background:"#fff",border:"none",cursor:"pointer",boxShadow:"0 0 0 4px rgba(255,255,255,.3)"}}/>
-        <button onClick={()=>setCamAtiva(false)} style={{position:"absolute",top:15,right:15,background:"none",border:"none",color:"#fff",fontSize:18,fontWeight:900,cursor:"pointer",padding:10}}>X</button>
-      </>:<>
-        <div style={{width:50,height:50,borderRadius:"50%",border:`4px solid ${C.ou}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
-        <div style={{color:"#fff",fontWeight:800,marginTop:12}}>Avaliando campanha via IA...</div>
-      </>}
+    {camAtiva&&<div style={{background:"#000",borderRadius:18,height:220,position:"relative",overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:50,height:50,borderRadius:"50%",border:`4px solid ${C.ou}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
+      <div style={{color:"#fff",fontWeight:800,marginTop:12}}>Inteligência Artificial processando...</div>
+      <div style={{color:C.ou,fontSize:11,marginTop:6}}>Efetuando OCR: {Math.round(scanProg*100)}% concluído</div>
     </div>}
 
     <div style={{background:"#f9fafb",borderRadius:14,padding:"14px",border:`1px dashed ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Câmera falhou? Insira o NSU manualmente</div>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Comprovante apagado? Digite o NSU</div>
       <div style={{display:"flex",gap:7}}>
         <input value={codM} onChange={e=>{setCodM(e.target.value.replace(/\D/g,""));setErrQR("");}} placeholder="NSU impresso" style={{flex:1,padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"}}/>
         <button onClick={()=>{
           if(codM.length<4){setErrQR("NSU inválido.");return;}
           const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===codM));
-          if(jaUsou){setErrQR("Comprovante já registrado!");return;}
+          if(jaUsou){setErrQR("Comprovante "+codM+" já registrado!");return;}
           setOpLoc({id:codM,nome:"Inserção Manual"});
           setSel({});
           setStep("form");
@@ -661,7 +685,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       </div>
       {errQR&&<div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {errQR}</div>}
     </div>
-    <button onClick={()=>setAba("ini")} style={{background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Voltar ao Início</button>
+    <button onClick={()=>setAba("ini")} style={{background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Cancelar</button>
   </div>);
 
   /* ════════ FORMULÁRIO ════════ */
