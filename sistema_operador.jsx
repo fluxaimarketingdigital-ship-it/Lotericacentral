@@ -319,13 +319,9 @@ function OpQR({op,cfg,minhas,hoje_}){
     </div>
     {hoje_.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Auths de Hoje ({hoje_.length})</div>
-      {hoje_.slice(0,5).map((a,i)=><div key={a.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:4}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:30,height:30,borderRadius:8,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🏪</div>
-          <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
-          {a.nota > 0 && <div style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"1px 6px",borderRadius:20}}>⭐ {a.nota}</div>}
-        </div>
-        {a.obs && <div style={{fontSize:10,color:C.sb,background:C.bg,padding:"5px 8px",borderRadius:6,fontStyle:"italic",marginLeft:40}}>"{a.obs}"</div>}
+      {hoje_.slice(0,5).map((a,i)=><div key={a.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:30,height:30,borderRadius:8,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🏪</div>
+        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
       </div>)}
     </div>}
   </div>);
@@ -351,13 +347,9 @@ function OpAuths({minhas,hoje_}){
     ))}</div>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="✅" msg="Nenhuma autenticação neste período."/>}
-      {lista.map((a,i)=><div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.length-1?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:5}}>
-        <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:32,height:32,borderRadius:9,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🏪</div>
-          <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
-          {a.nota > 0 && <div style={{background:C.ouC,color:C.ou2,fontSize:10,fontWeight:800,padding:"2px 8px",borderRadius:20}}>⭐ {a.nota}</div>}
-        </div>
-        {a.obs && <div style={{fontSize:11,color:C.sb,background:C.bg,padding:"6px 10px",borderRadius:8,fontStyle:"italic",marginLeft:42}}>"{a.obs}"</div>}
+      {lista.map((a,i)=><div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:32,height:32,borderRadius:9,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🏪</div>
+        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
       </div>)}
     </div>
   </div>);
