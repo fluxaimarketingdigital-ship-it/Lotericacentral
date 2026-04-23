@@ -319,9 +319,13 @@ function OpQR({op,cfg,minhas,hoje_}){
     </div>
     {hoje_.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Auths de Hoje ({hoje_.length})</div>
-      {hoje_.slice(0,5).map((a,i)=><div key={a.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:30,height:30,borderRadius:8,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🏪</div>
-        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
+      {hoje_.slice(0,5).map((a,i)=><div key={a.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:4}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:30,height:30,borderRadius:8,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🏪</div>
+          <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
+          {a.nota > 0 && <div style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"1px 6px",borderRadius:20}}>⭐ {a.nota}</div>}
+        </div>
+        {a.obs && <div style={{fontSize:10,color:C.sb,background:C.bg,padding:"5px 8px",borderRadius:6,fontStyle:"italic",marginLeft:40}}>"{a.obs}"</div>}
       </div>)}
     </div>}
   </div>);
@@ -347,9 +351,13 @@ function OpAuths({minhas,hoje_}){
     ))}</div>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="✅" msg="Nenhuma autenticação neste período."/>}
-      {lista.map((a,i)=><div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:32,height:32,borderRadius:9,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🏪</div>
-        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
+      {lista.map((a,i)=><div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.length-1?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:5}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:32,height:32,borderRadius:9,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🏪</div>
+          <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
+          {a.nota > 0 && <div style={{background:C.ouC,color:C.ou2,fontSize:10,fontWeight:800,padding:"2px 8px",borderRadius:20}}>⭐ {a.nota}</div>}
+        </div>
+        {a.obs && <div style={{fontSize:11,color:C.sb,background:C.bg,padding:"6px 10px",borderRadius:8,fontStyle:"italic",marginLeft:42}}>"{a.obs}"</div>}
       </div>)}
     </div>
   </div>);
@@ -458,6 +466,33 @@ function ADash({ops,cl,pr,cfg}){
         <span style={{background:C.ouC,color:C.ou2,fontSize:10,fontWeight:800,padding:"2px 9px",borderRadius:20}}>Falta{falt>1?"m":""} {falt}</span>
       </div>);})}
     </div>}
+    <FeedbackDash cl={cl} ops={ops}/>
+  </div>);
+}
+
+function FeedbackDash({cl,ops}){
+  const feeds = useMemo(() => {
+    const list = [];
+    cl.forEach(c => (c.auths||[]).forEach(a => {
+      if(a.nota > 0 || a.obs) list.push({...a, cNome: c.nome});
+    }));
+    return list.sort((a,b) => new Date(b.data) - new Date(a.data)).slice(0,10);
+  }, [cl]);
+
+  if(feeds.length===0) return null;
+
+  return (<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
+    <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>💬 Feedbacks Recentes</div>
+    {feeds.map((f,i) => (
+      <div key={f.id} style={{padding:"10px 13px",borderBottom:i<feeds.length-1?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:4}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontWeight:700,fontSize:11,color:C.tx}}>{f.cNome} <span style={{fontWeight:400,color:C.sb}}>atendido por</span> {ops.find(o=>o.id===f.opId)?.nome||f.opNome}</div>
+          {f.nota > 0 && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"1px 6px",borderRadius:20}}>⭐ {f.nota}</span>}
+        </div>
+        {f.obs && <div style={{fontSize:10,color:C.sb,background:C.bg,padding:"6px 10px",borderRadius:8,fontStyle:"italic"}}>"{f.obs}"</div>}
+        <div style={{fontSize:9,color:C.sb,textAlign:"right"}}>{fDT(f.data)}</div>
+      </div>
+    ))}
   </div>);
 }
 
@@ -499,7 +534,21 @@ function ACl({cl,setCl,ops,cfg,pr}){
           <div style={{background:C.bg,borderRadius:3,height:3,overflow:"hidden",marginLeft:41}}><div style={{height:"100%",background:`linear-gradient(90deg,${C.az},${C.ou})`,width:(prog/cfg.meta*100)+"%",borderRadius:3}}/></div>
         </div>
         {exp===c.id&&<div style={{background:"#f4f8ff",padding:"10px 13px",borderBottom:`1px solid ${C.bd}`}}>
-          <div style={{fontSize:10,color:C.sb,lineHeight:1.7,marginBottom:8}}>📱 {c.whats?.replace(/(\d{2})(\d{5})(\d{4})/,"($1) $2-$3")}{c.email&&<><br/>📧 {c.email}</>}<br/>📅 Membro desde {fD(c.cadastro)}<br/>{raspa>0&&<>{cfg.premioMeta.emoji} {raspa} prêmio{raspa!==1?"s":""}</>}</div>
+          <div style={{fontSize:10,color:C.sb,lineHeight:1.7,marginBottom:10}}>📱 {c.whats?.replace(/(\d{2})(\d{5})(\d{4})/,"($1) $2-$3")}{c.email&&<><br/>📧 {c.email}</>}<br/>📅 Membro desde {fD(c.cadastro)}<br/>{raspa>0&&<>{cfg.premioMeta.emoji} {raspa} prêmio{raspa!==1?"s":""}</>}</div>
+          
+          <div style={{fontWeight:800,fontSize:10,color:C.tx,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Histórico de Visitas</div>
+          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12}}>
+            {(c.auths||[]).slice(-5).reverse().map(a => (
+              <div key={a.id} style={{background:"#fff",borderRadius:8,padding:8,border:`1px solid ${C.bd}66`,display:"flex",flexDirection:"column",gap:4}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div style={{fontSize:10,fontWeight:700}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
+                  {a.nota > 0 && <span style={{fontSize:9,fontWeight:800,color:C.ou2}}>⭐ {a.nota}</span>}
+                </div>
+                {a.obs && <div style={{fontSize:9,color:C.sb,fontStyle:"italic"}}>"{a.obs}"</div>}
+              </div>
+            ))}
+          </div>
+
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
             {ganhou&&<a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`Olá ${c.nome?.split(" ")[0]}! ${cfg.premioMeta.emoji} ${cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 Avisar Prêmio</a>}
             <button onClick={()=>{if(window.confirm(`Remover ${c.nome}?`)){setCl(cl.filter(x=>x.id!==c.id));setExp(null);}}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover</button>
