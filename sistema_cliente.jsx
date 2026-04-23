@@ -38,7 +38,9 @@ Clientes atendidos na lotérica que realizem cadastro pelo App Fidelidade e vali
 • Todo dia 05: as 2 operadoras com mais autenticações no mês ganham prêmio especial.
 
 6. LGPD — Dados usados exclusivamente neste programa.
-7. VIGÊNCIA — Permanente. Alterações com aviso prévio de 7 dias.`,
+7. VIGÊNCIA — Campanha válida de **{dataInicio}** a **{dataFim}**. Visitas fora deste prazo ou registradas após 7 dias não serão validadas.`,
+  dataInicio: "2026-04-01",
+  dataFim: "2026-12-31",
   wts:"5575999990000",
   formulario:{
     cats:[
@@ -547,12 +549,19 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     const nsuExiste = clients.some(cli => (cli.auths||[]).some(a => a.nsu === nsu));
     if(nsuExiste){setErrF("❌ Este comprovante (NSU) já foi utilizado em outro registro.");return;}
 
-    // Validar Prazo (ex: máximo 7 dias atrás)
+    // Validar Prazo (ex: máximo 7 dias atrás E dentro da vigência)
     const dC = new Date(dataRec); const dH = new Date();
+    const dIni = new Date(cfg.dataInicio || CFG0.dataInicio);
+    const dFim = new Date(cfg.dataFim || CFG0.dataFim);
+    
     const diff = Math.floor((dH - dC) / (1000 * 60 * 60 * 24));
     if(diff < 0 || diff > 7){ 
-       setErrF("❌ A data do comprovante está fora do prazo permitido pelo regulamento (máx. 7 dias).");
+       setErrF("❌ A data do comprovante está fora do prazo permitido (máximo 7 dias atrás).");
        return;
+    }
+    if(dC < dIni || dC > dFim){
+      setErrF(`❌ Visita inválida. A campanha atual é válida de ${fD(dIni)} a ${fD(dFim)}.`);
+      return;
     }
 
     setStep("loading");
@@ -795,7 +804,9 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela}){
       <button onClick={()=>{setCli(null);setTela("boas_vindas");}} style={{background:"#fff",color:C.rd,border:`1.5px solid ${C.rd}33`,borderRadius:13,padding:13,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Sair da conta</button>
     </>}
     {sub==="reg"&&<div style={{background:"#fff",borderRadius:13,padding:"14px",border:`1px solid ${C.bd}`,maxHeight:500,overflowY:"auto"}}>
-      <pre style={{fontSize:11,color:C.tx,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{cfg.regulamento.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}</pre>
+      <pre style={{fontSize:11,color:C.tx,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>
+        {cfg.regulamento.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome).replace("{dataInicio}",fD(cfg.dataInicio)).replace("{dataFim}",fD(cfg.dataFim))}
+      </pre>
     </div>}
   </div>);}
 

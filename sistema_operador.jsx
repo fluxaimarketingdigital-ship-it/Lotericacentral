@@ -880,12 +880,24 @@ function CfgRl({cfg,setCfg}){
 }
 
 function CfgReg({cfg,setCfg}){
-  const[txt,setTxt]=useState(cfg.regulamento);const[msg,setMsg]=useState("");
-  function salvar(){if(!txt.trim()){setMsg("❌ Regulamento não pode estar vazio.");return;}setCfg({...cfg,regulamento:txt});setMsg("✅ Regulamento atualizado!");setTimeout(()=>setMsg(""),3000);}
+  const[txt,setTxt]=useState(cfg.regulamento);
+  const[ini,setIni]=useState(cfg.dataInicio||"2026-04-01");
+  const[fim,setFim]=useState(cfg.dataFim||"2026-12-31");
+  const[msg,setMsg]=useState("");
+  function salvar(){
+    if(!txt.trim()){setMsg("❌ Regulamento não pode estar vazio.");return;}
+    setCfg({...cfg,regulamento:txt,dataInicio:ini,dataFim:fim});
+    setMsg("✅ Regulamento e Vigência atualizados!");
+    setTimeout(()=>setMsg(""),3000);
+  }
   function restaurar(){if(window.confirm("Restaurar regulamento padrão?"))setTxt(DCFG.regulamento);}
   return(<div style={{display:"flex",flexDirection:"column",gap:10}}>
+    <div style={{background:"#fff",borderRadius:16,padding:18,border:`1px solid ${C.bd}`,display:"flex",gap:12,flexWrap:"wrap"}}>
+      <div style={{flex:1,minWidth:140}}><label style={LS}>📅 Início da Campanha</label><input type="date" value={ini} onChange={e=>setIni(e.target.value)} style={{...I,marginTop:5}}/></div>
+      <div style={{flex:1,minWidth:140}}><label style={LS}>📅 Fim da Campanha</label><input type="date" value={fim} onChange={e=>setFim(e.target.value)} style={{...I,marginTop:5}}/></div>
+    </div>
     <div style={{background:C.azC,borderRadius:10,padding:"10px 12px",border:`1px solid ${C.bd}`,fontSize:11,color:C.az,lineHeight:1.7}}>
-      💡 Use <code style={{background:"rgba(0,52,120,.1)",padding:"1px 5px",borderRadius:4}}>{"{meta}"}</code> = nº de auths · <code style={{background:"rgba(0,52,120,.1)",padding:"1px 5px",borderRadius:4}}>{"{premioNome}"}</code> = nome do prêmio. Substituídos automaticamente no app do cliente.
+      💡 Use <code style={{background:"rgba(0,52,120,.1)",padding:"1px 5px",borderRadius:4}}>{"{meta}"}</code>, <code style={{background:"rgba(0,52,120,.1)",padding:"1px 5px",borderRadius:4}}>{"{premioNome}"}</code>, <code style={{background:"rgba(0,52,120,.1)",padding:"1px 5px",borderRadius:4}}>{"{dataInicio}"}</code> e <code style={{background:"rgba(0,52,120,.1)",padding:"1px 5px",borderRadius:4}}>{"{dataFim}"}</code>.
     </div>
     <textarea value={txt} onChange={e=>setTxt(e.target.value)} rows={20} style={{...I,resize:"vertical",lineHeight:1.8,fontSize:11}}/>
     {msg&&<div style={{padding:"9px 12px",borderRadius:9,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd:C.rd}}>{msg}</div>}
