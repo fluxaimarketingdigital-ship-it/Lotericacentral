@@ -284,7 +284,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
       </div>
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
-      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops}/>}
+      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops} setOps={setOps}/>}
       {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
       {aba==="rank" &&<OpRank  rank={rank} opId={op.id}/>}
@@ -293,7 +293,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
   </div>);
 }
 
-function OpQR({op,cfg,minhas,hoje_,ops}){
+function OpQR({op,cfg,minhas,hoje_,ops,setOps}){
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const int = setInterval(() => setTick(t => t + 1), 60000);
