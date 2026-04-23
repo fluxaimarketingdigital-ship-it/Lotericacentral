@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import Tesseract from "tesseract.js";
-import { Html5QrcodeScanner } from "html5-qrcode";
 import { DB } from "./firebase.js";
 
 /* ══════════════════════════════════════════
@@ -20,13 +19,13 @@ const CFG0 = {
 Lotérica Central · CNPJ 20.845.956/0001-00 · Alagoinhas-BA
 
 1. PARTICIPAÇÃO
-Clientes atendidos na lotérica que realizem cadastro pelo QR Code da promoção e validem suas visitas com o QR Code do operador de caixa.
+Clientes atendidos na lotérica que realizem cadastro pelo App Fidelidade e validem suas visitas com o código dinâmico do operador de caixa.
 
 2. COMO PARTICIPAR
 • Escaneie o QR Code da Promoção (painel da lotérica).
 • Leia o regulamento e faça seu cadastro.
-• A cada atendimento, peça ao operador o QR Code do caixa.
-• Escaneie o QR Code do operador para registrar sua visita.
+• A cada atendimento, peça ao operador o código dinâmico do caixa.
+• Informe o código do operador para registrar sua visita.
 
 3. PRÊMIO PRINCIPAL
 • A cada {meta} visitas autenticadas: 1 {premioNome}.
@@ -454,8 +453,8 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
   const tot=c.auths?.length||0;const raspa=Math.floor(tot/cfg.meta);const prog=tot%cfg.meta;
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.ou}44`}}>
-      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8}}>Comprovante em mãos?</div><div style={{fontSize:18,fontWeight:900}}>📷 Escanear Comprovante</div></div>
-      <span style={{fontSize:38}}>📄</span>
+      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8}}>Já foi atendido?</div><div style={{fontSize:18,fontWeight:900}}>📝 Registrar Nova Visita</div></div>
+      <span style={{fontSize:38}}>✨</span>
     </button>
     {temPr&&nBadge>0&&<div onClick={()=>setAba("not")} style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:16,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
       <div style={{width:40,height:40,borderRadius:12,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🌟</div>
@@ -489,26 +488,9 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   const[obs,   setObs]     = useState("");
   const[nota,  setNota]    = useState(0);
   const[opToken,setOpToken] = useState(opQR?.id||"");
-  const[scanOp, setScanOp]  = useState(false);
   const[errF,  setErrF]    = useState("");
   const[novoProg,setNP]   = useState(null);
 
-  useEffect(() => {
-    if (scanOp) {
-      if(!window.Html5QrcodeScanner) return;
-      const scanner = new (window.Html5QrcodeScanner)("reader_op", { fps: 10, qrbox: {width: 200, height: 200} });
-      scanner.render((txt) => {
-        scanner.clear();
-        setScanOp(false);
-        try {
-          const url = new URL(txt);
-          const tk = (url.searchParams.get("tk") || url.searchParams.get("op") || txt).toUpperCase();
-          setOpToken(tk);
-        } catch(e) { setOpToken(txt.toUpperCase()); }
-      }, (err) => {});
-      return () => { scanner.clear().catch(()=>{}); };
-    }
-  }, [scanOp]);
 
   const form    = cfg.formulario||CFG0.formulario;
   const cats    = form.cats||[];
@@ -628,10 +610,8 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
               </select>
               <div style={{textAlign:"center",fontSize:10,color:C.sb,margin:"5px 0"}}>OU DIGITE O CÓDIGO DINÂMICO</div>
               <div style={{display:"flex",gap:8}}>
-                <input value={opToken} onChange={e=>setOpToken(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,""))} placeholder="CÓDIGO" style={{flex:1,padding:"10px 14px",border:`1.5px solid ${C.bd}`,borderRadius:11,fontSize:16,textTransform:"uppercase",fontWeight:900,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff",textAlign:"center"}} />
-                <button onClick={()=>{setErrF("");setScanOp(!scanOp)}} style={{background:C.az,color:"#fff",borderRadius:11,border:"none",padding:"10px 16px",fontWeight:900,cursor:"pointer",flexShrink:0}}>📷 QR</button>
+                <input value={opToken} onChange={e=>setOpToken(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,""))} placeholder="CÓDIGO DINÂMICO" style={{flex:1,padding:"12px 14px",border:`2px solid ${C.ou}`,borderRadius:11,fontSize:18,textTransform:"uppercase",fontWeight:900,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff",textAlign:"center"}} />
               </div>
-              {scanOp && <div style={{marginTop:12,borderRadius:12,overflow:"hidden",border:`2px solid ${C.ou}`}}><div id="reader_op"></div></div>}
             </div>
           </div>
         )}

@@ -82,19 +82,6 @@ const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL
 const hoje=()=>new Date().toISOString().slice(0,10);
 /* DB importado via firebase.js */
 
-/* ═══════ QR CODE ═══════ */
-function mkLink(id,cfg){const b=cfg?.appUrl||"";if(b&&b.startsWith("http"))return`${b}?tk=${id}`;try{const h=window.location.href.split("?")[0].replace("/operador","").replace("/admin","");if(h.startsWith("http"))return`${h}/cliente?tk=${id}`;}catch(_){}return`?tk=${id}`;}
-
-function QR({text,size=200}){
-  const[att,setAtt]=useState(0);const[ok,setOk]=useState(false);
-  useEffect(()=>{setAtt(0);setOk(false);},[text]);
-  const src=!text?null:att===0?`https://api.qrserver.com/v1/create-qr-code/?size=${size}x${size}&data=${encodeURIComponent(text)}&color=003478&bgcolor=ffffff&margin=10`:att===1?`https://quickchart.io/qr?text=${encodeURIComponent(text)}&size=${size}&dark=003478&light=ffffff`:null;
-  return(<div style={{position:"relative",width:size,height:size}}>
-    {!ok&&src&&<div style={{position:"absolute",inset:0,background:"#e5e7eb",borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8}}><Pts/><span style={{fontSize:10,color:C.sb}}>Gerando QR…</span></div>}
-    {!src&&<div style={{position:"absolute",inset:0,background:C.az,borderRadius:10,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:10,textAlign:"center"}}><div style={{fontSize:24,marginBottom:6}}>📋</div><div style={{color:C.ou,fontWeight:800,fontSize:10,lineHeight:1.5}}>Configure a URL no Admin</div></div>}
-    {src&&<img src={src} width={size} height={size} alt="QR" onLoad={()=>setOk(true)} onError={()=>{setOk(false);setAtt(a=>a+1);}} style={{display:ok?"block":"none",borderRadius:10,width:size,height:size}}/>}
-  </div>);
-}
 
 /* ═══════ CSS ═══════ */
 const CSS=`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -300,47 +287,39 @@ function OpQR({op,cfg,minhas,hoje_,ops,setOps}){
     return () => clearInterval(int);
   }, []);
   useEffect(() => {
-    // Se o token sumir (consumido pelo cliente) ou passar o tempo, gera um novo
     if (tick > 0 || !op.curToken) {
        const newToken = Math.random().toString(36).slice(2,8).toUpperCase();
        const newOps = ops.map(o => o.id === op.id ? { ...o, curToken: newToken } : o);
-       setOps(newOps); // Usa setOps que já salva no Firebase
+       setOps(newOps);
     }
   }, [tick, op.curToken]);
-  const tk = op.curToken; // Apenas token dinâmico
-  const lk=mkLink(tk,cfg);const ok=lk.startsWith("http");
-  const wa=`Olá! 🏆 Participe do *Cliente Fidelizado Premiado* da *Lotérica Central*:
-
-🔗 ${lk}
-
-A cada ${cfg.meta} visitas você ganha ${cfg.premioMeta.emoji} ${cfg.premioMeta.nome}!`;
+  const tk = op.curToken || "..."; 
+  const wa=`Olá! 🏆 Sou *${op.nome}* da Lotérica Central.\nUse o código *${tk}* para registrar sua visita no App Fidelidade!`;
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
-    <T em="📱" t="Meu QR Code" s="Apresente para o cliente escanear"/>
+    <T em="📱" t="Código do Atendimento" s="Informe este código ao cliente"/>
 
-    {/* ── CÓDIGO 4 DÍGITOS ── */}
-    <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"16px 18px",display:"flex",gap:14,alignItems:"center",position:"relative",overflow:"hidden"}}>
-      <div style={{position:"absolute",top:-30,right:-30,width:100,height:100,borderRadius:"50%",background:C.ou,opacity:.08}}/>
-      <div style={{zIndex:1}}>
-        <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:1.5,marginBottom:6}}>Código Dinâmico</div>
-        <div style={{fontFamily:"monospace",fontWeight:900,fontSize:44,color:C.ou,letterSpacing:6,lineHeight:1}}>{tk || "..."}</div>
-        <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginTop:6}}>Válido por 60s ou até o próximo uso</div>
+    <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:20,padding:"24px 20px",textAlign:"center",position:"relative",overflow:"hidden",boxShadow:`0 8px 24px ${C.az}44`}}>
+      <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.08}}/>
+      <div style={{zIndex:1,position:"relative"}}>
+        <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,.6)",textTransform:"uppercase",letterSpacing:2,marginBottom:10}}>Código Dinâmico</div>
+        <div style={{fontFamily:"monospace",fontWeight:900,fontSize:56,color:C.ou,letterSpacing:8,lineHeight:1,textShadow:"0 2px 10px rgba(0,0,0,.2)"}}>{tk}</div>
+        <div style={{fontSize:10,color:"rgba(255,255,255,.45)",marginTop:12}}>Válido por 60 segundos ou até o uso</div>
       </div>
-      <button onClick={()=>navigator.clipboard?.writeText(tk).then(()=>alert("✅ Código "+tk+" copiado!"))}
-        style={{marginLeft:"auto",background:"rgba(255,255,255,.14)",color:"#fff",border:"1px solid rgba(255,255,255,.22)",borderRadius:10,padding:"9px 13px",fontSize:11,fontWeight:800,cursor:"pointer",fontFamily:"inherit",flexShrink:0,zIndex:1}}>
-        📋 Copiar
-      </button>
     </div>
 
-    <div style={{background:"#fff",borderRadius:17,padding:18,border:`1px solid ${C.bd}`,textAlign:"center"}}>
-      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:3}}>QR Code — {op.nome}</div>
-      <div style={{fontSize:11,color:C.sb,marginBottom:13}}>{ok?"✅ Pronto para escanear!":"⚠️ Configure a URL no Admin"}</div>
-      <div style={{display:"flex",justifyContent:"center",marginBottom:13}}><div style={{padding:8,background:C.bg,borderRadius:12,border:`2px solid ${ok?C.vd:C.ou}`}}><QR text={lk} size={190}/></div></div>
-      <div style={{background:C.azC,borderRadius:9,padding:"8px 11px",marginBottom:12,border:`1px solid ${C.bd}`,cursor:"pointer",textAlign:"left"}} onClick={()=>navigator.clipboard?.writeText(lk).then(()=>alert("✅ Copiado!"))}>
-        <div style={{fontSize:9,color:C.sb,marginBottom:2,textTransform:"uppercase",letterSpacing:1}}>Link (toque para copiar):</div>
-        <div style={{fontSize:10,color:C.az,wordBreak:"break-all",fontWeight:700,lineHeight:1.5}}>{lk}</div>
-      </div>
-      <a href={`https://wa.me/?text=${encodeURIComponent(wa)}`} target="_blank" rel="noreferrer" style={{display:"block",background:"#25D366",color:"#fff",borderRadius:11,padding:"12px",fontWeight:800,fontSize:13,textDecoration:"none",textAlign:"center",marginBottom:8}}>📲 Enviar Link via WhatsApp</a>
-      <button onClick={()=>navigator.clipboard?.writeText(lk).then(()=>alert("✅ Copiado!"))} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:11,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>📋 Copiar Link</button>
+    <div style={{display:"flex",gap:10}}>
+      <button onClick={()=>navigator.clipboard?.writeText(tk).then(()=>alert("✅ Código copiado!"))} 
+        style={{flex:1,background:"#fff",color:C.az,border:`1.5px solid ${C.bd}`,borderRadius:14,padding:"14px",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+        📋 Copiar Código
+      </button>
+      <a href={`https://wa.me/?text=${encodeURIComponent(wa)}`} target="_blank" rel="noreferrer" 
+        style={{flex:1,background:"#25D366",color:"#fff",borderRadius:14,padding:"14px",fontWeight:800,fontSize:14,textDecoration:"none",textAlign:"center",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+        📲 WhatsApp
+      </a>
+    </div>
+
+    <div style={{background:C.ouC,borderRadius:14,padding:"14px",border:`1.5px solid ${C.ou}44`,fontSize:11,color:C.ou2,lineHeight:1.7}}>
+      💡 <strong>Como usar:</strong> Mostre este código para o cliente digitar no App dele após carregar os dados do atendimento. O código muda automaticamente a cada minuto por segurança.
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
       {[["📅",hoje_.length,"Auths Hoje",C.az],["✅",minhas.length,"Total Auths",C.vd]].map(([em,v,l,cor])=>(
