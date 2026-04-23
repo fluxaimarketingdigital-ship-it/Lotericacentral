@@ -107,6 +107,8 @@ body{background:#f0f4fb;font-family:'Nunito',sans-serif;}
 `;
 
 const I={padding:"13px 15px",fontSize:15,fontWeight:600,fontFamily:"inherit",border:`2px solid ${C.bd}`,borderRadius:13,outline:"none",color:C.tx,background:"#fff",transition:"all .2s",width:"100%"};
+const LS={fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5,display:"block",marginBottom:4};
+const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRadius:9,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"};
 
 /* ══════════════════════ APP ROOT ══════════════════════ */
 export default function App(){
@@ -324,7 +326,23 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
         </div>
 
         <Cp label="👤 Nome Completo *" value={nome} onChange={v=>{setNome(v);setErr("");}} placeholder="Como quer ser chamado(a)?" ativo={!!nome}/>
-        <Cp label="📧 E-mail (opcional)" value={email} onChange={setEmail} placeholder="seu@email.com" type="email" sub="Para receber notificações exclusivas"/>
+        
+        <div style={{display:"flex",gap:10,marginTop:12}}>
+          <div style={{flex:1}}>
+            <label style={LS}>📅 Nascimento *</label>
+            <input value={nasc} onChange={e=>{setNasc(fmtDN(e.target.value));setErr("");}} placeholder="DD/MM/AAAA" type="tel"
+              style={{...I, border:`2px solid ${dataN.length===8?C.az:C.bd}`, background:dataN.length===8?C.azC:"#fff", fontSize:14}}/>
+          </div>
+          <div style={{flex:1.4}}>
+            <label style={LS}>📱 WhatsApp *</label>
+            <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} placeholder="(00) 00000-0000" type="tel"
+              style={{...I, border:`2px solid ${num.length>=10?C.az:C.bd}`, background:num.length>=10?C.azC:"#fff", fontSize:14}}/>
+          </div>
+        </div>
+
+        <div style={{marginTop:14}}>
+          <Cp label="📧 E-mail (opcional)" value={email} onChange={setEmail} placeholder="seu@email.com" type="email" sub="Para receber notificações exclusivas"/>
+        </div>
         {err&&<Alerta msg={err}/>}
 
         <button onClick={cad}
@@ -800,7 +818,5 @@ function PremioOvl({relamp,setRelamp,cli,wts}){
 function Tit({em,t,s}){return(<div style={{marginBottom:4}}><div style={{fontWeight:900,fontSize:19,color:C.tx}}>{em} {t}</div>{s&&<div style={{fontSize:11,color:C.sb,marginTop:2}}>{s}</div>}</div>);}
 function Vz({em,msg}){return(<div style={{textAlign:"center",padding:"34px 20px",color:C.sb}}><div style={{fontSize:44,marginBottom:9,opacity:.4}}>{em}</div><div style={{fontSize:12,lineHeight:1.8}}>{msg}</div></div>);}
 function Alerta({msg}){return(<div style={{background:C.rdC,border:`1px solid ${C.rd}33`,borderRadius:10,padding:"9px 12px",fontSize:12,color:C.rd,fontWeight:700,marginBottom:10}}>⚠️ {msg}</div>);}
-function Cp({label,value,onChange,placeholder,type="text",sub,ativo}){return(<div style={{marginBottom:14}}><label style={LS}>{label}</label>{sub&&<div style={{fontSize:10,color:C.sb,marginBottom:5,lineHeight:1.4}}>{sub}</div>}<input value={value} onChange={e=>onChange(e.target.value)} type={type} placeholder={placeholder} style={{width:"100%",padding:"13px 15px",fontSize:15,fontWeight:600,fontFamily:"inherit",border:`2px solid ${ativo?C.az:C.bd}`,borderRadius:13,outline:"none",color:C.tx,background:ativo?C.azC:"#fff",transition:"all .2s",marginTop:5}}/></div>);}
+function Cp({label,value,onChange,placeholder,type="text",sub,ativo}){return(<div style={{marginBottom:14}}><label style={LS}>{label}</label>{sub&&<div style={{fontSize:10,color:C.sb,marginBottom:5,lineHeight:1.4}}>{sub}</div>}<input value={value} onChange={e=>onChange(e.target.value)} type={type} placeholder={placeholder} style={{...I, border:`2px solid ${ativo?C.az:C.bd}`, background:ativo?C.azC:"#fff", marginTop:5}}/></div>);}
 function Sp({label}){return(<span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10}}><span style={{width:17,height:17,border:"3px solid #9ca3af",borderTopColor:"transparent",borderRadius:"50%",display:"inline-block",animation:"sp .7s linear infinite"}}/>{label}</span>);}
-const LS={fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5,display:"block"};
-const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRadius:9,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"};
