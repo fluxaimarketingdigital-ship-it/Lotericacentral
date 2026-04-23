@@ -68,6 +68,7 @@ const fD   = d=>new Date(d).toLocaleDateString("pt-BR");
 const fDT  = d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 const brl  = v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtW = v=>{const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
+const fmtDN = v=>{const d=v.replace(/\D/g,"").slice(0,8);if(d.length<=2)return d;if(d.length<=4)return`${d.slice(0,2)}/${d.slice(2)}`;return`${d.slice(0,2)}/${d.slice(2,4)}/${d.slice(4)}`;};
 const limpo = v=>v.replace(/\D/g,"");
 const hoje  = ()=>new Date().toISOString().slice(0,10);
 
@@ -289,14 +290,17 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
   const[nome, setNome] =useState("");
   const[wts,  setWts]  =useState("");
   const[email,setEmail]=useState("");
+  const[nasc, setNasc] =useState("");
   const[err,  setErr]  =useState("");
   const num=limpo(wts);
+  const dataN=limpo(nasc);
 
   function cad(){
     if(!nome.trim()){setErr("Informe seu nome completo.");return;}
     if(num.length<10){setErr("Informe um WhatsApp válido com DDD.");return;}
+    if(dataN.length<8){setErr("Informe sua data de nascimento completa.");return;}
     if(clients.find(c=>c.whats===num)){setErr("Este WhatsApp já está cadastrado. Use a opção de login.");return;}
-    const c={id:uid(),nome:nome.trim(),whats:num,email:email.trim().toLowerCase(),cadastro:now(),auths:[]};
+    const c={id:uid(),nome:nome.trim(),whats:num,nasc:dataN,email:email.trim().toLowerCase(),cadastro:now(),auths:[]};
     setCl([...clients,c]);setCli(c);setTela("painel");
   }
 
@@ -305,7 +309,7 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
       <div style={{padding:"22px 20px 14px"}}>
         <button onClick={()=>setTela("regulamento")} style={BV}>← Voltar</button>
         <div style={{marginTop:13,fontWeight:900,fontSize:23,color:"#fff"}}>Cadastro 🎉</div>
-        <div style={{fontSize:12,color:"rgba(255,255,255,.7)",marginTop:4}}>Rápido — nome, WhatsApp e e-mail.</div>
+        <div style={{fontSize:12,color:"rgba(255,255,255,.7)",marginTop:4}}>Rápido — nome, WhatsApp e nascimento.</div>
       </div>
       <div style={{background:"#fff",borderRadius:"26px 26px 0 0",minHeight:"calc(100vh - 120px)",padding:"26px 22px 40px",animation:"up .35s"}}>
         {/* Progresso */}
@@ -320,12 +324,6 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
         </div>
 
         <Cp label="👤 Nome Completo *" value={nome} onChange={v=>{setNome(v);setErr("");}} placeholder="Como quer ser chamado(a)?" ativo={!!nome}/>
-        <label style={LS}>📱 WhatsApp (com DDD) *</label>
-        <div style={{position:"relative",margin:"5px 0 14px"}}>
-          <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} onKeyDown={e=>e.key==="Enter"&&cad()} placeholder="(00) 00000-0000" type="tel"
-            style={{width:"100%",padding:"14px 46px 14px 16px",fontSize:17,fontWeight:700,fontFamily:"inherit",border:`2px solid ${num.length>=10?C.az:C.bd}`,borderRadius:13,outline:"none",color:C.tx,background:num.length>=10?C.azC:"#fff",transition:"all .2s"}}/>
-          {num.length>=10&&<div style={{position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",fontSize:20}}>✅</div>}
-        </div>
         <Cp label="📧 E-mail (opcional)" value={email} onChange={setEmail} placeholder="seu@email.com" type="email" sub="Para receber notificações exclusivas"/>
         {err&&<Alerta msg={err}/>}
 
@@ -346,18 +344,26 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
 /* ══════════════════════ LOGIN ══════════════════════ */
 function Login({setCli,clients,setTela,opQR}){
   const[wts, setWts] =useState("");
+  const[nasc, setNasc] =useState("");
   const[err, setErr] =useState("");
   const[load,setLoad]=useState(false);
   const num=limpo(wts);
+  const dataN=limpo(nasc);
 
   function entrar(){
     if(num.length<10){setErr("Informe um WhatsApp válido com DDD.");return;}
+    if(dataN.length<8){setErr("Informe sua data de nascimento.");return;}
     setLoad(true);
     setTimeout(()=>{
-      const f=clients.find(c=>c.whats===num);
+      const f=clients.find(c=>c.whats===num && limpo(c.nasc||"")===dataN);
       setLoad(false);
       if(f){setCli(f);setTela("painel");}
-      else setErr("Número não encontrado. Faça seu cadastro primeiro.");
+      else {
+        // Verificar se o whats existe mas a data tá errada ou se nada existe
+        const whatsOk = clients.find(c=>c.whats===num);
+        if(whatsOk) setErr("Data de nascimento incorreta para este número.");
+        else setErr("Cadastro não encontrado. Verifique os dados ou cadastre-se.");
+      }
     },700);
   }
 
@@ -373,12 +379,19 @@ function Login({setCli,clients,setTela,opQR}){
       <div style={{flex:1,padding:"26px 20px"}}>
         <div style={{background:"#fff",borderRadius:22,padding:24,boxShadow:"0 8px 36px rgba(0,52,120,.1)",animation:"up .4s"}}>
           <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:5}}>Bem-vindo(a) de volta! 👋</div>
-          <div style={{fontSize:13,color:C.sb,marginBottom:22,lineHeight:1.6}}>Informe seu <strong>WhatsApp</strong> para entrar.</div>
-          <label style={LS}>📱 WhatsApp (com DDD)</label>
-          <div style={{position:"relative",margin:"5px 0 8px"}}>
-            <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} onKeyDown={e=>e.key==="Enter"&&entrar()} placeholder="(00) 00000-0000" type="tel" autoFocus
-              style={{width:"100%",padding:"15px 48px 15px 18px",fontSize:18,fontWeight:700,fontFamily:"inherit",border:`2.5px solid ${num.length>=10?C.az:C.bd}`,borderRadius:14,outline:"none",color:C.tx,background:num.length>=10?C.azC:"#fff",transition:"all .2s"}}/>
-            {num.length>=10&&<div style={{position:"absolute",right:13,top:"50%",transform:"translateY(-50%)",fontSize:21}}>✅</div>}
+          <div style={{fontSize:13,color:C.sb,marginBottom:22,lineHeight:1.6}}>Informe seu <strong>WhatsApp</strong> e <strong>nascimento</strong> para entrar.</div>
+          
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            <div>
+              <label style={LS}>📱 WhatsApp (DDD)</label>
+              <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} placeholder="(00) 00000-0000" type="tel" autoFocus
+                style={{width:"100%",marginTop:5,padding:"14px 16px",fontSize:17,fontWeight:700,fontFamily:"inherit",border:`2px solid ${num.length>=10?C.az:C.bd}`,borderRadius:14,outline:"none",color:C.tx,background:num.length>=10?C.azC:"#fff",transition:"all .2s"}}/>
+            </div>
+            <div>
+              <label style={LS}>📅 Data de Nascimento</label>
+              <input value={nasc} onChange={e=>{setNasc(fmtDN(e.target.value));setErr("");}} placeholder="DD/MM/AAAA" type="tel"
+                style={{width:"100%",marginTop:5,padding:"14px 16px",fontSize:17,fontWeight:700,fontFamily:"inherit",border:`2px solid ${dataN.length===8?C.az:C.bd}`,borderRadius:14,outline:"none",color:C.tx,background:dataN.length===8?C.azC:"#fff",transition:"all .2s"}}/>
+            </div>
           </div>
           {err&&<Alerta msg={err}/>}
           <button onClick={entrar} disabled={load}

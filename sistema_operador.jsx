@@ -79,6 +79,7 @@ const fD=d=>new Date(d).toLocaleDateString("pt-BR");
 const fDT=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 const mAno=d=>`${String(new Date(d).getMonth()+1).padStart(2,"0")}/${new Date(d).getFullYear()}`;
 const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
+const fmtDN = v=>{if(!v)return"—";if(v.length!==8)return v;return`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;};
 const hoje=()=>new Date().toISOString().slice(0,10);
 /* DB importado via firebase.js */
 
@@ -526,7 +527,13 @@ function ACl({cl,setCl,ops,cfg,pr}){
           <div style={{background:C.bg,borderRadius:3,height:3,overflow:"hidden",marginLeft:41}}><div style={{height:"100%",background:`linear-gradient(90deg,${C.az},${C.ou})`,width:(prog/cfg.meta*100)+"%",borderRadius:3}}/></div>
         </div>
         {exp===c.id&&<div style={{background:"#f4f8ff",padding:"10px 13px",borderBottom:`1px solid ${C.bd}`}}>
-          <div style={{fontSize:10,color:C.sb,lineHeight:1.7,marginBottom:10}}>📱 {c.whats?.replace(/(\d{2})(\d{5})(\d{4})/,"($1) $2-$3")}{c.email&&<><br/>📧 {c.email}</>}<br/>📅 Membro desde {fD(c.cadastro)}<br/>{raspa>0&&<>{cfg.premioMeta.emoji} {raspa} prêmio{raspa!==1?"s":""}</>}</div>
+          <div style={{fontSize:10,color:C.sb,lineHeight:1.7,marginBottom:10}}>
+            📱 {c.whats?.replace(/(\d{2})(\d{5})(\d{4})/,"($1) $2-$3")}<br/>
+            📅 Nascimento: <strong>{fmtDN(c.nasc)}</strong><br/>
+            🗓️ Membro desde {fD(c.cadastro)}
+            {c.email&&<><br/>📧 {c.email}</>}
+            {raspa>0&&<><br/>{cfg.premioMeta.emoji} {raspa} prêmio{raspa!==1?"s":""}</>}
+          </div>
           
           <div style={{fontWeight:800,fontSize:10,color:C.tx,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Histórico de Visitas</div>
           <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12}}>
