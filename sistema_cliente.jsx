@@ -527,16 +527,12 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     setStep("loading");
     let opsAtual=ops;
     try{const fresh=await DB.load("lc-ops");if(fresh)opsAtual=fresh;}catch(_){}
-    const operator = opsAtual.find(o => o.curToken === opToken || o.id === opToken);
+    const operator = opsAtual.find(o => o.id === opToken);
     
     if (!operator) {
        setStep("form");
-       setErrF("❌ Operadora não identificada. Verifique o código ou selecione na lista."); 
+       setErrF("❌ Operadora não identificada. Verifique o código informado."); 
        return; 
-    }
-
-    if(opToken.length > 4) {
-      DB.save("lc-ops", opsAtual.map(o => o.id === operator.id ? { ...o, curToken: null } : o));
     }
 
     setTimeout(()=>{
@@ -597,7 +593,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         {opToken ? (
           <div style={{display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:40,height:40,borderRadius:"50%",background:C.vd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👩‍💼</div>
-            <div style={{flex:1}}><div style={{fontWeight:800,fontSize:15,color:C.tx}}>{ops.find(o=>o.id===opToken || o.curToken===opToken)?.nome || "Operadora Autorizada"}</div><div style={{fontSize:11,color:C.sb}}>Cód: {opToken}</div></div>
+            <div style={{flex:1}}><div style={{fontWeight:800,fontSize:15,color:C.tx}}>{ops.find(o=>o.id===opToken || o.curToken===opToken)?.nome || "Operadora Autorizada"}</div><div style={{fontSize:11,color:C.sb}}>ID: {opToken}</div></div>
             <button onClick={()=>{setOpToken("");setOpQR(null);}} style={{background:C.bg,border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:C.sb,cursor:"pointer"}}>Alterar</button>
           </div>
         ) : (
@@ -608,9 +604,9 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
                 <option value="">Selecione...</option>
                 {ops.map(o=><option key={o.id} value={o.id}>{o.nome} (Cód: {o.id})</option>)}
               </select>
-              <div style={{textAlign:"center",fontSize:10,color:C.sb,margin:"5px 0"}}>OU DIGITE O CÓDIGO DINÂMICO</div>
+              <div style={{textAlign:"center",fontSize:10,color:C.sb,margin:"5px 0"}}>OU DIGITE O CÓDIGO DA OPERADORA</div>
               <div style={{display:"flex",gap:8}}>
-                <input value={opToken} onChange={e=>setOpToken(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,""))} placeholder="CÓDIGO DINÂMICO" style={{flex:1,padding:"12px 14px",border:`2px solid ${C.ou}`,borderRadius:11,fontSize:18,textTransform:"uppercase",fontWeight:900,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff",textAlign:"center"}} />
+                <input value={opToken} onChange={e=>setOpToken(e.target.value.replace(/\D/g,""))} placeholder="CÓDIGO DE 4 DÍGITOS" maxLength={4} style={{flex:1,padding:"12px 14px",border:`2px solid ${C.ou}`,borderRadius:11,fontSize:18,fontWeight:900,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff",textAlign:"center"}} />
               </div>
             </div>
           </div>

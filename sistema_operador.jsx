@@ -271,7 +271,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
       </div>
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
-      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops} setOps={setOps}/>}
+      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops}/>}
       {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
       {aba==="rank" &&<OpRank  rank={rank} opId={op.id}/>}
@@ -280,30 +280,18 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
   </div>);
 }
 
-function OpQR({op,cfg,minhas,hoje_,ops,setOps}){
-  const [tick, setTick] = useState(0);
-  useEffect(() => {
-    const int = setInterval(() => setTick(t => t + 1), 60000);
-    return () => clearInterval(int);
-  }, []);
-  useEffect(() => {
-    if (tick > 0 || !op.curToken) {
-       const newToken = Math.random().toString(36).slice(2,8).toUpperCase();
-       const newOps = ops.map(o => o.id === op.id ? { ...o, curToken: newToken } : o);
-       setOps(newOps);
-    }
-  }, [tick, op.curToken]);
-  const tk = op.curToken || "..."; 
-  const wa=`Olá! 🏆 Sou *${op.nome}* da Lotérica Central.\nUse o código *${tk}* para registrar sua visita no App Fidelidade!`;
+function OpQR({op,cfg,minhas,hoje_}){
+  const tk = op.id; 
+  const wa=`Olá! 🏆 Sou *${op.nome}* da Lotérica Central.\nMeu código de atendimento é: *${tk}*\nUse-o para registrar sua visita no App Fidelidade!`;
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
-    <T em="📱" t="Código do Atendimento" s="Informe este código ao cliente"/>
+    <T em="📱" t="Meu Código Fixo" s="Informe este código ao cliente"/>
 
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:20,padding:"24px 20px",textAlign:"center",position:"relative",overflow:"hidden",boxShadow:`0 8px 24px ${C.az}44`}}>
       <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.08}}/>
       <div style={{zIndex:1,position:"relative"}}>
-        <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,.6)",textTransform:"uppercase",letterSpacing:2,marginBottom:10}}>Código Dinâmico</div>
-        <div style={{fontFamily:"monospace",fontWeight:900,fontSize:56,color:C.ou,letterSpacing:8,lineHeight:1,textShadow:"0 2px 10px rgba(0,0,0,.2)"}}>{tk}</div>
-        <div style={{fontSize:10,color:"rgba(255,255,255,.45)",marginTop:12}}>Válido por 60 segundos ou até o uso</div>
+        <div style={{fontSize:11,fontWeight:800,color:"rgba(255,255,255,.6)",textTransform:"uppercase",letterSpacing:2,marginBottom:10}}>Código de Identificação</div>
+        <div style={{fontFamily:"monospace",fontWeight:900,fontSize:60,color:C.ou,letterSpacing:10,lineHeight:1,textShadow:"0 2px 10px rgba(0,0,0,.2)"}}>{tk}</div>
+        <div style={{fontSize:10,color:"rgba(255,255,255,.45)",marginTop:12}}>Este código é fixo e exclusivo seu</div>
       </div>
     </div>
 
@@ -319,7 +307,7 @@ function OpQR({op,cfg,minhas,hoje_,ops,setOps}){
     </div>
 
     <div style={{background:C.ouC,borderRadius:14,padding:"14px",border:`1.5px solid ${C.ou}44`,fontSize:11,color:C.ou2,lineHeight:1.7}}>
-      💡 <strong>Como usar:</strong> Mostre este código para o cliente digitar no App dele após carregar os dados do atendimento. O código muda automaticamente a cada minuto por segurança.
+      💡 <strong>Como usar:</strong> Mostre este código para o cliente digitar no App dele após carregar os dados do atendimento. Este é seu código permanente de identificação.
     </div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
       {[["📅",hoje_.length,"Auths Hoje",C.az],["✅",minhas.length,"Total Auths",C.vd]].map(([em,v,l,cor])=>(
