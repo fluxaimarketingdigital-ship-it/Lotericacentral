@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useMemo } from "react";
 import Tesseract from "tesseract.js";
 import { Html5QrcodeScanner } from "html5-qrcode";
 import { DB } from "./firebase.js";
@@ -69,6 +70,7 @@ const fDT  = d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit
 const brl  = v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtW = v=>{const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
 const limpo = v=>v.replace(/\D/g,"");
+const hoje  = ()=>new Date().toISOString().slice(0,10);
 
 /* DB importado via firebase.js */
 
@@ -102,8 +104,9 @@ body{background:#f0f4fb;font-family:'Nunito',sans-serif;}
 @keyframes glw {0%,100%{box-shadow:0 0 8px rgba(245,168,0,.4)}50%{box-shadow:0 0 24px rgba(245,168,0,.8)}}
 @keyframes priz{0%{transform:scale(0)rotate(-12deg);opacity:0}75%{transform:scale(1.08)rotate(2deg)}100%{transform:scale(1)rotate(0);opacity:1}}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes starPop{0%{transform:scale(0)}70%{transform:scale(1.3)}100%{transform:scale(1)}}
 `;
+
+const I={padding:"13px 15px",fontSize:15,fontWeight:600,fontFamily:"inherit",border:`2px solid ${C.bd}`,borderRadius:13,outline:"none",color:C.tx,background:"#fff",transition:"all .2s",width:"100%"};
 
 /* ══════════════════════ APP ROOT ══════════════════════ */
 export default function App(){
