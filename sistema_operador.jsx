@@ -83,7 +83,7 @@ const hoje=()=>new Date().toISOString().slice(0,10);
 /* DB importado via firebase.js */
 
 /* ═══════ QR CODE ═══════ */
-function mkLink(id,cfg){const b=cfg?.appUrl||"";if(b&&b.startsWith("http"))return`${b}?op=${id}`;try{const h=window.location.href.split("?")[0];if(h.startsWith("http"))return`${h}?op=${id}`;}catch(_){}return`?op=${id}`;}
+function mkLink(id,cfg){const b=cfg?.appUrl||"";if(b&&b.startsWith("http"))return`${b}?tk=${id}`;try{const h=window.location.href.split("?")[0].replace("/operador","").replace("/admin","");if(h.startsWith("http"))return`${h}/cliente?tk=${id}`;}catch(_){}return`?tk=${id}`;}
 
 function QR({text,size=200}){
   const[att,setAtt]=useState(0);const[ok,setOk]=useState(false);
@@ -249,12 +249,25 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");
   const ABAS=[{id:"qr",emoji:"📱",label:"Meu QR"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"rank",emoji:"🏅",label:"Ranking"}];
-  const op=opSel;const idx=ops.findIndex(o=>o.id===op.id);
-  const minhas=useMemo(()=>{const a=[];cl.forEach(c=>(c.auths||[]).forEach(x=>{if(x.opId===op.id)a.push({...x,cn:c.nome});}));return a.sort((a,b)=>new Date(b.data)-new Date(a.data));},[cl,op.id]);
-  const hoje_=minhas.filter(a=>a.data?.slice(0,10)===hoje());
-  const meusCl=cl.filter(c=>(c.auths||[]).some(a=>a.opId===op.id));
-  const rank=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t),[ops,cl]);
-  const pos=rank.findIndex(r=>r.op.id===op.id)+1;
+  const op = ops.find(o => o.id === opSel?.id) || opSel;
+  const idx = ops.findIndex(o => o.id === op?.id);
+  const minhas = useMemo(() => {
+    const a = [];
+    cl.forEach(c => (c.auths || []).forEach(x => {
+      if (x.opId === op.id) a.push({ ...x, cn: c.nome });
+    }));
+    return a.sort((a, b) => new Date(b.data) - new Date(a.data));
+  }, [cl, op.id]);
+  const hoje_ = minhas.filter(a => a.data?.slice(0, 10) === hoje());
+  const meusCl = cl.filter(c => (c.auths || []).some(a => a.opId === op.id));
+  const rank = useMemo(() => ops.map((o, i) => {
+    let t = 0;
+    cl.forEach(c => (c.auths || []).forEach(a => {
+      if (a.opId === o.id) t++;
+    }));
+    return { op: o, t, i };
+  }).sort((a, b) => b.t - a.t), [ops, cl]);
+  const pos = rank.findIndex(r => r.op.id === op.id) + 1;
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     <div style={{background:`linear-gradient(135deg,${oc(idx)},${C.az})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-30,right:-30,width:130,height:130,borderRadius:"50%",background:"rgba(255,255,255,.06)"}}/>
@@ -271,7 +284,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
       </div>
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
-      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_}/>}
+      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops}/>}
       {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
       {aba==="rank" &&<OpRank  rank={rank} opId={op.id}/>}
@@ -280,8 +293,22 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
   </div>);
 }
 
-function OpQR({op,cfg,minhas,hoje_}){
-  const lk=mkLink(op.id,cfg);const ok=lk.startsWith("http");
+function OpQR({op,cfg,minhas,hoje_,ops}){
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const int = setInterval(() => setTick(t => t + 1), 60000);
+    return () => clearInterval(int);
+  }, []);
+  useEffect(() => {
+    // Se o token sumir (consumido pelo cliente) ou passar o tempo, gera um novo
+    if (tick > 0 || !op.curToken) {
+       const newToken = Math.random().toString(36).slice(2,8).toUpperCase();
+       const newOps = ops.map(o => o.id === op.id ? { ...o, curToken: newToken } : o);
+       setOps(newOps); // Usa setOps que já salva no Firebase
+    }
+  }, [tick, op.curToken]);
+  const tk = op.curToken; // Apenas token dinâmico
+  const lk=mkLink(tk,cfg);const ok=lk.startsWith("http");
   const wa=`Olá! 🏆 Participe do *Cliente Fidelizado Premiado* da *Lotérica Central*:
 
 🔗 ${lk}
@@ -294,11 +321,11 @@ A cada ${cfg.meta} visitas você ganha ${cfg.premioMeta.emoji} ${cfg.premioMeta.
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"16px 18px",display:"flex",gap:14,alignItems:"center",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-30,right:-30,width:100,height:100,borderRadius:"50%",background:C.ou,opacity:.08}}/>
       <div style={{zIndex:1}}>
-        <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:1.5,marginBottom:6}}>Código da Operadora</div>
-        <div style={{fontFamily:"monospace",fontWeight:900,fontSize:44,color:C.ou,letterSpacing:10,lineHeight:1}}>{op.id}</div>
-        <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginTop:6}}>4 dígitos · alternativa ao QR Code</div>
+        <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:1.5,marginBottom:6}}>Código Dinâmico</div>
+        <div style={{fontFamily:"monospace",fontWeight:900,fontSize:44,color:C.ou,letterSpacing:6,lineHeight:1}}>{tk || "..."}</div>
+        <div style={{fontSize:10,color:"rgba(255,255,255,.5)",marginTop:6}}>Válido por 60s ou até o próximo uso</div>
       </div>
-      <button onClick={()=>navigator.clipboard?.writeText(op.id).then(()=>alert("✅ Código "+op.id+" copiado!"))}
+      <button onClick={()=>navigator.clipboard?.writeText(tk).then(()=>alert("✅ Código "+tk+" copiado!"))}
         style={{marginLeft:"auto",background:"rgba(255,255,255,.14)",color:"#fff",border:"1px solid rgba(255,255,255,.22)",borderRadius:10,padding:"9px 13px",fontSize:11,fontWeight:800,cursor:"pointer",fontFamily:"inherit",flexShrink:0,zIndex:1}}>
         📋 Copiar
       </button>
@@ -387,7 +414,7 @@ function OpRank({rank,opId}){return(<div style={{display:"flex",flexDirection:"c
 /* ═══════ ADMIN PANEL ═══════ */
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
   const[aba,setAba]=useState("dash");
-  const ABAS=[{id:"dash",emoji:"📊",label:"Dashboard"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes"},{id:"pr",emoji:"🎁",label:"Prêmios"},{id:"cfg",emoji:"⚙️",label:"Config"}];
+  const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes"},{id:"pr",emoji:"🎁",label:"Prêmios"},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>

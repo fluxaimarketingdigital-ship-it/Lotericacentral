@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from "react";
 import Tesseract from "tesseract.js";
+import { Html5QrcodeScanner } from "html5-qrcode";
 import { DB } from "./firebase.js";
 
 /* ══════════════════════════════════════════
@@ -140,12 +140,10 @@ export default function App(){
     // Detectar ?op= (QR do operador) ou ?promo (QR da promoção)
     try{
       const params=new URLSearchParams(window.location.search);
-      const opId=params.get("op");
+      const opId=params.get("op") || params.get("tk");
       const promo=params.get("promo");
       if(opId){
-        const opsArr=await DB.load("lc-ops");
-        const found=Array.isArray(opsArr)?opsArr.find(o=>o.id===opId):null;
-        setOpQR({id:opId,nome:found?.nome||"Operador"});
+        setOpQR({id:opId.toUpperCase()});
       }
       if(promo==="1"||promo==="true"){
         setTela("regulamento");return;
@@ -466,8 +464,8 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
         <div key={t} style={{background:"#fff",borderRadius:14,padding:"12px",border:`1px solid ${C.bd}`}}><div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:26,color:cor,lineHeight:1}}>{v}</div><div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div></div>
       ))}
     </div>
-    {tot>0&&<div style={{background:"#fff",borderRadius:14,overflow:"hidden",border:`1px solid ${C.bd}`}}>
-      <div style={{padding:"11px 14px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Últimas Visitas</div>
+    {tot>0&&<div style={{background:"#fff",borderRadius:14,overflow:"hidden",border:`1.5px solid ${C.bd}`}}>
+      <div style={{padding:"11px 14px",borderBottom:`1.5px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Últimas Visitas</div>
       {[...c.auths].reverse().slice(0,4).map((a,i)=><div key={a.id} style={{padding:"10px 14px",borderBottom:i<3?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:32,height:32,borderRadius:9,background:i===0?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>🏪</div>
         <div style={{flex:1}}>
@@ -479,26 +477,41 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
     </div>}
   </div>);}
 
-/* ══════════════════════════════════════════
-   FORMULÁRIO DE AUTENTICAÇÃO — COMPLETO
-   QR obrigatório · Campos dinâmicos · Avaliação
-══════════════════════════════════════════ */
 function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,setAba}){
-  const[step,  setStep]   = useState(opQR?"form":"qr");
-  const[codM,  setCodM]   = useState("");
-  const[errQR, setErrQR]  = useState("");
-  const[sel,   setSel]    = useState({});
-  const[obs,   setObs]    = useState("");
-  const[nota,  setNota]   = useState(0);
-  const[opLoc, setOpLoc]  = useState(opQR||null);
-  const[errF,  setErrF]   = useState("");
+  const[step,  setStep]    = useState(opQR?"form":"start");
+  const[nsu,   setNsu]     = useState("");
+  const[dataRec,setDataRec] = useState(hoje());
+  const[foto,  setFoto]    = useState(null);
+  const[sel,   setSel]     = useState({});
+  const[obs,   setObs]     = useState("");
+  const[nota,  setNota]    = useState(0);
+  const[opToken,setOpToken] = useState(opQR?.id||"");
+  const[scanOp, setScanOp]  = useState(false);
+  const[errF,  setErrF]    = useState("");
   const[novoProg,setNP]   = useState(null);
+
+  useEffect(() => {
+    if (scanOp) {
+      if(!window.Html5QrcodeScanner) return;
+      const scanner = new (window.Html5QrcodeScanner)("reader_op", { fps: 10, qrbox: {width: 200, height: 200} });
+      scanner.render((txt) => {
+        scanner.clear();
+        setScanOp(false);
+        try {
+          const url = new URL(txt);
+          const tk = (url.searchParams.get("tk") || url.searchParams.get("op") || txt).toUpperCase();
+          setOpToken(tk);
+        } catch(e) { setOpToken(txt.toUpperCase()); }
+      }, (err) => {});
+      return () => { scanner.clear().catch(()=>{}); };
+    }
+  }, [scanOp]);
 
   const form    = cfg.formulario||CFG0.formulario;
   const cats    = form.cats||[];
   const campos  = (form.campos||[]).filter(f=>f.ativo);
   const sels    = Object.keys(sel).filter(k=>sel[k]!==false&&sel[k]!=="");
-  const total   = Object.values(sel).reduce((s,v)=>s+(typeof v==="string"?(parseFloat(v)||0):0),0);
+  const total   = Object.values(sel).reduce((s,v)=>s+(typeof v==="string"?(parseFloat(v.replace(',','.'))||0):0),0);
   const temTrig = sels.some(id=>campos.find(f=>f.id===id)?.triggerRelampago);
   const obrigF  = campos.filter(f=>f.obrigatorio&&!sels.includes(f.id));
   const trigF   = campos.filter(f=>f.triggerRelampago&&f.ativo);
@@ -506,70 +519,67 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   function toggle(id){setSel(p=>{const n={...p};if(n[id]!==undefined&&n[id]!==false){delete n[id];}else{n[id]=true;}return n;});setErrF("");}
   function setVal(id,v){setSel(p=>({...p,[id]:v}));}
 
-  const[validando,setValidando]=useState(false);
+  async function gravar(){
+    if(!opToken){setErrF("Selecione ou identifique a Operadora que te atendeu.");return;}
+    if(!nsu){setErrF("Informe o número do comprovante (NSU).");return;}
+    if(!dataRec){setErrF("Informe a data que consta no comprovante.");return;}
+    if(!foto){setErrF("Anexe uma foto nítida do comprovante para validar.");return;}
+    if(obrigF.length>0){setErrF(`Selecione: ${obrigF.map(f=>f.nome).join(", ")}`);return;}
+    if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
+    
+    // Validar NSU Único (Global)
+    const nsuExiste = clients.some(cli => (cli.auths||[]).some(a => a.nsu === nsu));
+    if(nsuExiste){setErrF("❌ Este comprovante (NSU) já foi utilizado em outro registro.");return;}
 
-  async function validarCod(){
-    const cod=codM.trim();
-    if(!cod){setErrQR("Informe o código do operador.");return;}
-    setValidando(true);setErrQR("");
-    // Tenta recarregar ops do storage (garante dados frescos)
-    let opsAtual=ops;
-    try{const fresh=await DB.load("lc-ops");if(Array.isArray(fresh)&&fresh.length>0)opsAtual=fresh;}catch(_){}
-    // Busca por ID exato ou nome (case-insensitive)
-    const op=opsAtual.find(o=>
-      o.id===cod||
-      o.id.toLowerCase()===cod.toLowerCase()||
-      o.nome.toLowerCase()===cod.toLowerCase()||
-      o.nome.toLowerCase().includes(cod.toLowerCase())
-    );
-    setValidando(false);
-    if(op){
-      setOpLoc({id:op.id,nome:op.nome});
-      setOpQR({id:op.id,nome:op.nome});
-    } else if(opsAtual.length===0){
-      // Apps separados / storage não compartilhado — aceita qualquer código
-      setOpLoc({id:cod,nome:cod});
-      setOpQR({id:cod,nome:cod});
-    } else {
-      setErrQR(`Operador "${cod}" não encontrado. Verifique o código com o operador de caixa.`);
-      return;
+    // Validar Prazo (ex: máximo 7 dias atrás)
+    const dC = new Date(dataRec); const dH = new Date();
+    const diff = Math.floor((dH - dC) / (1000 * 60 * 60 * 24));
+    if(diff < 0 || diff > 7){ 
+       setErrF("❌ A data do comprovante está fora do prazo permitido pelo regulamento (máx. 7 dias).");
+       return;
     }
-    setStep("form");
-  }
 
-  function gravar(){
-    if(obrigF.length>0){setErrF(`Obrigatório: ${obrigF.map(f=>f.nome).join(", ")}`);return;}
-    if(nota===0){setErrF("Avalie o atendimento de 1 a 10 para continuar.");return;}
-    setErrF("");setStep("loading");
+    setStep("loading");
+    let opsAtual=ops;
+    try{const fresh=await DB.load("lc-ops");if(fresh)opsAtual=fresh;}catch(_){}
+    const operator = opsAtual.find(o => o.curToken === opToken || o.id === opToken);
+    
+    if (!operator) {
+       setStep("form");
+       setErrF("❌ Operadora não identificada. Verifique o código ou selecione na lista."); 
+       return; 
+    }
+
+    if(opToken.length > 4) {
+      DB.save("lc-ops", opsAtual.map(o => o.id === operator.id ? { ...o, curToken: null } : o));
+    }
+
     setTimeout(()=>{
       const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
-      const auth={id:uid(),data:now(),opId:opLoc?.id||"",opNome:opLoc?.nome||"",selecionados:sels,emojis,total,obs,nota};
+      const auth={id:uid(),data:dataRec,nsu,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now()};
       const auths=[...(c.auths||[]),auth];const ganhou=auths.length%cfg.meta===0;
       const pr=sortear(sels,cfg);const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
       const novPr=[...premios];
       if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
       if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
       setPr(novPr);setNP({total:auths.length,ganhouMeta:ganhou,premioRl:pr});
-      if(pr)setTimeout(()=>setRelamp({...pr,ganhou}),1000);setStep("ok");
+      if(pr)setTimeout(()=>setRelamp({...pr,ganhou}), 1000);setStep("ok");
     },1400);
   }
 
-  /* LOADING */
   if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
     <div style={{width:58,height:58,borderRadius:"50%",border:`4px solid ${C.az}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
-    <div style={{fontWeight:800,fontSize:16,color:C.az}}>Registrando autenticação…</div>
-    <div style={{fontSize:12,color:C.sb}}>Verificando prêmios relâmpago ⚡</div>
+    <div style={{fontWeight:800,fontSize:16,color:C.az}}>Validando regulamento…</div>
+    <div style={{fontSize:12,color:C.sb}}>Verificando NSU e integridade dos dados 🛡️</div>
   </div>);
 
-  /* SUCESSO */
   if(step==="ok"){
     const novoTot=novoProg?.total||0;const novoPr_=novoTot%cfg.meta;const novoR=Math.floor(novoTot/cfg.meta);
     const novoPct=Math.round((novoPr_/cfg.meta)*100);const gM=novoProg?.ganhouMeta;const pRl=novoProg?.premioRl;
     return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"20px 0",animation:"fadeUp .5s ease"}}>
       <div style={{fontSize:72,animation:"pop .6s",lineHeight:1}}>✅</div>
-      <div style={{fontWeight:900,fontSize:24,color:C.vd,textAlign:"center"}}>Autenticação Registrada!</div>
-      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,textAlign:"center"}}>{opLoc?.nome&&<><strong style={{color:C.tx}}>Operador:</strong> {opLoc.nome}<br/></>}Visita computada com sucesso.</div>
-      {/* progresso atualizado */}
+      <div style={{fontWeight:900,fontSize:24,color:C.vd,textAlign:"center"}}>Autenticação Válida!</div>
+      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,textAlign:"center"}}><strong style={{color:C.tx}}>Operadora:</strong> {c.auths[c.auths.length-1]?.opNome}<br/>Visita registrada de acordo com o regulamento.</div>
       <div style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:20,padding:"18px"}}>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:13}}>
           <div><div style={{fontSize:10,color:"rgba(255,255,255,.55)",fontWeight:700,textTransform:"uppercase"}}>Progresso</div><div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>{gM?<><span style={{color:C.ou,fontSize:22}}>{cfg.premioMeta.emoji}</span> Você ganhou!</>:<>Faltam <span style={{color:C.ou,fontSize:22}}>{cfg.meta-novoPr_}</span> visitas</>}</div></div>
@@ -580,7 +590,6 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
           {Array.from({length:cfg.meta}).map((_,i)=><div key={i} style={{width:16,height:16,borderRadius:"50%",background:i<novoPr_?C.ou:gM?"rgba(0,166,81,.5)":"rgba(255,255,255,.15)",border:`1.5px solid ${i<novoPr_?C.ou:gM?C.vd:"rgba(255,255,255,.25)"}`,boxShadow:i<novoPr_?`0 0 6px ${C.ou}99`:"none",transition:"all .3s",transitionDelay:`${i*25}ms`}}/>)}
         </div>
       </div>
-      {/* nota dada */}
       <div style={{width:"100%",background:"#fff",borderRadius:14,padding:"13px 14px",border:`1px solid ${C.bd}`,display:"flex",gap:10,alignItems:"center"}}>
         <div style={{fontSize:28}}>⭐</div>
         <div><div style={{fontWeight:800,fontSize:13,color:C.tx}}>Sua avaliação: {nota}/10</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>{nota>=9?"Excelente! Muito obrigado!":nota>=7?"Ótimo! Obrigado pelo feedback.":nota>=5?"Agradecemos a avaliação.":"Obrigado. Vamos melhorar!"}</div></div>
@@ -594,256 +603,131 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:14,padding:14,fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>Ver meu progresso</button>
     </div>);}
 
-    const [camAtiva, setCamAtiva] = useState(false);
-  const [scanProg, setScanProg] = useState(0);
-  const fileInputRef = useRef(null);
-
-  function processImage(file) {
-    setCamAtiva(true);
-    setValidando(true);
-    setScanProg(0);
-    const url = URL.createObjectURL(file);
-    
-    // Tesseract processamento real
-    Tesseract.recognize(
-      url,
-      'por',
-      { logger: m => { if(m.status === 'recognizing text') setScanProg(m.progress); } }
-    ).then(({ data: { text } }) => {
-      setValidando(false);
-      setCamAtiva(false);
+  if(step==="start" || step==="form"){
+    return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
       
-      const txt = text.toUpperCase();
-      console.log("✅ TEXTO OCR COMPLETO:\n", txt);
-      
-      // Extrair total e blocos
-      let totalAchado = 0;
-      const matchTotal = txt.match(/TOTAL.*?([0-9]+[.,][0-9]{2})/i);
-      if(matchTotal) {
-          totalAchado = parseFloat(matchTotal[1].replace('.','').replace(',','.'));
-      } else {
-          // caso não ache a palavra TOTAL explícita e clara, soma as partes "VALOR: R$"
-          const matchesValor = [...txt.matchAll(/(?:VALOR|R\$|RS).*?([0-9]+[.,][0-9]{2})/ig)];
-          matchesValor.forEach(m => {
-              totalAchado += parseFloat(m[1].replace('.','').replace(',','.'));
-          });
-      }
-
-      if (totalAchado < 300) {
-          setValidando(false);
-          setCamAtiva(false);
-          setErrQR(`Rejeitado. O cupom atingiu apenas R$ ${totalAchado.toFixed(2).replace('.',',')} (Mínimo R$ 300,00)`);
-          return;
-      }
-
-      // Buscar CONTROLE: XXXXXX -> "TERM 062635" ou "CONTROLE: 545118"
-      let matchNsu = txt.match(/(?:CONTROLE|TERM)[:\s\.-]*([0-9]{5,10})/);
-      let nsuDet = matchNsu ? matchNsu[1] : Math.floor(100000+Math.random()*900000).toString();
-
-      const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===nsuDet || a.nsu===nsuDet));
-      if(jaUsou){
-        setErrQR("Comprovante "+nsuDet+" duplicado! Já registrado.");
-        return;
-      }
-      setOpLoc({id:nsuDet,nome:"Processado por Visão IA"});
-      
-      // Auto-preenchimento inteligente de transações separadas
-      let newSel = {};
-      const blocos = txt.split(/JOGO\/?SERVI[CÇS]O|SERVI[CÇS]O|JOGO/i);
-      if(blocos.length > 1) {
-         blocos.slice(1).forEach(b => {
-             const matchVal = b.match(/(?:VALOR|R\$|RS).*?([0-9]+[.,][0-9]{2})/i);
-             let val = true;
-             if(matchVal) {
-                 val = parseFloat(matchVal[1].replace('.','').replace(',','.')).toFixed(2);
-             }
-             
-             if(b.includes("SANEAMENTO") || b.includes("PGTO") || b.includes("DIN.") || b.includes("BOLETO")) {
-                if (newSel["boleto"] && newSel["boleto"] !== true && typeof val === "string") {
-                     // Somar caso tenha vários
-                     newSel["boleto"] = (parseFloat(newSel["boleto"]) + parseFloat(val)).toFixed(2);
-                } else {
-                     newSel["boleto"] = val; 
-                }
-             }
-             else if(b.includes("DEPOSITO") || b.includes("DEPÓSITO")) newSel["deposito"] = val;
-             else if(b.includes("SAQUE")) newSel["saque"] = val;
-             else if(b.includes("PIX")) newSel["pix"] = val;
-             else if(b.includes("LOTOF") || b.includes("LOTO")) newSel["lotofacil"] = val;
-             else if(b.includes("MEGA")) newSel["megasena"] = val;
-             else if(b.includes("QUINA")) newSel["quina"] = val;
-             else if(b.includes("BOLÃO") || b.includes("BOLAO")) newSel["bolao"] = val;
-         });
-      } else {
-         // fallback puro se não achar divisor
-         if(txt.includes("SANEAMENTO") || txt.includes("PGTO") || txt.includes("BOLETO")) newSel["boleto"] = totalAchado.toFixed(2);
-         if(txt.includes("LOTOF") || txt.includes("LOTO")) newSel["lotofacil"] = true;
-      }
-      
-      setSel(newSel); 
-      setStep("form");
-    }).catch(err => {
-      console.error(err);
-      setValidando(false);
-      setCamAtiva(false);
-      setErrQR("Falha na leitura da imagem. Tente a digitação manual.");
-    });
-  }
-
-  /* CAM GATE */
-  if(step==="qr"||step==="cam")return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
-    <Tit em="📷" t="Escanear Comprovante" s="A IA extrai NSU e seleciona itens auto."/>
-    
-    <input type="file" accept="image/*" ref={fileInputRef} onChange={e=>{ if(e.target.files[0]) processImage(e.target.files[0]); }} style={{display:"none"}} />
-    
-    {!camAtiva&&<div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:18,padding:"28px 18px",textAlign:"center",position:"relative",overflow:"hidden"}}>
-      <div style={{position:"absolute",top:-30,right:-30,width:110,height:110,borderRadius:"50%",background:C.ou,opacity:.08}}/>
-      <div style={{fontSize:56,marginBottom:15}}>📄</div>
-      <div style={{fontWeight:900,fontSize:18,color:"#fff",marginBottom:14}}>Anexar Comprovante</div>
-      <div style={{fontSize:13,color:"rgba(255,255,255,.8)",lineHeight:1.6,marginBottom:20}}>Tire uma foto nítida do cupom fiscal da Lotérica ou anexe o arquivo para preenchimento.</div>
-      <button onClick={()=>{ fileInputRef.current.click(); }} style={{width:"100%",padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:16,cursor:"pointer",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,boxShadow:`0 4px 18px ${C.ou}44`}}>
-        📸 Tirar Foto / Anexar Arquivo
-      </button>
-    </div>}
-    
-    {camAtiva&&<div style={{background:"#000",borderRadius:18,height:220,position:"relative",overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-      <div style={{width:50,height:50,borderRadius:"50%",border:`4px solid ${C.ou}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
-      <div style={{color:"#fff",fontWeight:800,marginTop:12}}>Inteligência Artificial processando...</div>
-      <div style={{color:C.ou,fontSize:11,marginTop:6}}>Efetuando OCR: {Math.round(scanProg*100)}% concluído</div>
-    </div>}
-
-    <div style={{background:"#f9fafb",borderRadius:14,padding:"14px",border:`1px dashed ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Comprovante apagado? Digite o NSU</div>
-      <div style={{display:"flex",gap:7}}>
-        <input value={codM} onChange={e=>{setCodM(e.target.value.replace(/\D/g,""));setErrQR("");}} placeholder="NSU impresso" style={{flex:1,padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"}}/>
-        <button onClick={()=>{
-          if(codM.length<4){setErrQR("NSU inválido.");return;}
-          const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===codM));
-          if(jaUsou){setErrQR("Comprovante "+codM+" já registrado!");return;}
-          setOpLoc({id:codM,nome:"Inserção Manual"});
-          setSel({});
-          setStep("form");
-        }} disabled={validando||camAtiva}
-          style={{background:(validando||camAtiva)?"#9ca3af":C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:(validando||camAtiva)?"not-allowed":"pointer",fontFamily:"inherit",minWidth:52}}>
-          OK
-        </button>
-      </div>
-      {errQR&&<div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {errQR}</div>}
-    </div>
-    <button onClick={()=>setAba("ini")} style={{background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Cancelar</button>
-  </div>);
-
-  /* ════════ FORMULÁRIO ════════ */
-  return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
-
-    {/* Comprovante validado */}
-    <div style={{background:C.vdC,borderRadius:14,padding:"13px 15px",border:`1.5px solid ${C.vd}44`,display:"flex",gap:11,alignItems:"center",animation:"pop .5s ease"}}>
-      <div style={{width:42,height:42,borderRadius:12,background:C.vd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>📄</div>
-      <div style={{flex:1}}><div style={{fontWeight:800,fontSize:12,color:C.vd}}>Cupom Lido com Sucesso!</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>NSU: {opLoc?.id||"—"}</div></div>
-      <button onClick={()=>{setOpLoc(null);setOpQR(null);setStep("cam");}} style={{background:"none",border:`1px solid ${C.vd}44`,borderRadius:8,padding:"5px 10px",fontSize:11,color:C.vd,cursor:"pointer",fontFamily:"inherit"}}>Repetir</button>
-    </div>
-
-    {/* Instrução Pos Leitura */}
-    <div style={{background:"#fff",borderRadius:14,padding:"13px 14px",border:`1px solid ${C.bd}`}}>
-      <div style={{display:"flex",gap:11,alignItems:"flex-start"}}>
-        <div style={{width:38,height:38,borderRadius:11,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>✨</div>
-        <div><div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:3}}>Campanha verificada</div><div style={{fontSize:11,color:C.sb,lineHeight:1.6}}>Abaixo os itens identificados via IA. Você também pode preencher ou corrigir (opcional). Avalie o atendimento abaixo.</div></div>
-      </div>
-    </div>
-
-    {/* CAMPOS DINÂMICOS */}
-    <div style={{background:"#fff",borderRadius:16,padding:"15px 14px",border:`1px solid ${C.bd}`}}>
-      {cats.map((cat,ci)=>{
-        const cc=campos.filter(f=>f.cat===cat.id);if(cc.length===0)return null;
-        return(<div key={cat.id} style={{marginBottom:ci<cats.length-1?16:0}}>
-          <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:9}}>
-            <div style={{width:3,height:15,borderRadius:4,background:cat.cor,flexShrink:0}}/>
-            <div style={{fontWeight:800,fontSize:11,color:cat.cor,textTransform:"uppercase",letterSpacing:.5}}>{cat.nome}</div>
-            {cc.some(f=>f.triggerRelampago)&&<div style={{fontSize:9,color:C.rx,fontWeight:700,background:C.rxC,padding:"1px 7px",borderRadius:20,border:`1px solid ${C.rx}22`}}>⚡ Relâmpago</div>}
-            <div style={{fontSize:9,color:C.sb,marginLeft:"auto"}}>(opcional)</div>
+      {/* ── IDENTIFICAÇÃO DO OPERADOR ── */}
+      <div style={{background:opToken?C.vdC:"#fff",borderRadius:16,padding:"16px 14px",border:`1.5px solid ${opToken?C.vd:C.ou}`,boxShadow:opToken?"none":`0 4px 14px ${C.ou}22`}}>
+        <div style={{fontWeight:900,fontSize:14,color:opToken?C.vd:C.ou2,marginBottom:8}}>{opToken?"✅ Operadora Identificada":"👩‍💼 Selecionar Operadora"}</div>
+        {opToken ? (
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:40,height:40,borderRadius:"50%",background:C.vd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>👩‍💼</div>
+            <div style={{flex:1}}><div style={{fontWeight:800,fontSize:15,color:C.tx}}>{ops.find(o=>o.id===opToken || o.curToken===opToken)?.nome || "Operadora Autorizada"}</div><div style={{fontSize:11,color:C.sb}}>Cód: {opToken}</div></div>
+            <button onClick={()=>{setOpToken("");setOpQR(null);}} style={{background:C.bg,border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:C.sb,cursor:"pointer"}}>Alterar</button>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
-            {cc.map(f=>{const on=f.id in sel&&sel[f.id]!==false&&sel[f.id]!=="";return(
-              <div key={f.id} style={{display:"flex",flexDirection:"column",gap:4}}>
-                <button onClick={()=>toggle(f.id)} style={{display:"flex",alignItems:"center",gap:7,padding:"10px 10px",borderRadius:12,border:`2px solid ${on?cat.cor:C.bd}`,background:on?`${cat.cor}10`:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .18s",width:"100%"}}>
-                  <span style={{fontSize:17,flexShrink:0}}>{f.emoji}</span>
-                  <span style={{fontSize:11,fontWeight:700,color:on?cat.cor:C.tx,flex:1,textAlign:"left",lineHeight:1.2}}>{f.nome}</span>
-                  <span style={{display:"flex",gap:3,alignItems:"center",flexShrink:0}}>
-                    {f.triggerRelampago&&<span style={{fontSize:10}}>⚡</span>}
-                    {f.obrigatorio&&<span style={{width:6,height:6,borderRadius:"50%",background:C.rd,display:"block"}}/>}
-                    {on&&<div style={{width:17,height:17,borderRadius:"50%",background:cat.cor,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{color:"#fff",fontSize:10,fontWeight:900}}>✓</span></div>}
-                  </span>
-                </button>
-                {on&&f.comValor&&<div style={{position:"relative",animation:"up .15s"}}>
-                  <span style={{position:"absolute",left:9,top:"50%",transform:"translateY(-50%)",fontSize:11,color:C.sb,fontWeight:600,pointerEvents:"none"}}>R$</span>
-                  <input value={typeof sel[f.id]==="string"?sel[f.id]:""} onChange={e=>setVal(f.id,e.target.value)} type="number" min="0" step="0.01" placeholder="0,00" autoFocus
-                    style={{width:"100%",paddingLeft:26,paddingRight:8,paddingTop:8,paddingBottom:8,border:`1.5px solid ${cat.cor}66`,borderRadius:9,fontSize:13,fontFamily:"inherit",outline:"none",fontWeight:700,color:C.tx,background:"#fff"}}/>
-                </div>}
+        ) : (
+          <div>
+            <div style={{fontSize:11,color:C.tx,marginBottom:12}}>Escolha a operadora que fez o seu atendimento:</div>
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              <select value={opToken} onChange={e=>setOpToken(e.target.value)} style={{width:"100%",padding:12,borderRadius:11,border:`1.5px solid ${C.bd}`,fontFamily:"inherit",fontSize:14,fontWeight:700,background:"#fff",outline:"none"}}>
+                <option value="">Selecione...</option>
+                {ops.map(o=><option key={o.id} value={o.id}>{o.nome} (Cód: {o.id})</option>)}
+              </select>
+              <div style={{textAlign:"center",fontSize:10,color:C.sb,margin:"5px 0"}}>OU DIGITE O CÓDIGO DINÂMICO</div>
+              <div style={{display:"flex",gap:8}}>
+                <input value={opToken} onChange={e=>setOpToken(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,""))} placeholder="CÓDIGO" style={{flex:1,padding:"10px 14px",border:`1.5px solid ${C.bd}`,borderRadius:11,fontSize:16,textTransform:"uppercase",fontWeight:900,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff",textAlign:"center"}} />
+                <button onClick={()=>{setErrF("");setScanOp(!scanOp)}} style={{background:C.az,color:"#fff",borderRadius:11,border:"none",padding:"10px 16px",fontWeight:900,cursor:"pointer",flexShrink:0}}>📷 QR</button>
               </div>
-            );})}
+              {scanOp && <div style={{marginTop:12,borderRadius:12,overflow:"hidden",border:`2px solid ${C.ou}`}}><div id="reader_op"></div></div>}
+            </div>
           </div>
-        </div>);
-      })}
-    </div>
-
-    {/* ══ AVALIAÇÃO DO ATENDIMENTO 1-10 ══ */}
-    <div style={{background:"#fff",borderRadius:16,padding:"16px 14px",border:`1.5px solid ${nota>0?C.ou+88:C.bd}`}}>
-      <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:14}}>
-        <div style={{width:38,height:38,borderRadius:11,background:C.ouC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>⭐</div>
-        <div>
-          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Avaliação do Atendimento *</div>
-          <div style={{fontSize:11,color:C.sb,marginTop:2}}>De 1 (péssimo) a 10 (excelente)</div>
-        </div>
-        {nota>0&&<div style={{marginLeft:"auto",fontWeight:900,fontSize:26,color:nota>=8?C.vd:nota>=5?C.ou2:C.rd}}>{nota}</div>}
+        )}
       </div>
-      {/* Botões de 1 a 10 */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:7}}>
-        {[1,2,3,4,5,6,7,8,9,10].map(n=>{
-          const cor=n>=8?C.vd:n>=5?C.ou:C.rd;
-          const on=nota===n;
-          return(
-            <button key={n} onClick={()=>setNota(n)}
-              style={{padding:"12px 0",borderRadius:12,border:`2px solid ${on?cor:C.bd}`,background:on?`${cor}15`:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .18s",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
-              <span style={{fontWeight:900,fontSize:16,color:on?cor:C.tx}}>{n}</span>
-              <span style={{fontSize:9,color:on?cor:C.sb}}>{n===1?"😞":n<=3?"😕":n<=5?"😐":n<=7?"🙂":n<=9?"😊":"🤩"}</span>
-            </button>
-          );
+
+      {/* ── DADOS DO COMPROVANTE ── */}
+      <div style={{background:"#fff",borderRadius:16,padding:"15px 14px",border:`1px solid ${C.bd}`}}>
+        <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12,display:"flex",alignItems:"center",gap:7}}>📄 Dados do Comprovante</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
+          <div>
+            <label style={LS}>Data do Cupom *</label>
+            <input type="date" value={dataRec} onChange={e=>setDataRec(e.target.value)} style={{width:"100%",marginTop:5,...I,fontSize:13}} />
+          </div>
+          <div>
+            <label style={LS}>NSU / Registro *</label>
+            <input value={nsu} onChange={e=>setNsu(e.target.value.replace(/\D/g,""))} placeholder="Ex: 545118" style={{width:"100%",marginTop:5,...I}} />
+          </div>
+        </div>
+        <label style={LS}>Foto do Comprovante (Legível) *</label>
+        <div style={{marginTop:5,position:"relative"}}>
+          <input type="file" accept="image/*" capture="environment" onChange={e=>{if(e.target.files[0]) setFoto(URL.createObjectURL(e.target.files[0]))}} style={{display:"none"}} id="foto-inp" />
+          <label htmlFor="foto-inp" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:foto?C.vdC:C.azC,color:foto?C.vd:C.az,padding:14,borderRadius:12,border:`2px dashed ${foto?C.vd:C.az}44`,cursor:"pointer",fontWeight:800,fontSize:14}}>
+            {foto ? "✅ Foto Selecionada" : "📸 Tirar Foto do Cupom"}
+          </label>
+          {foto && <div style={{marginTop:10,textAlign:"center"}}><img src={foto} style={{width:100,height:100,objectFit:"cover",borderRadius:12,border:`2px solid ${C.bd}`}} alt="comprovante" /><div onClick={()=>setFoto(null)} style={{fontSize:11,color:C.rd,fontWeight:700,marginTop:4,cursor:"pointer"}}>Excluir Foto</div></div>}
+        </div>
+      </div>
+
+      {/* ── RESUMO DE VALORES ── */}
+      <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"16px",display:"flex",justifyContent:"space-between",alignItems:"center",boxShadow:`0 8px 20px ${C.az}33`}}>
+        <div>
+          <div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase",letterSpacing:1}}>Total do Atendimento</div>
+          <div style={{fontSize:28,fontWeight:900,color:"#fff"}}>{brl(total)}</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+          <div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase",letterSpacing:1}}>Itens</div>
+          <div style={{fontSize:28,fontWeight:900,color:C.ou}}>{sels.length}</div>
+        </div>
+      </div>
+
+      {/* ── SERVIÇOS ── */}
+      <div style={{background:"#fff",borderRadius:16,padding:"15px 14px",border:`1px solid ${C.bd}`}}>
+        {cats.map((cat,ci)=>{
+          const cc=campos.filter(f=>f.cat===cat.id);if(cc.length===0)return null;
+          return(<div key={cat.id} style={{marginBottom:ci<cats.length-1?16:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:7,marginBottom:9}}>
+              <div style={{width:3,height:15,borderRadius:4,background:cat.cor,flexShrink:0}}/>
+              <div style={{fontWeight:800,fontSize:11,color:cat.cor,textTransform:"uppercase",letterSpacing:.5}}>{cat.nome}</div>
+              <div style={{fontSize:9,color:C.sb,marginLeft:"auto"}}>(opcional)</div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
+              {cc.map(f=>{const on=f.id in sel&&sel[f.id]!==false&&sel[f.id]!=="";return(
+                <div key={f.id} style={{display:"flex",flexDirection:"column",gap:4}}>
+                  <button onClick={()=>toggle(f.id)} style={{display:"flex",alignItems:"center",gap:7,padding:"10px 10px",borderRadius:12,border:`2px solid ${on?cat.cor:C.bd}`,background:on?`${cat.cor}10`:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .18s",width:"100%"}}>
+                    <span style={{fontSize:17,flexShrink:0}}>{f.emoji}</span>
+                    <span style={{fontSize:11,fontWeight:700,color:on?cat.cor:C.tx,flex:1,textAlign:"left",lineHeight:1.2}}>{f.nome}</span>
+                    {on&&<div style={{width:16,height:16,borderRadius:"50%",background:cat.cor,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{color:"#fff",fontSize:9,fontWeight:900}}>✓</span></div>}
+                  </button>
+                  {on&&f.comValor&&<div style={{position:"relative",animation:"up .15s"}}>
+                    <span style={{position:"absolute",left:9,top:"50%",transform:"translateY(-50%)",fontSize:11,color:C.sb,fontWeight:600}}>R$</span>
+                    <input value={typeof sel[f.id]==="string"?sel[f.id]:""} onChange={e=>setVal(f.id,e.target.value)} type="number" min="0" step="0.01" placeholder="0,00" autoFocus
+                      style={{width:"100%",paddingLeft:26,paddingRight:8,paddingTop:8,paddingBottom:8,border:`1.5px solid ${cat.cor}66`,borderRadius:9,fontSize:13,fontFamily:"inherit",outline:"none",fontWeight:700,color:C.tx,background:"#fff"}}/>
+                  </div>}
+                </div>
+              );})}
+            </div>
+          </div>);
         })}
       </div>
-      {nota>0&&(
-        <div style={{marginTop:12,padding:"9px 12px",borderRadius:10,background:nota>=8?C.vdC:nota>=5?C.ouC:C.rdC,border:`1px solid ${nota>=8?C.vd:nota>=5?C.ou:C.rd}44`,fontSize:11,fontWeight:700,color:nota>=8?C.vd:nota>=5?C.ou2:C.rd,textAlign:"center"}}>
-          {nota>=9?"🤩 Excelente! Muito obrigado pelo feedback!":nota>=7?"😊 Ótimo! Agradecemos sua avaliação.":nota>=5?"🙂 Obrigado! Continuaremos melhorando.":nota>=3?"😕 Entendemos. Trabalharemos para melhorar.":"😞 Sentimos muito. Sua opinião nos ajuda."}
+
+      {/* ── AVALIAÇÃO ── */}
+      <div style={{background:"#fff",borderRadius:16,padding:"16px 14px",border:`1.5px solid ${nota>0?C.ou+88:C.bd}`}}>
+        <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:14}}>
+          <div style={{width:38,height:38,borderRadius:11,background:C.ouC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>⭐</div>
+          <div><div style={{fontWeight:800,fontSize:13,color:C.tx}}>Avalie o Atendimento *</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>Nota de 1 a 10</div></div>
+          {nota>0&&<div style={{marginLeft:"auto",fontWeight:900,fontSize:24,color:nota>=8?C.vd:nota>=5?C.ou2:C.rd}}>{nota}</div>}
         </div>
-      )}
-    </div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:7}}>
+          {[1,2,3,4,5,6,7,8,9,10].map(n=>{
+            const cor=n>=8?C.vd:n>=5?C.ou:C.rd;const on=nota===n;
+            return(<button key={n} onClick={()=>setNota(n)} style={{padding:"10px 0",borderRadius:12,border:`2px solid ${on?cor:C.bd}`,background:on?`${cor}15`:"#fff",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center"}}>
+              <span style={{fontWeight:900,fontSize:15,color:on?cor:C.tx}}>{n}</span>
+            </button>);
+          })}
+        </div>
+      </div>
 
-    {/* OBSERVAÇÃO */}
-    <div style={{background:"#fff",borderRadius:14,padding:"13px 14px",border:`1px solid ${C.bd}`}}>
-      <label style={{fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5,display:"block",marginBottom:6}}>💬 Observação (opcional)</label>
-      <textarea value={obs} onChange={e=>setObs(e.target.value)} placeholder="Algum detalhe desta visita…" rows={2}
-        style={{width:"100%",padding:"10px 12px",borderRadius:11,border:`1.5px solid ${C.bd}`,fontSize:12,fontFamily:"inherit",outline:"none",resize:"none",color:C.tx,lineHeight:1.6,background:"#fff"}}/>
-    </div>
+      <div style={{background:"#fff",borderRadius:14,padding:"13px 14px",border:`1px solid ${C.bd}`}}>
+        <label style={LS}>Observação (opcional)</label>
+        <textarea value={obs} onChange={e=>setObs(e.target.value)} placeholder="Algum detalhe extra…" rows={2} style={{width:"100%",marginTop:5,padding:10,borderRadius:11,border:`1.5px solid ${C.bd}`,fontSize:12,fontFamily:"inherit",outline:"none",resize:"none",background:"#fff"}}/>
+      </div>
 
-    {/* RESUMO */}
-    {sels.length>0&&<div style={{background:C.azC,borderRadius:12,padding:"11px 13px",border:`1px solid ${C.bd}`,fontSize:11,color:C.az,animation:"up .2s"}}>
-      <div style={{marginBottom:total>0?5:0}}><strong>Selecionados:</strong> {sels.map(id=>campos.find(f=>f.id===id)?.emoji||"").join(" ")} ({sels.length})</div>
-      {total>0&&<div><strong>Total:</strong> {brl(total)}</div>}
-      {temTrig&&<div style={{color:C.rx,fontWeight:800,marginTop:5}}>⚡ Você concorre ao Prêmio Relâmpago!</div>}
-    </div>}
+      {errF&&<Alerta msg={errF}/>}
+      <button onClick={gravar} style={{padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:17,cursor:"pointer",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",boxShadow:`0 4px 18px ${C.vd}44`}}>✅ Finalizar e Pontuar!</button>
+      <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{background:"#f9fafb",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
+    </div>);
+  }
+}
 
-    {/* DICA RELÂMPAGO */}
-    {!temTrig&&trigF.length>0&&<div style={{background:C.rxC,borderRadius:12,padding:"11px 13px",border:`1px solid ${C.rx}22`,fontSize:11,color:C.rx,lineHeight:1.6}}>
-      ⚡ Selecione <strong>{trigF.slice(0,2).map(f=>f.nome).join(" ou ")}</strong> para concorrer ao Prêmio Relâmpago!
-    </div>}
-
-    {errF&&<Alerta msg={errF}/>}
-
-    <button onClick={gravar}
-      style={{padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:17,cursor:"pointer",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",boxShadow:`0 4px 18px ${C.vd}44`}}>
-      ✅ Confirmar Autenticação!
-    </button>
-    <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Cancelar</button>
-  </div>);}
 
 /* ══════════════════════ PRÊMIOS ══════════════════════ */
 function Premios({meusPr,c,wts}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
