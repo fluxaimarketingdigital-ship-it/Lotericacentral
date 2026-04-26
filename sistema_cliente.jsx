@@ -627,8 +627,12 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     }
 
     setTimeout(()=>{
-      // Usar a data do recebimento mas garantir meio-dia para evitar shift de timezone
-      const dIso = `${dataRec}T12:00:00`;
+      // Combinar data do comprovante com hora atual para exibição correta
+      const agora = new Date();
+      const h = String(agora.getHours()).padStart(2, '0');
+      const m = String(agora.getMinutes()).padStart(2, '0');
+      const s = String(agora.getSeconds()).padStart(2, '0');
+      const dIso = `${dataRec}T${h}:${m}:${s}`;
       
       const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
       const isV = totalPagamentos >= minV;
@@ -653,7 +657,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       if(pr)setRelamp({...pr,cliNome:c.nome}); // Chamada direta sem delay longo
       setStep("ok");
       setSub(false);
-    }, 600);
+    }, 250);
   }
 
   if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
