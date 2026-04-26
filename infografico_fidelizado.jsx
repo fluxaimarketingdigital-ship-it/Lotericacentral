@@ -75,7 +75,7 @@ function Hero(){
         <span style={{color:P.br}}>Cliente</span> <span style={{color:P.ou}}>Fidelizado</span> <span style={{color:P.br}}>Premiado</span>
       </h1>
       <p style={{fontSize:14,color:P.ci,lineHeight:1.8,maxWidth:480,margin:"0 auto 26px",animation:"fadeUp .7s .2s ease both",opacity:0,animationFillMode:"forwards"}}>
-        Programa digital de fidelidade com <strong style={{color:P.br}}>QR Code único</strong>, formulário dinâmico configurável, avaliação do atendimento e prêmios automáticos.
+        Programa digital de fidelidade com identificação em tempo real, formulário dinâmico configurável, avaliação do atendimento e prêmios automáticos.
       </p>
       <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .7s .3s ease both",opacity:0,animationFillMode:"forwards"}}>
         {[["🎟️","Prêmio a cada 15 visitas"],["⚡","Prêmio Relâmpago"],["⭐","Avaliação 1–10"],["📱","2 apps digitais"]].map(([em,txt])=>(
@@ -95,8 +95,8 @@ function Ecossistema(){
       <SecTit tag="Visão Geral" titulo="Ecossistema Digital" icon="🌐"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginTop:32}}>
         {[
-          {emoji:"📱",titulo:"App Operador",sub:"Sistema de Gestão",cor:P.az2,items:["Gera QR por operador","Dashboard de auths","Ranking da equipe","Configura formulário","Edita regulamento","Exporta dados CSV"]},
-          {emoji:"🏆",titulo:"App Cliente",sub:"Portal de Fidelidade",cor:P.ou,items:["QR único → regulamento","Cadastro + login WhatsApp","Formulário dinâmico","Avaliação 1 a 10","Progresso com selos","Notícias exclusivas"]},
+          {emoji:"📱",titulo:"App Operador",sub:"Sistema de Gestão",cor:P.az2,items:["Gera código por operador","Dashboard de auths","Ranking da equipe","Configura formulário","Edita regulamento","Exporta dados CSV"]},
+          {emoji:"🏆",titulo:"App Cliente",sub:"Portal de Fidelidade",cor:P.ou,items:["Link único → regulamento","Cadastro + login WhatsApp","Formulário dinâmico","Avaliação 1 a 10","Progresso com selos","Notícias exclusivas"]},
           {emoji:"🔧",titulo:"Admin Lotérica",sub:"Controle Total",cor:P.vd,items:["Edita prêmios e metas","Configura campos","Edita regulamento","Gerencia clientes","Exporta relatórios"]},
         ].map((c,i)=>(
           <Reveal key={i} delay={i*100}>
@@ -116,11 +116,11 @@ function Ecossistema(){
 
 function FluxoCompleto(){
   const passos=[
-    {n:"01",emoji:"📢",titulo:"QR Único da Promoção",desc:"QR fixo exposto no balcão. O cliente escaneia para iniciar sua participação.",cor:P.az2,link:"Painel da lotérica"},
+    {n:"01",emoji:"📢",titulo:"Início da Promoção",desc:"Acesse o App pelo link ou QR fixo no balcão para iniciar sua participação.",cor:P.az2,link:"Painel da lotérica"},
     {n:"02",emoji:"📋",titulo:"Lê o Regulamento",desc:"O cliente rola até o final do regulamento. Só avança após ler completamente.",cor:"#0891b2",link:"App Cliente"},
     {n:"03",emoji:"📝",titulo:"Faz o Cadastro",desc:"Nome completo, WhatsApp e e-mail. Cadastro único e protegido pela LGPD.",cor:P.rx,link:"App Cliente"},
     {n:"04",emoji:"🏪",titulo:"Atendimento no Caixa",desc:"A cada visita, o cliente realiza seus serviços: boleto, PIX, saque, jogos.",cor:"#d97706",link:"Lotérica"},
-    {n:"05",emoji:"📷",titulo:"Escaneia QR do Operador",desc:"Pede ao operador o QR exclusivo do caixa — a chave que libera o formulário.",cor:P.vd,link:"QR do operador"},
+    {n:"05",emoji:"🏪",titulo:"Código da Operadora",desc:"Solicite o código de identificação à operadora para liberar o formulário.",cor:P.vd,link:"Código do caixa"},
     {n:"06",emoji:"🛍️",titulo:"Preenche o Formulário",desc:"Seleciona produtos (Bancário e Jogos), informa valores e avalia o atendimento de 1 a 10.",cor:"#059669",link:"App Cliente"},
     {n:"07",emoji:"✅",titulo:"Autenticação Confirmada",desc:"Visita registrada. Selos e progresso atualizados. Sorteio relâmpago se incluiu Jogos.",cor:P.ou,link:"App Cliente"},
     {n:"08",emoji:"🎟️",titulo:"Acumula e Ganha!",desc:"A cada 15 visitas: 1 Raspadinha CAIXA garantida + notificação WhatsApp.",cor:"#db2777",link:"Prêmio automático"},
@@ -157,11 +157,11 @@ function FluxoCompleto(){
 function QRSection(){
   return(
     <div style={{padding:"52px 24px",background:`linear-gradient(135deg,#0a1a3a,#0f2850)`}}>
-      <SecTit tag="Tecnologia" titulo="Os QR Codes do Sistema" icon="📱"/>
+      <SecTit tag="Tecnologia" titulo="Identificação Digital" icon="📱"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
-          {emoji:"🎯",titulo:"QR Único da Promoção",sub:"Painel da Lotérica — permanente",cor:P.ou,desc:"QR fixo gerado uma única vez pelo admin. Exposto no balcão e materiais de divulgação. Abre o regulamento e inicia o cadastro do cliente.",passos:["Cliente escaneia","Lê o regulamento","Faz o cadastro","Começa a participar"]},
-          {emoji:"📲",titulo:"QR do Operador de Caixa",sub:"Gerado por atendimento — temporário",cor:P.vd,desc:"QR exclusivo por operadora. Gerado a cada atendimento no sistema. É a chave obrigatória para liberar o formulário de autenticação.",passos:["Operador abre QR","Cliente escaneia","Formulário liberado","Visita registrada"]},
+          {emoji:"🎯",titulo:"Acesso à Promoção",sub:"Painel da lotérica — permanente",cor:P.ou,desc:"Acessado via link ou identificação fixa. Exposto no balcão e materiais de divulgação. Abre o regulamento e inicia o cadastro do cliente.",passos:["Cliente acessa o app","Lê o regulamento","Faz o cadastro","Começa a participar"]},
+          {emoji:"📲",titulo:"Código da Operadora de Caixa",sub:"Identificação por atendimento",cor:P.vd,desc:"Código exclusivo por operadora. Fornecido a cada atendimento no sistema. É a chave obrigatória para liberar o formulário de autenticação.",passos:["Operador informa código","Cliente digita no app","Formulário liberado","Visita registrada"]},
         ].map((q,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.05)",borderRadius:20,border:`1px solid ${q.cor}33`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
@@ -190,7 +190,7 @@ function FormularioSection(){
       <SecTit tag="Formulário" titulo="Produtos e Serviços" icon="🛍️"/>
       <Reveal delay={100}>
         <div style={{marginTop:28,background:"rgba(255,255,255,.04)",borderRadius:18,padding:"20px",border:"1px solid rgba(255,255,255,.08)"}}>
-          <div style={{marginBottom:18,fontSize:11,color:P.ci,lineHeight:1.7,textAlign:"center"}}>Campos configurados pelo admin · Aparecem após QR do operador · Todos opcionais (exceto avaliação)</div>
+          <div style={{marginBottom:18,fontSize:11,color:P.ci,lineHeight:1.7,textAlign:"center"}}>Campos configurados pelo admin · Aparecem após identificar a operadora · Todos opcionais (exceto avaliação)</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
             {[
               {cat:"Bancário",cor:"#003478",itens:[{e:"📄",n:"Boleto",v:true},{e:"💰",n:"Depósito",v:true},{e:"💵",n:"Saque",v:true},{e:"📲",n:"PIX",v:true}]},
@@ -279,7 +279,7 @@ function PremiosSection(){
                     <div style={{fontFamily:"'Sora',sans-serif",fontWeight:900,fontSize:22,color:P.br}}>Raspadinha CAIXA</div>
                     <span style={{background:"rgba(0,166,81,.2)",border:"1px solid rgba(0,166,81,.4)",borderRadius:20,padding:"3px 10px",fontSize:9,fontWeight:800,color:P.vd}}>PRÊMIO PRINCIPAL</span>
                   </div>
-                  <div style={{fontSize:13,color:"#86efac",lineHeight:1.7}}>A cada <strong style={{color:P.br}}>15 autenticações</strong> validadas por QR do operador, o cliente ganha automaticamente 1 Raspadinha CAIXA. Notificação via WhatsApp para retirada no balcão.</div>
+                  <div style={{fontSize:13,color:"#86efac",lineHeight:1.7}}>A cada <strong style={{color:P.br}}>15 autenticações</strong> validadas pelo código da operadora, o cliente ganha automaticamente 1 Raspadinha CAIXA. Notificação via WhatsApp para retirada no balcão.</div>
                 </div>
               </div>
               <div style={{display:"flex",gap:5,marginTop:16,flexWrap:"wrap"}}>
@@ -340,8 +340,8 @@ function AppsSection(){
       <SecTit tag="Aplicativos" titulo="Os Dois Apps Digitais" icon="📱"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
-          {titulo:"App Operador",sub:"Sistema de Gestão",emoji:"🖥️",cor:P.az2,features:["📲 Gera QR Code exclusivo","👤 Cadastra operadoras","📊 Dashboard completo","🏅 Ranking da equipe","👥 Gerencia clientes","🎁 Controle de prêmios","⚙️ Configura formulário","📋 Edita regulamento","💾 Exporta dados CSV"]},
-          {titulo:"App Cliente",sub:"Portal de Fidelidade",emoji:"📱",cor:P.ou,features:["🎯 QR único → regulamento","📝 Cadastro nome+WhatsApp+e-mail","🏠 Painel com progresso","📷 QR operador → formulário","⭐ Avaliação 1 a 10 obrigatória","🎁 Histórico de prêmios","📰 Notícias exclusivas","📋 Regulamento dinâmico","📲 Notificações WhatsApp"]},
+          {titulo:"App Operador",sub:"Sistema de Gestão",emoji:"🖥️",cor:P.az2,features:["📲 Gera código exclusivo","👤 Cadastra operadoras","📊 Dashboard completo","🏅 Ranking da equipe","👥 Gerencia clientes","🎁 Controle de prêmios","⚙️ Configura formulário","📋 Edita regulamento","💾 Exporta dados CSV"]},
+          {titulo:"App Cliente",sub:"Portal de Fidelidade",emoji:"📱",cor:P.ou,features:["🎯 Link único → regulamento","📝 Cadastro nome+WhatsApp+e-mail","🏠 Painel com progresso","🏪 Código operadora → formulário","⭐ Avaliação 1 a 10 obrigatória","🎁 Histórico de prêmios","📰 Notícias exclusivas","📋 Regulamento dinâmico","📲 Notificações WhatsApp"]},
         ].map((a,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,border:`1px solid ${a.cor}30`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
@@ -385,7 +385,7 @@ function NumerosSection(){
           <div style={{display:"flex",position:"relative"}}>
             <div style={{position:"absolute",top:22,left:22,right:22,height:2,background:`linear-gradient(90deg,${P.vd},${P.ou},${P.rx},${P.az2})`,opacity:.25}}/>
             {[
-              {q:"A cada visita",em:"📷",cor:P.az2,d:"QR → autenticação"},
+              {q:"A cada visita",em:"🏪",cor:P.az2,d:"Código → autenticação"},
               {q:"Instantâneo",em:"⚡",cor:P.rx,d:"Sorteio Relâmpago"},
               {q:"15ª visita",em:"🎟️",cor:P.vd,d:"Raspadinha!"},
               {q:"Todo dia 05",em:"🏅",cor:P.ou,d:"Prêmio operadoras"},
@@ -416,7 +416,7 @@ function Rodape(){
         </div>
         <div>
           <div style={{fontSize:11,fontWeight:800,color:P.ci,textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Tecnologia</div>
-          <div style={{fontSize:11,color:P.ge,lineHeight:2}}>2 Apps React.js<br/>Storage compartilhado<br/>QR Codes dinâmicos<br/>WhatsApp integrado</div>
+          <div style={{fontSize:11,color:P.ge,lineHeight:2}}>2 Apps React.js<br/>Storage compartilhado<br/>Códigos dinâmicos<br/>WhatsApp integrado</div>
         </div>
         <div>
           <div style={{fontSize:11,fontWeight:800,color:P.ci,textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>CAIXA</div>
@@ -424,7 +424,7 @@ function Rodape(){
         </div>
       </div>
       <div style={{borderTop:"1px solid rgba(255,255,255,.07)",paddingTop:16,display:"flex",gap:10,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
-        <div style={{fontSize:10,color:P.ci,lineHeight:1.6,maxWidth:500}}>Programa sujeito ao regulamento editável pelo administrador. A cada 15 autenticações validadas por QR do operador, o cliente recebe 1 Raspadinha CAIXA. Avaliação do atendimento obrigatória a cada registro.</div>
+        <div style={{fontSize:10,color:P.ci,lineHeight:1.6,maxWidth:500}}>Programa sujeito ao regulamento editável pelo administrador. A cada 15 autenticações validadas pelo código da operadora, o cliente recebe 1 Raspadinha CAIXA. Avaliação do atendimento obrigatória a cada registro.</div>
         <div style={{display:"flex",gap:8}}>{[P.az2,P.vd,P.ou,P.rx].map((cor,i)=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:cor}}/>)}</div>
       </div>
     </div>

@@ -17,11 +17,11 @@ const DCFG = {
 Lotérica Central · CNPJ 20.845.956/0001-00 · Alagoinhas-BA
 
 1. PARTICIPAÇÃO
-Clientes atendidos com visita validada pelo QR Code do operador de caixa.
+Clientes atendidos com visita validada pelo código do operador de caixa.
 
 2. COMO FUNCIONA
-• O operador gera o QR Code exclusivo no sistema.
-• O cliente escaneia com o celular para registrar a visita.
+• O operador fornece seu código exclusivo de identificação.
+• O cliente digita o código no App para registrar a visita.
 • Cada visita validada conta como 1 autenticação.
 
 3. PRÊMIO PRINCIPAL
@@ -153,7 +153,7 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
       {/* OPERADOR */}
       <div style={{background:"#fff",borderRadius:17,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
         <div style={{padding:"13px 15px",borderBottom:showOps?`1px solid ${C.bd}`:"none",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-          <div><div style={{fontWeight:900,fontSize:15,color:C.tx}}>👤 Sou Operador de Caixa</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>Acesse seu painel e QR Code</div></div>
+          <div><div style={{fontWeight:900,fontSize:15,color:C.tx}}>👤 Sou Operador de Caixa</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>Acesse seu painel e código</div></div>
           <button onClick={()=>setShowOps(!showOps)} style={{background:C.az,color:"#fff",border:"none",borderRadius:9,padding:"8px 13px",fontWeight:800,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>{showOps?"Fechar":"Selecionar →"}</button>
         </div>
         {showOps&&<div style={{maxHeight:240,overflowY:"auto"}}>
@@ -208,7 +208,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
     <div style={{background:"rgba(255,255,255,.12)",border:"1.5px solid rgba(255,255,255,.25)",borderRadius:18,padding:"18px 20px",marginBottom:22,display:"inline-block",minWidth:220}}>
       <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:2,marginBottom:8}}>Código da Operadora</div>
       <div style={{fontFamily:"monospace",fontWeight:900,fontSize:48,color:C.ou,letterSpacing:12,lineHeight:1}}>{nova.id}</div>
-      <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:8}}>Código de 4 dígitos — alternativa ao QR</div>
+      <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:8}}>Código de 4 dígitos para identificação</div>
     </div>
     <div style={{display:"flex",gap:10,justifyContent:"center"}}>
       <button onClick={()=>{setOpSel(nova);setRole("op");setTela("op");}} style={{background:C.ou,color:C.az,border:"none",borderRadius:12,padding:"12px 20px",fontWeight:900,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>📱 Acessar Painel</button>
@@ -221,8 +221,8 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
       <label style={L}>👤 Nome *</label>
       <input value={nome} onChange={e=>{setNome(e.target.value);setErro("");}} onKeyDown={e=>e.key==="Enter"&&cad()} placeholder="Ex: Maria, Caixa 01…" autoFocus style={{...I,marginTop:6,border:`2px solid ${nome?C.az:C.bd}`,background:nome?C.azC:"#fff"}}/>
       {erro&&<div style={{marginTop:7,fontSize:12,color:C.rd,fontWeight:700}}>⚠️ {erro}</div>}
-      <div style={{marginTop:11,padding:"11px 13px",background:C.azC,borderRadius:10,fontSize:11,color:C.az,lineHeight:1.7}}>💡 Ao cadastrar, um <strong>QR Code exclusivo</strong> é gerado. O cliente escaneia para registrar a visita.</div>
-      <button onClick={cad} style={{width:"100%",marginTop:16,padding:15,borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${C.az}44`}}>Cadastrar e Gerar QR Code 📱</button>
+      <div style={{marginTop:11,padding:"11px 13px",background:C.azC,borderRadius:10,fontSize:11,color:C.az,lineHeight:1.7}}>💡 Ao cadastrar, um <strong>código exclusivo</strong> é gerado. O cliente utiliza para registrar a visita no App.</div>
+      <button onClick={cad} style={{width:"100%",marginTop:16,padding:15,borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${C.az}44`}}>Cadastrar e Gerar Código 📱</button>
       {ops.length>0&&<div style={{marginTop:18}}><div style={{fontWeight:700,fontSize:12,color:C.tx,marginBottom:8}}>Cadastradas ({ops.length}):</div>
         {ops.map((o,i)=><div key={o.id} style={{display:"flex",alignItems:"center",gap:9,padding:"9px 11px",background:C.bg,borderRadius:10,marginBottom:6,border:`1px solid ${C.bd}`}}>
           <div style={{width:28,height:28,borderRadius:"50%",background:oc(i),display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:900,color:"#fff"}}>{i+1}</div>
@@ -629,7 +629,7 @@ function CfgForm({cfg,setCfg}){
     {/* info box */}
     <div style={{background:`${C.az}0d`,borderRadius:12,padding:"11px 13px",border:`1px solid ${C.az}22`,fontSize:11,color:C.az,lineHeight:1.8}}>
       📝 <strong>Formulário do Cliente</strong><br/>
-      Configure os produtos e serviços que o cliente pode selecionar ao registrar a visita (após escanear o QR Code do operador). Todos os campos são opcionais — servem para histórico da visita. Campos com <strong style={{color:C.rx}}>⚡ Relâmpago</strong> habilitam o sorteio automático.
+      Configure os produtos e serviços que o cliente pode selecionar ao registrar a visita (após o código do operador, o número de controle do comprovante, valor total e avaliação de atendimento). Todos os outros campos são opcionais, servem para histórico da visita. Campos com <strong style={{color:C.rx}}>⚡ Relâmpago</strong> habilitam o sorteio automático.
     </div>
 
     {/* sub-abas */}

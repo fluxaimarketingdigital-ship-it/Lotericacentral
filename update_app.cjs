@@ -16,12 +16,12 @@ content = content.replace(
 // 2. Modificar FormAuth QR GATE
 const qrGateOld = `  /* QR GATE */
   if(step==="qr")return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
-    <Tit em="📱" t="Registrar Autenticação" s="O operador precisa liberar o QR Code"/>
+    <Tit em="📱" t="Registrar Autenticação" s="Solicite o código à operadora"/>
     <div style={{background:\`linear-gradient(135deg,\${C.az},\${C.az2})\`,borderRadius:18,padding:"22px 18px",textAlign:"center",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-30,right:-30,width:110,height:110,borderRadius:"50%",background:C.ou,opacity:.08}}/>
       <div style={{fontSize:52,marginBottom:10}}>📷</div>
-      <div style={{fontWeight:900,fontSize:17,color:"#fff",marginBottom:11}}>Peça ao operador o QR Code</div>
-      {[["1️⃣","Conclua seus serviços no caixa"],["2️⃣","Peça ao operador para abrir o QR"],["3️⃣","Aponte a câmera do celular para o QR"],["4️⃣","O formulário abrirá automaticamente aqui"]].map(([n,t])=>(
+      <div style={{fontWeight:900,fontSize:17,color:"#fff",marginBottom:11}}>Peça o Código à Operadora</div>
+      {[["1️⃣","Conclua seus serviços no caixa"],["2️⃣","Peça o código de identificação da operadora"],["3️⃣","Informe o código e os dados do comprovante"],["4️⃣","O formulário será validado instantaneamente"]].map(([n,t])=>(
         <div key={n} style={{display:"flex",gap:9,alignItems:"center",textAlign:"left",marginBottom:8}}>
           <span style={{fontSize:16,flexShrink:0}}>{n}</span>
           <span style={{fontSize:12,color:"rgba(255,255,255,.8)",lineHeight:1.4}}>{t}</span>
@@ -122,7 +122,7 @@ content = content.replace(qrGateOld, qrGateNew);
 const headValidadoOld = `    {/* Operador validado */}
     <div style={{background:C.vdC,borderRadius:14,padding:"13px 15px",border:\`1.5px solid \${C.vd}44\`,display:"flex",gap:11,alignItems:"center"}}>
       <div style={{width:42,height:42,borderRadius:12,background:C.vd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>✅</div>
-      <div style={{flex:1}}><div style={{fontWeight:800,fontSize:12,color:C.vd}}>QR Code validado!</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>Operador: {opLoc?.nome||"—"}</div></div>
+      <div style={{flex:1}}><div style={{fontWeight:800,fontSize:12,color:C.vd}}>Código validado!</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>Operador: {opLoc?.nome||"—"}</div></div>
       <button onClick={()=>{setOpLoc(null);setOpQR(null);setStep("qr");}} style={{background:"none",border:\`1px solid \${C.vd}44\`,borderRadius:8,padding:"5px 10px",fontSize:11,color:C.vd,cursor:"pointer",fontFamily:"inherit"}}>Trocar</button>
     </div>`;
 
