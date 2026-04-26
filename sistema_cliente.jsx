@@ -925,10 +925,14 @@ function HistItem({a, cfg}){
            {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
            <div style={{marginTop:5,fontSize:9,opacity:.7}}>Protocolo: {a.controle}</div>
         </div>
-        {a.foto && <div>
-          <div style={{fontSize:9,fontWeight:800,marginBottom:4,color:C.az}}>ANEXO DO COMPROVANTE:</div>
-          <img src={a.foto} style={{width:"100%",maxWidth:200,borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
-        </div>}
+        {a.foto ? (
+          <div>
+            <div style={{fontSize:9,fontWeight:800,marginBottom:4,color:C.az}}>ANEXO DO COMPROVANTE:</div>
+            <img src={a.foto} style={{width:"100%",maxWidth:200,borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
+          </div>
+        ) : (
+          <div style={{fontSize:10,color:C.sb,fontStyle:"italic",marginTop:5}}>⚠️ Comprovante não anexado</div>
+        )}
       </div>}
     </div>
   );

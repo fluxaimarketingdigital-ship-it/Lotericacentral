@@ -657,8 +657,23 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
     if(newS==="approved"){
+      // Aprova todos os prêmios vinculados a este registro
       setPr(pr.map(p=>p.authId===a.id?{...p, status:"approved"}:p));
+    } else {
+      // Se recusar ou desativar, os prêmios também devem ser invalidados (ou voltar para pendente)
+      setPr(pr.map(p=>p.authId===a.id?{...p, status:newS==="pending"?"pending":"rejected"}:p));
     }
+  }
+
+  function handleUpload(e){
+    const f=e.target.files[0]; if(!f)return;
+    const r=new FileReader(); r.onload=async()=>{
+      const img=r.result;
+      const newAuths = c.auths.map(x=>x.id===a.id?{...x, foto:img}:x);
+      await setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+      alert("✅ Comprovante anexado com sucesso!");
+    };
+    r.readAsDataURL(f);
   }
 
   function deleteAuth(){
@@ -694,10 +709,20 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
             <div style={{color:C.sb,fontSize:10}}>Nota: <strong>{a.nota}/10</strong> ⭐</div>
          </div>
 
-         {a.foto && <div style={{marginBottom:12}}>
-            <div style={{fontSize:9,fontWeight:800,marginBottom:5,color:C.az}}>COMPROVANTE:</div>
-            <img src={a.foto} style={{width:"100%",borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
-         </div>}
+         {a.foto ? (
+           <div style={{marginBottom:12}}>
+              <div style={{fontSize:9,fontWeight:800,marginBottom:5,color:C.az}}>COMPROVANTE:</div>
+              <img src={a.foto} style={{width:"100%",borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
+           </div>
+         ) : (
+           <div style={{marginBottom:12,padding:12,border:`1px dashed ${C.bd}`,borderRadius:9,textAlign:"center"}}>
+             <div style={{fontSize:11,color:C.sb,marginBottom:8}}>⚠️ Sem comprovante anexado</div>
+             <label style={{display:"inline-block",background:C.az,color:"#fff",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:800,cursor:"pointer"}}>
+               📸 Anexar Comprovante
+               <input type="file" accept="image/*" onChange={handleUpload} style={{display:"none"}}/>
+             </label>
+           </div>
+         )}
 
          {pr.filter(px=>px.authId===a.id).map(px=>(
             <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:C.vdC,borderRadius:10,border:`1px solid ${px.status==="pending"?C.ou:C.vd}33`,display:"flex",alignItems:"center",gap:10}}>
@@ -705,6 +730,18 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
               <div style={{flex:1}}>
                 <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{px.nome} {px.status==="pending"?"(Pendente)":"(Aprovado)"}</div>
                 <div style={{fontSize:10,color:C.sb}}>{px.tipo==="relampago"?"Prêmio Relâmpago":"Prêmio de Meta"}</div>
+                
+                {px.status==="pending" && (
+                   <div style={{display:"flex",gap:5,marginTop:6}}>
+                      <button onClick={()=>{
+                        setPr(pr.map(p=>p.id===px.id?{...p, status:"approved"}:p));
+                      }} style={{background:C.vd,color:"#fff",border:"none",borderRadius:5,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>Aprovar Prêmio</button>
+                      
+                      <button onClick={()=>{
+                        setPr(pr.map(p=>p.id===px.id?{...p, status:"rejected"}:p));
+                      }} style={{background:C.rd,color:"#fff",border:"none",borderRadius:5,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>Recusar Prêmio</button>
+                   </div>
+                )}
               </div>
               {c.whats && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲</a>}
             </div>
@@ -807,7 +844,20 @@ function APr({pr, cl, cfg, setPr}){
           </div>
           
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {isP && <button onClick={()=>updateP(p.id,"approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
+            {isP && (() => {
+              const cli = cl.find(x=>x.id===p.clientId);
+              const authV = cli?.auths?.find(x=>x.id===p.authId);
+              const isLocked = p.tipo === "raspadinha" && (!authV || authV.status !== "approved");
+              
+              if(isLocked) return (
+                <div style={{flex:1,display:"flex",flexDirection:"column",gap:4}}>
+                  <button disabled style={{width:"100%",background:"#eee",color:"#9ca3af",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"not-allowed"}}>Aprovar Bloqueado</button>
+                  <div style={{fontSize:8,color:C.rd,fontWeight:700,textAlign:"center"}}>Aprove a visita #{authV?.controle||"?"} primeiro</div>
+                </div>
+              );
+              
+              return <button onClick={()=>updateP(p.id,"approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>;
+            })()}
             {!isP && <button onClick={()=>updateP(p.id,"pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter</button>}
             
             {cliW && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5}}>📲 Cupom</a>}
