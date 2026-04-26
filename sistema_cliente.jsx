@@ -587,7 +587,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     })();
 
     if (conflicto) {
-      setErrF(`❌ Este Controle já foi usado por ${conflicto.cNome} em ${fDT(conflicto.data)}. Mude o número para testar.`);
+      setErrF(`❌ O número [${controle}] já consta como usado por ${conflicto.cNome} em ${fDT(conflicto.data)}. Use um número diferente.`);
       return;
     }
 
