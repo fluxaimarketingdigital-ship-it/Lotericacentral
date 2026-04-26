@@ -94,7 +94,8 @@ body{background:#f0f4fb;font-family:'Nunito',sans-serif;}
 @keyframes up {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes dt {0%,100%{opacity:.25;transform:scale(.65)}50%{opacity:1;transform:scale(1.2)}}
-@keyframes sp {to{transform:rotate(360deg)}}`;
+@keyframes sp {to{transform:rotate(360deg)}}
+@keyframes fadeUp {from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}`;
 
 /* ═══════ ESTILOS ═══════ */
 const L={fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5};
@@ -110,10 +111,10 @@ export default function App(){
   const[cl,setCl_]=useState([]);
   const[pr,setPr_]=useState([]);
   const[cfg,setCfg_]=useState(DCFG);
-  const setOps=d=>{setOps_(d);DB.save("lc-ops",d);};
-  const setCl=d=>{setCl_(d);DB.save("lc-cl",d);};
-  const setPr=d=>{setPr_(d);DB.save("lc-pr",d);};
-  const setCfg=d=>{setCfg_(d);DB.save("lc-cfg",d);};
+  const setOps=d=>{setOps_(d); return DB.save("lc-ops",d);};
+  const setCl=d=>{setCl_(d); return DB.save("lc-cl",d);};
+  const setPr=d=>{setPr_(d); return DB.save("lc-pr",d);};
+  const setCfg=d=>{setCfg_(d); return DB.save("lc-cfg",d);};
   useEffect(()=>{(async()=>{
     try{const[o,c,p,f]=await Promise.all([DB.load("lc-ops"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg")]);
       if(Array.isArray(o))setOps_(o);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);
@@ -527,7 +528,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
       {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg}/>}
       {aba==="ops" &&<AOps  ops={ops} setOps={setOps} cl={cl} cfg={cfg}/>}
-      {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr}/>}
+      {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr}/>}
       {aba==="pr"  &&<APr   pr={pr} cl={cl} cfg={cfg}/>}
       {aba==="cfg" &&<ACfg  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
     </div>
@@ -646,7 +647,70 @@ function AOps({ops,setOps,cl,cfg}){
   </div>);
 }
 
-function ACl({cl,setCl,ops,cfg,pr}){
+function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
+  const [expA, setExpA] = useState(false);
+  const s = a.status || (a.valida?"approved":"rejected"); // fallback legacy
+  const corS = s==="approved"?C.vd : s==="pending"?C.ou : C.rd;
+  const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
+  
+  function updateStatus(newS){
+    const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS}:x);
+    setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+    if(newS==="approved"){
+      setPr(pr.map(p=>p.authId===a.id?{...p, status:"approved"}:p));
+    }
+  }
+
+  function deleteAuth(){
+    if(!window.confirm("Remover esta autenticação PERMANENTEMENTE? Isso removerá o prêmio vinculado também.")) return;
+    const newAuths = c.auths.filter(x=>x.id!==a.id);
+    setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+    setPr(pr.filter(p=>p.authId!==a.id));
+  }
+
+  return(
+    <div key={a.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${expA?C.az:C.bd+"66"}`,overflow:"hidden"}}>
+      <div onClick={()=>setExpA(!expA)} style={{padding:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:expA?C.azC:"#fff"}}>
+        <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
+          <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS}</div>
+        </div>
+        <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
+      </div>
+      
+      {expA && <div style={{padding:12,borderTop:`1px solid ${C.bd}33`,background:"#fafafa"}}>
+         <div style={{fontSize:11,display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+            {Object.entries(a.detalhes||{}).map(([fid, val]) => {
+              const f = cfg.formulario.campos.find(x=>x.id===fid);
+              if(!f || !val) return null;
+              return <div key={fid} style={{display:"flex",justifyContent:"space-between",borderBottom:`1px solid ${C.bd}11`,paddingBottom:2}}>
+                <span>{f.emoji} {f.nome}</span>
+                <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
+              </div>
+            })}
+            {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
+            <div style={{marginTop:5,color:C.sb,fontSize:10}}>Protocolo: <strong>{a.controle}</strong></div>
+            <div style={{color:C.sb,fontSize:10}}>Nota: <strong>{a.nota}/10</strong> ⭐</div>
+         </div>
+
+         {a.foto && <div style={{marginBottom:12}}>
+            <div style={{fontSize:9,fontWeight:800,marginBottom:5,color:C.az}}>COMPROVANTE:</div>
+            <img src={a.foto} style={{width:"100%",borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
+         </div>}
+
+         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
+            {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar</button>}
+            {s!=="pending" && <button onClick={()=>updateStatus("pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter para Pendente</button>}
+            <button onClick={deleteAuth} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>🗑️ Excluir</button>
+         </div>
+      </div>}
+    </div>
+  );
+}
+
+function ACl({cl,setCl,ops,cfg,pr,setPr}){
   const[bus,setBus]=useState("");const[exp,setExp]=useState(null);
   const opN=id=>ops.find(o=>o.id===id)?.nome||"—";
   const lista=useMemo(()=>{const q=bus.toLowerCase().trim();return cl.filter(c=>!q||c.nome?.toLowerCase().includes(q)||c.whats?.includes(q)).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));},[cl,bus]);
@@ -677,69 +741,7 @@ function ACl({cl,setCl,ops,cfg,pr}){
           
           <div style={{fontWeight:800,fontSize:10,color:C.tx,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Histórico e Aprovações</div>
           <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:12}}>
-            {(c.auths||[]).slice().reverse().map(a => {
-              const [expA, setExpA] = useState(false);
-              const s = a.status || (a.valida?"approved":"rejected"); // fallback legacy
-              const corS = s==="approved"?C.vd : s==="pending"?C.ou : C.rd;
-              const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
-              
-              function updateStatus(newS){
-                const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS}:x);
-                setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
-                // Se aprovar, aprovar prêmios vinculados também
-                if(newS==="approved"){
-                  setPr(pr.map(p=>p.authId===a.id?{...p, status:"approved"}:p));
-                }
-              }
-
-              function deleteAuth(){
-                if(!window.confirm("Remover esta autenticação PERMANENTEMENTE? Isso removerá o prêmio vinculado também.")) return;
-                const newAuths = c.auths.filter(x=>x.id!==a.id);
-                setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
-                setPr(pr.filter(p=>p.authId!==a.id));
-              }
-
-              return(
-                <div key={a.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${expA?C.az:C.bd+"66"}`,overflow:"hidden"}}>
-                  <div onClick={()=>setExpA(!expA)} style={{padding:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:expA?C.azC:"#fff"}}>
-                    <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
-                    <div style={{flex:1}}>
-                      <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
-                      <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS}</div>
-                    </div>
-                    <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
-                  </div>
-                  
-                  {expA && <div style={{padding:12,borderTop:`1px solid ${C.bd}33`,background:"#fafafa"}}>
-                     <div style={{fontSize:11,display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
-                        {Object.entries(a.detalhes||{}).map(([fid, val]) => {
-                          const f = cfg.formulario.campos.find(x=>x.id===fid);
-                          if(!f || !val) return null;
-                          return <div key={fid} style={{display:"flex",justifyContent:"space-between",borderBottom:`1px solid ${C.bd}11`,paddingBottom:2}}>
-                            <span>{f.emoji} {f.nome}</span>
-                            <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
-                          </div>
-                        })}
-                        {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
-                        <div style={{marginTop:5,color:C.sb,fontSize:10}}>Protocolo: <strong>{a.controle}</strong></div>
-                        <div style={{color:C.sb,fontSize:10}}>Nota: <strong>{a.nota}/10</strong> ⭐</div>
-                     </div>
-
-                     {a.foto && <div style={{marginBottom:12}}>
-                        <div style={{fontSize:9,fontWeight:800,marginBottom:5,color:C.az}}>COMPROVANTE:</div>
-                        <img src={a.foto} style={{width:"100%",borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
-                     </div>}
-
-                     <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-                        {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
-                        {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar</button>}
-                        {s!=="pending" && <button onClick={()=>updateStatus("pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter para Pendente</button>}
-                        <button onClick={deleteAuth} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>🗑️ Excluir</button>
-                     </div>
-                  </div>}
-                </div>
-              );
-            })}
+            {(c.auths||[]).slice().reverse().map(a => <AuthHistItem key={a.id} a={a} c={c} cl={cl} setCl={setCl} pr={pr} setPr={setPr} cfg={cfg} opN={opN}/>)}
           </div>
 
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
