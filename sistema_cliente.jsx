@@ -623,7 +623,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       
       setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
       if(pr)setTimeout(()=>setRelamp({...pr,ganhou:isV}), 1000);setStep("ok");
-    },1400);
+    },500);
   }
 
   if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
