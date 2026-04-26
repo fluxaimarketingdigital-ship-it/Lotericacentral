@@ -687,7 +687,11 @@ function ACl({cl,setCl,ops,cfg,pr}){
 
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
             {ganhou&&<a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`Olá ${c.nome?.split(" ")[0]}! ${cfg.premioMeta.emoji} ${cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 Avisar Prêmio</a>}
-            <button onClick={()=>{if(window.confirm(`Remover ${c.nome}?`)){setCl(cl.filter(x=>x.id!==c.id));setExp(null);}}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover</button>
+            <button onClick={()=>{if(window.confirm(`Remover ${c.nome} e todo seu histórico (inclusive prêmios)?`)){
+              setCl(cl.filter(x=>x.id!==c.id));
+              setPr(pr.filter(p=>p.clientId!==c.id));
+              setExp(null);
+            }}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover Tudo</button>
           </div>
         </div>}
       </div>);})}
