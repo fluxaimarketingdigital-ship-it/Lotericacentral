@@ -621,35 +621,36 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
        return; 
     }
 
-    // Usar a data do recebimento mas garantir meio-dia para evitar shift de timezone
-    const dIso = `${dataRec}T12:00:00`;
-    
-    const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
-    const isV = totalPagamentos >= minV;
-    setValida(isV);
-    const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV};
-    
-    const auths=[...(c.auths||[]),auth];
-    const validas=auths.filter(a=>a.valida!==false);
-    const ganhou=isV && (validas.length % cfg.meta === 0);
-    
-    const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
-    const cUpd={...c,auths};
-    
-    const novPr=[...premios];
-    if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
-    if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
-    
-    // Atualizar Local Primeiro para Transição Rápida
-    setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
-    setStep("ok");
-    
-    // Atualizar Global
-    setCl(clients.map(x=>x.id===c.id?cUpd:x));
-    setCli(cUpd);
-    setPr(novPr);
-    if(pr)setTimeout(()=>setRelamp({...pr,ganhou:isV}), 500);
-    setSub(false);
+    setStep("loading");
+
+    setTimeout(()=>{
+      // Usar a data do recebimento mas garantir meio-dia para evitar shift de timezone
+      const dIso = `${dataRec}T12:00:00`;
+      
+      const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
+      const isV = totalPagamentos >= minV;
+      setValida(isV);
+      const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV};
+      
+      const auths=[...(c.auths||[]),auth];
+      const validas=auths.filter(a=>a.valida!==false);
+      const ganhou=isV && (validas.length % cfg.meta === 0);
+      
+      const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
+      const cUpd={...c,auths};
+      
+      const novPr=[...premios];
+      if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
+      if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
+      
+      setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
+      setCl(clients.map(x=>x.id===c.id?cUpd:x));
+      setCli(cUpd);
+      setPr(novPr);
+      if(pr)setTimeout(()=>setRelamp({...pr,ganhou:isV}), 500);
+      setStep("ok");
+      setSub(false);
+    }, 800);
   }
 
   if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
