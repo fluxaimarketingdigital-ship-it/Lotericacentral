@@ -612,11 +612,16 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       const ganhou=isV && (validas.length % cfg.meta === 0);
       
       const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
-      const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
+      const cUpd={...c,auths};
+      setCl(clients.map(x=>x.id===c.id?cUpd:x));
+      setCli(cUpd);
+
       const novPr=[...premios];
       if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
       if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
-      setPr(novPr);setNP({total:auths.length,ganhouMeta:ganhou,premioRl:pr});
+      setPr(novPr);
+      
+      setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
       if(pr)setTimeout(()=>setRelamp({...pr,ganhou:isV}), 1000);setStep("ok");
     },1400);
   }
