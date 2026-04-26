@@ -236,7 +236,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");
-  const ABAS=[{id:"qr",emoji:"📱",label:"Meu QR"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"rank",emoji:"🏅",label:"Ranking"}];
+  const ABAS=[{id:"qr",emoji:"📱",label:"Meu Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"rank",emoji:"🏅",label:"Ranking"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
   const minhas = useMemo(() => {
