@@ -529,7 +529,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
       {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg}/>}
       {aba==="ops" &&<AOps  ops={ops} setOps={setOps} cl={cl} cfg={cfg}/>}
       {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr}/>}
-      {aba==="pr"  &&<APr   pr={pr} cl={cl} cfg={cfg}/>}
+      {aba==="pr"  &&<APr   pr={pr} setPr={setPr} cl={cl} cfg={cfg}/>}
       {aba==="cfg" &&<ACfg  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
@@ -699,6 +699,17 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
             <img src={a.foto} style={{width:"100%",borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
          </div>}
 
+         {pr.filter(px=>px.authId===a.id).map(px=>(
+            <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:C.vdC,borderRadius:10,border:`1px solid ${px.status==="pending"?C.ou:C.vd}33`,display:"flex",alignItems:"center",gap:10}}>
+              <div style={{fontSize:24}}>{px.emoji||"🎁"}</div>
+              <div style={{flex:1}}>
+                <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{px.nome} {px.status==="pending"?"(Pendente)":"(Aprovado)"}</div>
+                <div style={{fontSize:10,color:C.sb}}>{px.tipo==="relampago"?"Prêmio Relâmpago":"Prêmio de Meta"}</div>
+              </div>
+              {c.whats && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲</a>}
+            </div>
+         ))}
+
          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
             {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
             {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar</button>}
@@ -758,20 +769,53 @@ function ACl({cl,setCl,ops,cfg,pr,setPr}){
   </div>);
 }
 
-function APr({pr,cl,cfg}){
-  const cN=id=>cl.find(c=>c.id===id)?.nome||"—";const cW=id=>cl.find(c=>c.id===id)?.whats||"";
+function APr({pr, cl, cfg, setPr}){
+  const cN=id=>cl.find(c=>c.id===id)?.nome||"—";
+  const cW=id=>cl.find(c=>c.id===id)?.whats||"";
+  
+  function updateP(id, s){
+    setPr(pr.map(p=>p.id===id?{...p, status:s}:p));
+  }
+  
+  function delP(id){
+    if(!window.confirm("Remover este prêmio PERMANENTEMENTE?")) return;
+    setPr(pr.filter(p=>p.id!==id));
+  }
+
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🎁" t="Prêmios Distribuídos" s={`${pr.length} total`}/>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{[[`${cfg.premioMeta.emoji}`,"Meta",pr.filter(p=>p.tipo==="raspadinha").length,C.vd],["⚡","Relâmpago",pr.filter(p=>p.tipo==="relampago").length,C.rx]].map(([em,l,v,cor])=>(
       <div key={l} style={{background:"#fff",borderRadius:12,padding:"13px",textAlign:"center",border:`1px solid ${C.bd}`}}><div style={{fontSize:22,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:24,color:cor}}>{v}</div><div style={{fontSize:10,color:C.sb,fontWeight:700}}>{l}</div></div>
     ))}</div>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {pr.length===0&&<V em="🎁" msg="Nenhum prêmio ainda."/>}
-      {[...pr].reverse().map((p,i)=><div key={p.id} style={{padding:"10px 13px",borderBottom:i<pr.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:36,height:36,borderRadius:10,flexShrink:0,background:p.tipo==="relampago"?C.ouC:C.vdC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{p.emoji||cfg.premioMeta.emoji}</div>
-        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:p.status==="pending"?"#9ca3af":C.tx}}>{p.nome}</div><div style={{fontSize:10,color:C.sb}}>{cN(p.clientId)} · {fDT(p.data)}</div></div>
-        {p.status==="pending" && <span style={{background:C.ouC,color:C.ou2,fontSize:8,fontWeight:900,padding:"2px 7px",borderRadius:5,marginRight:5}}>PENDENTE</span>}
-        {cW(p.clientId)&&p.status!=="pending"&&<a href={`https://wa.me/55${cW(p.clientId)}?text=${encodeURIComponent(`Olá! Seu ${p.nome} está disponível! Venha retirar na Lotérica Central.`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none",flexShrink:0}}>📲</a>}
-      </div>)}
+      {[...pr].reverse().map((p,i)=>{
+        const cliN=cN(p.clientId);
+        const cliW=cW(p.clientId);
+        const isP = p.status==="pending";
+        const msg=`🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cliN.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nRetire seu prêmio aqui na *Lotérica Central*! 🏆`;
+
+        return(<div key={p.id} style={{padding:"12px 13px",borderBottom:i<pr.length-1?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:40,height:40,borderRadius:10,flexShrink:0,background:p.tipo==="relampago"?(isP?C.ouC:C.rxC):(isP?C.ouC:C.vdC),display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{p.emoji||cfg.premioMeta.emoji}</div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div>
+              <div style={{fontSize:10,color:C.sb}}><strong style={{color:C.az}}>{cliN}</strong> · {fDT(p.data)}</div>
+              <div style={{fontSize:9,color:C.sb,marginTop:2}}>WhatsApp: {cliW||"—"}</div>
+            </div>
+            {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.ou}33`}}>AGUARDANDO APROVAÇÃO</span>}
+            {!isP && <span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.vd}33`}}>APROVADO ✅</span>}
+          </div>
+          
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            {isP && <button onClick={()=>updateP(p.id,"approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
+            {!isP && <button onClick={()=>updateP(p.id,"pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter</button>}
+            
+            {cliW && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5}}>📲 Cupom</a>}
+            
+            <button onClick={()=>delP(p.id)} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 10px",fontSize:11,cursor:"pointer",marginLeft:"auto"}}>🗑️</button>
+          </div>
+        </div>);
+      })}
     </div>
   </div>);
 }
