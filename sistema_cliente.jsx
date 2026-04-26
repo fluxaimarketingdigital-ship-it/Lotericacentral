@@ -627,36 +627,45 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     }
 
     setTimeout(()=>{
-      // Combinar data do comprovante com hora atual para exibição correta
-      const agora = new Date();
-      const h = String(agora.getHours()).padStart(2, '0');
-      const m = String(agora.getMinutes()).padStart(2, '0');
-      const s = String(agora.getSeconds()).padStart(2, '0');
-      const dIso = `${dataRec}T${h}:${m}:${s}`;
-      
-      const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
-      const isV = totalPagamentos >= minV;
-      setValida(isV);
-      const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV};
-      
-      const auths=[...(c.auths||[]),auth];
-      const validas=auths.filter(a=>a.valida!==false);
-      const ganhou=isV && (validas.length % cfg.meta === 0);
-      
-      const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
-      const cUpd={...c,auths};
-      
-      const novPr=[...premios];
-      if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
-      if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
-      
-      setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
-      setCl(clients.map(x=>x.id===c.id?cUpd:x));
-      setCli(cUpd);
-      setPr(novPr);
-      if(pr)setRelamp({...pr,cliNome:c.nome}); // Chamada direta sem delay longo
-      setStep("ok");
-      setSub(false);
+      try {
+        // Combinar data do comprovante com hora atual para exibição correta
+        const agora = new Date();
+        const h = String(agora.getHours()).padStart(2, '0');
+        const m = String(agora.getMinutes()).padStart(2, '0');
+        const s = String(agora.getSeconds()).padStart(2, '0');
+        const dIso = `${dataRec}T${h}:${m}:${s}`;
+        
+        const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
+        const isV = totalPagamentos >= minV;
+        setValida(isV);
+        const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV};
+        
+        const auths=[...(c.auths||[]),auth];
+        const validas=auths.filter(a=>a.valida!==false);
+        const ganhou=isV && (validas.length % cfg.meta === 0);
+        
+        const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
+        const cUpd={...c,auths};
+        
+        const novPr=[...premios];
+        if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
+        if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
+        
+        // Transição de UI IMEDIATA dentro do bloco
+        setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
+        setStep("ok");
+
+        // Atualizações Globais (podem causar re-render do pai)
+        setCl(clients.map(x=>x.id===c.id?cUpd:x));
+        setCli(cUpd);
+        setPr(novPr);
+        if(pr)setRelamp({...pr,cliNome:c.nome});
+      } catch (err) {
+        setErrF("Erro ao salvar: " + err.message);
+        setStep("form");
+      } finally {
+        setSub(false);
+      }
     }, 250);
   }
 
