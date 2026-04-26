@@ -7,6 +7,8 @@ import { DB } from "./firebase.js";
 ══════════════════════════════════════════ */
 const CFG0 = {
   meta: 15,
+  minVisita: 300,
+  minRelampago: 60,
   premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
   relampagos: [
     {id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje."},
@@ -248,8 +250,12 @@ function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
 function Regulamento({setTela,cfg}){
   const [lido,setLido]=useState(false);
   const txt=(cfg.regulamento||CFG0.regulamento)
-    .replace("{meta}",cfg.meta)
-    .replace("{premioNome}",cfg.premioMeta.nome);
+    .replace(/{meta}/g,cfg.meta)
+    .replace(/{premioNome}/g,cfg.premioMeta.nome)
+    .replace(/{minVisita}/g,cfg.minVisita||300)
+    .replace(/{minRelampago}/g,cfg.minRelampago||60)
+    .replace(/{dataInicio}/g,fD(cfg.dataInicio))
+    .replace(/{dataFim}/g,fD(cfg.dataFim));
 
   function onScroll(e){
     const el=e.target;
@@ -529,10 +535,27 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   const cats    = form.cats||[];
   const campos  = (form.campos||[]).filter(f=>f.ativo);
   const sels    = Object.keys(sel).filter(k=>sel[k]!==false&&sel[k]!=="");
-  const total   = Object.values(sel).reduce((s,v)=>s+(typeof v==="string"?(parseFloat(v.replace(',','.'))||0):0),0);
-  const temTrig = sels.some(id=>campos.find(f=>f.id===id)?.triggerRelampago);
+  
+  const totalPagamentos = Object.entries(sel).reduce((s,[id,v])=>{
+    const c = campos.find(f=>f.id===id);
+    if(c?.cat==="bc"){return s+(parseFloat(String(v).replace(',','.'))||0);}
+    return s;
+  },0);
+  const totalJogos = Object.entries(sel).reduce((s,[id,v])=>{
+    const c = campos.find(f=>f.id===id);
+    if(c?.cat==="jg"){return s+(parseFloat(String(v).replace(',','.'))||0);}
+    return s;
+  },0);
+
+  const total   = totalPagamentos + totalJogos;
+  const temTrig = totalJogos >= (cfg.minRelampago||60);
   const obrigF  = campos.filter(f=>f.obrigatorio&&!sels.includes(f.id));
   const trigF   = campos.filter(f=>f.triggerRelampago&&f.ativo);
+
+  const minV = cfg.minVisita || 300;
+  const minR = cfg.minRelampago || 60;
+  const faltaVisita = Math.max(0, minV - totalPagamentos);
+  const faltaRelamp = Math.max(0, minR - totalJogos);
 
   function toggle(id){setSel(p=>{const n={...p};if(n[id]!==undefined&&n[id]!==false){delete n[id];}else{n[id]=true;}return n;});setErrF("");}
   function setVal(id,v){setSel(p=>({...p,[id]:v}));}
@@ -543,6 +566,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     if(!dataRec){setErrF("Informe a data que consta no comprovante.");return;}
     if(!foto){setErrF("Anexe uma foto nítida do comprovante para validar.");return;}
     if(obrigF.length>0){setErrF(`Selecione: ${obrigF.map(f=>f.nome).join(", ")}`);return;}
+    if(totalPagamentos < minV){setErrF(`❌ Valor mínimo em pagamentos/depósitos é ${brl(minV)}. Faltam ${brl(faltaVisita)}.`);return;}
     if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
     
     // Validar Controle Único (Global)
@@ -579,7 +603,8 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
       const auth={id:uid(),data:dataRec,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now()};
       const auths=[...(c.auths||[]),auth];const ganhou=auths.length%cfg.meta===0;
-      const pr=sortear(sels,cfg);const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
+      const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
+      const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
       const novPr=[...premios];
       if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
       if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
@@ -676,15 +701,47 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         </div>
       </div>
 
-      {/* ── RESUMO DE VALORES ── */}
-      <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"16px",display:"flex",justifyContent:"space-between",alignItems:"center",boxShadow:`0 8px 20px ${C.az}33`}}>
-        <div>
-          <div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase",letterSpacing:1}}>Total do Atendimento</div>
-          <div style={{fontSize:28,fontWeight:900,color:"#fff"}}>{brl(total)}</div>
+      {/* ── RESUMO DE VALORES E NUDGES ── */}
+      <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"16px",display:"flex",flexDirection:"column",gap:12,boxShadow:`0 8px 20px ${C.az}33`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase",letterSpacing:1}}>Total Operação</div>
+            <div style={{fontSize:28,fontWeight:900,color:"#fff"}}>{brl(total)}</div>
+          </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase",letterSpacing:1}}>Autenticação</div>
+            <div style={{fontSize:22,fontWeight:900,color:totalPagamentos>=minV?C.vd:C.ou}}>
+              {totalPagamentos>=minV?"LIBERADA ✅":"PENDENTE ⏳"}
+            </div>
+          </div>
         </div>
-        <div style={{textAlign:"right"}}>
-          <div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase",letterSpacing:1}}>Itens</div>
-          <div style={{fontSize:28,fontWeight:900,color:C.ou}}>{sels.length}</div>
+
+        {/* Nudge Visita */}
+        <div style={{background:"rgba(255,255,255,.1)",borderRadius:12,padding:10,border:`1px solid ${totalPagamentos>=minV?C.vd+"88":"rgba(255,255,255,.2)"}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,fontWeight:800,color:"#fff",marginBottom:5}}>
+            <span>🏢 PAGAMENTOS / DEPÓSITOS</span>
+            <span>{brl(totalPagamentos)} / {brl(minV)}</span>
+          </div>
+          <div style={{height:6,background:"rgba(0,0,0,.3)",borderRadius:4,overflow:"hidden"}}>
+            <div style={{height:"100%",background:totalPagamentos>=minV?C.vd:C.ou,width:`${Math.min(100,(totalPagamentos/minV)*100)}%`,transition:"width .4s"}}/>
+          </div>
+          {faltaVisita>0 && <div style={{fontSize:11,color:C.ou,fontWeight:700,marginTop:6,textAlign:"center"}}>Faltam {brl(faltaVisita)} para validar sua visita!</div>}
+        </div>
+
+        {/* Nudge Relâmpago */}
+        <div style={{background:"rgba(255,255,255,.1)",borderRadius:12,padding:10,border:`1px solid ${totalJogos>=minR?C.rx+"88":"rgba(255,255,255,.2)"}`}}>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,fontWeight:800,color:"#fff",marginBottom:5}}>
+            <span>⚡ BOLÕES / JOGOS</span>
+            <span>{brl(totalJogos)} / {brl(minR)}</span>
+          </div>
+          <div style={{height:6,background:"rgba(0,0,0,.3)",borderRadius:4,overflow:"hidden"}}>
+            <div style={{height:"100%",background:totalJogos>=minR?C.rx:"rgba(255,255,255,.3)",width:`${Math.min(100,(totalJogos/minR)*100)}%`,transition:"width .4s"}}/>
+          </div>
+          {faltaRelamp>0 ? (
+            <div style={{fontSize:11,color:"rgba(255,255,255,.7)",fontWeight:700,marginTop:6,textAlign:"center"}}>Adicione {brl(faltaRelamp)} em jogos para o Prêmio Relâmpago! ⚡</div>
+          ) : (
+            <div style={{fontSize:11,color:C.rxC,fontWeight:800,marginTop:6,textAlign:"center",animation:"pop .5s"}}>VOCÊ ESTÁ CONCORRENDO AO PRÊMIO RELÂMPAGO! 🎰</div>
+          )}
         </div>
       </div>
 
@@ -805,7 +862,7 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela}){
     </>}
     {sub==="reg"&&<div style={{background:"#fff",borderRadius:13,padding:"14px",border:`1px solid ${C.bd}`,maxHeight:500,overflowY:"auto"}}>
       <pre style={{fontSize:11,color:C.tx,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>
-        {cfg.regulamento.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome).replace("{dataInicio}",fD(cfg.dataInicio)).replace("{dataFim}",fD(cfg.dataFim))}
+        {cfg.regulamento.replace(/{meta}/g,cfg.meta).replace(/{premioNome}/g,cfg.premioMeta.nome).replace(/{minVisita}/g,cfg.minVisita||300).replace(/{minRelampago}/g,cfg.minRelampago||60).replace(/{dataInicio}/g,fD(cfg.dataInicio)).replace(/{dataFim}/g,fD(cfg.dataFim))}
       </pre>
     </div>}
   </div>);}

@@ -5,37 +5,40 @@ import { DB } from "./firebase.js";
 /* ═══════ CONFIG PADRÃO ═══════ */
 const DCFG = {
   meta: 15,
-  premioMeta: { nome:"Raspadinha CAIXA", emoji:"\u{1F39F}\uFE0F", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
+  minVisita: 300,
+  minRelampago: 60,
+  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
   relampagos: [
-    { id:"r1",ativo:true, emoji:"\u{1F39F}\uFE0F",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje." },
-    { id:"r2",ativo:true, emoji:"\u{1F3F7}\uFE0F",nome:"Cupom Desconto",   prob:15, desc:"10% de desconto na próxima Raspadinha. Válido 7 dias." },
-    { id:"r3",ativo:true, emoji:"\u{1F381}",        nome:"Brinde Surpresa", prob:10, desc:"Brinde especial esperando por você no balcão." },
-    { id:"r4",ativo:true, emoji:"\u26A1",            nome:"Dobro de Pontos",prob:12, desc:"Esta visita vale 2 autenticações! Parabéns." },
-    { id:"r5",ativo:false,emoji:"\u{1F31F}",         nome:"Sorteio do Mês", prob:5,  desc:"Você entrou no Sorteio do Mês! Resultado dia 01." },
+    { id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje." },
+    { id:"r2",ativo:true, emoji:"🏷️",nome:"Cupom Desconto",   prob:15, desc:"10% de desconto na próxima Raspadinha. Válido 7 dias." },
+    { id:"r3",ativo:true, emoji:"🎁",        nome:"Brinde Surpresa", prob:10, desc:"Brinde especial esperando por você no balcão." },
+    { id:"r4",ativo:true, emoji:"⚡",            nome:"Dobro de Pontos",prob:12, desc:"Esta visita vale 2 autenticações! Parabéns." },
+    { id:"r5",ativo:false,emoji:"🌟",         nome:"Sorteio do Mês", prob:5,  desc:"Você entrou no Sorteio do Mês! Resultado dia 01." },
   ],
-  regulamento: `REGULAMENTO — CLIENTE FIDELIZADO PREMIADO
+  regulamento: `REGULAMENTO — PROGRAMA CLIENTE FIDELIZADO
 Lotérica Central · CNPJ 20.845.956/0001-00 · Alagoinhas-BA
 
 1. PARTICIPAÇÃO
-Clientes atendidos com visita validada pelo código do operador de caixa.
+Destinado a clientes que realizarem transações na unidade. A participação é validada através do App Fidelidade mediante comprovação física (comprovante) e código do operador.
 
-2. COMO FUNCIONA
-• O operador fornece seu código exclusivo de identificação.
-• O cliente digita o código no App para registrar a visita.
-• Cada visita validada conta como 1 autenticação.
+2. MECÂNICA DE PONTUAÇÃO
+• Visita Premiada: Cada visita com transações (pagamentos/depósitos) de valor igual ou superior a R$ {minVisita} garante 01 (uma) autenticação.
+• Validação: O cliente deve informar o código do operador e registrar os dados do comprovante no App.
 
 3. PRÊMIO PRINCIPAL
-• A cada {meta} autenticações: 1 {premioNome}.
-• Retirada em até 30 dias após notificação via WhatsApp.
+• Ao completar {meta} autenticações, o cliente ganha automaticamente um kit com {premioNome}.
+• A notificação de retirada será enviada via WhatsApp.
 
-4. PRÊMIO RELÂMPAGO
-• Ao incluir Jogos na visita, o cliente concorre a prêmios surpresa automáticos.
+4. PRÊMIO RELÂMPAGO (SORTEIO IMEDIATO)
+• Clientes que incluírem Bolões ou Jogos no valor acima de R$ {minRelampago} em sua visita habilitam o sorteio instantâneo de prêmios surpresa.
+• O sistema informará na hora se o cliente foi contemplado.
 
-5. PRÊMIO OPERADORAS
-• Todo dia 05: as 2 operadoras com mais auths do mês ganham prêmio.
+5. PREMIAÇÃO DE OPERADORES
+• Como incentivo ao bom atendimento, as 2 operadoras com maior volume de autenticações no mês serão premiadas todo dia 05.
 
-6. LGPD — Dados usados exclusivamente neste programa.
-7. VIGÊNCIA — Permanente, com aviso prévio de 7 dias.`,
+6. DISPOSIÇÕES GERAIS
+• LGPD: Dados protegidos e usados exclusivamente para o programa.
+• VIGÊNCIA: Prazo indeterminado, podendo ser alterado com aviso prévio de 7 dias. Comprovantes com mais de 7 dias ou fora da vigência não serão validados.`,
   appUrl:"", wts:"5575999990000",
   noticias: [
     { id:"ng1", tipo:"geral",   ativo:true,  emoji:"🎰", titulo:"Mega-Sena Acumulada!",             corpo:"Prêmio estimado em R$ 120 milhões! Aposte agora na lotérica.",                                         data:"2026-04-15" },
@@ -446,10 +449,12 @@ function OpRank({rank,opId}){return(<div style={{display:"flex",flexDirection:"c
 
 function OpRegInfo({cfg}){
   const reg = (cfg.regulamento||"")
-    .replace("{meta}",cfg.meta)
-    .replace("{premioNome}",cfg.premioMeta.nome)
-    .replace("{dataInicio}",fD(cfg.dataInicio))
-    .replace("{dataFim}",fD(cfg.dataFim));
+    .replace(/{meta}/g,cfg.meta)
+    .replace(/{premioNome}/g,cfg.premioMeta.nome)
+    .replace(/{minVisita}/g,cfg.minVisita||300)
+    .replace(/{minRelampago}/g,cfg.minRelampago||60)
+    .replace(/{dataInicio}/g,fD(cfg.dataInicio))
+    .replace(/{dataFim}/g,fD(cfg.dataFim));
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📜" t="Campanha e Regulamento" s="Acompanhe as regras vigentes"/>
@@ -912,20 +917,26 @@ const IS={padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:10,fontS
 
 function CfgMeta({cfg,setCfg}){
   const[meta,setMeta]=useState(String(cfg.meta));
+  const[minV,setMinV]=useState(cfg.minVisita||300);
   const[emoji,setEmoji]=useState(cfg.premioMeta.emoji);
   const[nome,setNome]=useState(cfg.premioMeta.nome);
   const[desc,setDesc]=useState(cfg.premioMeta.desc);
   const[msg,setMsg]=useState("");
-  function salvar(){const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
+  function salvar(){const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,minVisita:parseFloat(minV),premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
   return(<div style={{background:"#fff",borderRadius:16,padding:18,border:`1px solid ${C.bd}`}}>
     <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:14}}>🎯 Prêmio a cada N autenticações</div>
-    <div style={{marginBottom:14}}>
-      <label style={L}>📊 Quantidade de autenticações *</label>
-      <div style={{display:"flex",alignItems:"center",gap:10,marginTop:7}}>
-        <button onClick={()=>setMeta(s=>String(Math.max(1,parseInt(s||"1",10)-1)))} style={{width:36,height:36,borderRadius:"50%",border:`1.5px solid ${C.bd}`,background:"#fff",fontSize:18,cursor:"pointer",fontFamily:"inherit",color:C.az}}>−</button>
-        <input value={meta} onChange={e=>setMeta(e.target.value.replace(/\D/g,""))} style={{width:72,padding:"10px",border:`2px solid ${C.az}`,borderRadius:11,fontSize:22,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.az}}/>
-        <button onClick={()=>setMeta(s=>String(Math.min(100,parseInt(s||"1",10)+1)))} style={{width:36,height:36,borderRadius:"50%",border:`1.5px solid ${C.bd}`,background:"#fff",fontSize:18,cursor:"pointer",fontFamily:"inherit",color:C.az}}>+</button>
-        <div style={{fontSize:12,color:C.sb}}>visitas para<br/>1 prêmio</div>
+    <div style={{display:"flex",gap:10,marginBottom:14}}>
+      <div style={{flex:1}}>
+        <label style={L}>📊 Visitas p/ Prêmio</label>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginTop:7}}>
+          <input value={meta} onChange={e=>setMeta(e.target.value.replace(/\D/g,""))} style={{width:"100%",padding:"10px",border:`2px solid ${C.az}`,borderRadius:11,fontSize:18,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.az}}/>
+        </div>
+      </div>
+      <div style={{flex:1.5}}>
+        <label style={L}>💰 Valor Mínimo Visita (R$)</label>
+        <div style={{marginTop:7}}>
+          <input type="number" value={minV} onChange={e=>setMinV(e.target.value)} style={{width:"100%",padding:"10px",border:`2px solid ${C.ou}`,borderRadius:11,fontSize:18,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.tx}}/>
+        </div>
       </div>
     </div>
     <div style={{marginBottom:14}}>
@@ -952,14 +963,19 @@ function CfgMeta({cfg,setCfg}){
 
 function CfgRl({cfg,setCfg}){
   const[lista,setLista]=useState(cfg.relampagos.map(r=>({...r})));
+  const[minR,setMinR]=useState(cfg.minRelampago||60);
   const[editId,setEditId]=useState(null);
   const[msg,setMsg]=useState("");
   const totP=lista.filter(r=>r.ativo).reduce((s,r)=>s+(parseFloat(r.prob)||0),0);
   const upd=(id,k,v)=>setLista(l=>l.map(r=>r.id===id?{...r,[k]:v}:r));
   function addNovo(){setLista(l=>[...l,{id:uid(),ativo:true,emoji:"🎁",nome:"Novo Prêmio",prob:5,desc:"Você ganhou um prêmio surpresa! Retire no balcão."}]);}
   function remover(id){if(lista.length<=1){setMsg("❌ Mínimo 1 prêmio.");return;}setLista(l=>l.filter(r=>r.id!==id));}
-  function salvar(){const inv=lista.filter(r=>!r.nome.trim()||!(parseFloat(r.prob)>0));if(inv.length){setMsg("❌ Todos precisam de nome e probabilidade > 0.");return;}setCfg({...cfg,relampagos:lista.map(r=>({...r,prob:parseFloat(r.prob)||0}))});setMsg("✅ Prêmios relâmpago salvos!");setTimeout(()=>setMsg(""),3000);}
+  function salvar(){const inv=lista.filter(r=>!r.nome.trim()||!(parseFloat(r.prob)>0));if(inv.length){setMsg("❌ Todos precisam de nome e probabilidade > 0.");return;}setCfg({...cfg,minRelampago:parseFloat(minR),relampagos:lista.map(r=>({...r,prob:parseFloat(r.prob)||0}))});setMsg("✅ Prêmios relâmpago salvos!");setTimeout(()=>setMsg(""),3000);}
   return(<div style={{display:"flex",flexDirection:"column",gap:10}}>
+    <div style={{background:"#fff",borderRadius:13,padding:"12px 14px",border:`1px solid ${C.bd}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <label style={L}>Mínimo em Jogos (R$)</label>
+      <input type="number" value={minR} onChange={e=>setMinR(e.target.value)} style={{width:100,...I,textAlign:"center"}}/>
+    </div>
     <div style={{background:totP>50?C.rdC:C.azC,borderRadius:11,padding:"10px 13px",border:`1px solid ${totP>50?C.rd+"44":C.bd}`,fontSize:11,color:totP>50?C.rd:C.az,fontWeight:700}}>
       {totP>50?"⚠️":"📊"} Probabilidade total (ativos): <strong>{totP.toFixed(1)}%</strong>
       {totP<=50&&<span style={{fontWeight:400,color:C.sb}}> — chance a cada visita com Jogo.</span>}
