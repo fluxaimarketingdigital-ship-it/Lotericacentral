@@ -141,6 +141,7 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
 function Home({ops,cl,setRole,setOpSel,setTela}){
   const[senha,setSenha]=useState("");const[showS,setShowS]=useState(false);const[erroS,setErroS]=useState("");const[showOps,setShowOps]=useState(false);
   const[opLogin,setOpLogin]=useState(null);const[senhaOp,setSenhaOp]=useState("");const[erroOp,setErroOp]=useState("");
+  const[vis,setVis]=useState({adm:false,op:false});
   const totalAuths=cl.reduce((s,c)=>s+(c.auths?.length||0),0);
   function entrarAdmin(){if(senha==="central2026"){setRole("admin");setTela("admin");}else setErroS("Senha incorreta.");}
   function entrarOp(){
@@ -176,8 +177,9 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
           </div>)}
           {opLogin && <div style={{padding:"11px 15px",background:C.azC,borderTop:`1px solid ${C.bd}`}}>
             <div style={{fontSize:11,fontWeight:800,color:C.az,marginBottom:8}}>SENHA DE {opLogin.nome.toUpperCase()}</div>
-            <div style={{display:"flex",gap:7}}>
-              <input value={senhaOp} onChange={e=>setSenhaOp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&entrarOp()} type="password" placeholder="Senha..." autoFocus style={{flex:1,...I}}/>
+            <div style={{display:"flex",gap:7,position:"relative"}}>
+              <input value={senhaOp} onChange={e=>setSenhaOp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&entrarOp()} type={vis.op?"text":"password"} placeholder="Senha..." autoFocus style={{flex:1,...I,paddingRight:40}}/>
+              <button onClick={()=>setVis({...vis,op:!vis.op})} style={{position:"absolute",right:105,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",fontSize:16,cursor:"pointer",opacity:.5}}>{vis.op?"🙈":"👁️"}</button>
               <button onClick={entrarOp} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>ENTRAR</button>
             </div>
             {erroOp && <div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroOp}</div>}
@@ -194,8 +196,9 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
           <button onClick={()=>setShowS(!showS)} style={{background:"#374151",color:"#fff",border:"none",borderRadius:9,padding:"8px 13px",fontWeight:800,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>{showS?"Fechar":"Entrar →"}</button>
         </div>
         {showS&&<div style={{padding:"11px 15px",borderTop:`1px solid ${C.bd}`}}>
-          <div style={{display:"flex",gap:7,marginBottom:erroS?7:0}}>
-            <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} onKeyDown={e=>e.key==="Enter"&&entrarAdmin()} type="password" placeholder="Senha admin…" style={{flex:1,...I}}/>
+          <div style={{display:"flex",gap:7,marginBottom:erroS?7:0,position:"relative"}}>
+            <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} onKeyDown={e=>e.key==="Enter"&&entrarAdmin()} type={vis.adm?"text":"password"} placeholder="Senha admin…" style={{flex:1,...I,paddingRight:40}}/>
+            <button onClick={()=>setVis({...vis,adm:!vis.adm})} style={{position:"absolute",right:65,top:"50%",transform:"translateY(-50%)",background:"none",border:"none",fontSize:16,cursor:"pointer",opacity:.5}}>{vis.adm?"🙈":"👁️"}</button>
             <button onClick={entrarAdmin} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
           </div>
           {erroS&&<div style={{fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroS}</div>}
@@ -215,7 +218,7 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
 }
 
 function OpReg({ops,setOps,setOpSel,setRole,setTela}){
-  const[nome,setNome]=useState("");const[senha,setSenha]=useState("1234");const[erro,setErro]=useState("");const[nova,setNova]=useState(null);
+  const[nome,setNome]=useState("");const[senha,setSenha]=useState("1234");const[erro,setErro]=useState("");const[nova,setNova]=useState(null);const[v,setV]=useState(false);
   function cad(){const n=(nome||"").trim();const s=(senha||"").trim();if(!n){setErro("Informe o nome.");return;}if(!s){setErro("Defina uma senha.");return;}if(ops.some(o=>o.nome.toLowerCase()===n.toLowerCase())){setErro("Nome já cadastrado.");return;}const op={id:uidOp(ops),nome:n,senha:s,cadastro:now()};setOps([...ops,op]);setNova(op);setNome("");setSenha("");setErro("");}
   if(nova)return(<div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},#5b21b6)`,padding:"28px 18px",textAlign:"center"}}>
     <div style={{fontSize:54,animation:"pop .5s",marginBottom:10}}>✅</div>
@@ -238,7 +241,10 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
       <label style={L}>👤 Nome *</label>
       <input value={nome} onChange={e=>{setNome(e.target.value);setErro("");}} onKeyDown={e=>e.key==="Enter"&&cad()} placeholder="Ex: Maria, Caixa 01…" autoFocus style={{...I,marginTop:6,border:`2px solid ${nome?C.az:C.bd}`,background:nome?C.azC:"#fff"}}/>
       <label style={{...L,marginTop:12}}>🔒 Senha de Acesso *</label>
-      <input value={senha} onChange={e=>{setSenha(e.target.value);setErro("");}} type="password" placeholder="Mínimo 4 caracteres" style={{...I,marginTop:6,border:`2px solid ${senha?C.az:C.bd}`,background:senha?C.azC:"#fff"}}/>
+      <div style={{position:"relative"}}>
+        <input value={senha} onChange={e=>{setSenha(e.target.value);setErro("");}} type={v?"text":"password"} placeholder="Mínimo 4 caracteres" style={{...I,marginTop:6,border:`2px solid ${senha?C.az:C.bd}`,background:senha?C.azC:"#fff",paddingRight:40}}/>
+        <button onClick={()=>setV(!v)} style={{position:"absolute",right:11,top:"58%",transform:"translateY(-50%)",background:"none",border:"none",fontSize:18,cursor:"pointer",opacity:.5}}>{v?"🙈":"👁️"}</button>
+      </div>
       {erro&&<div style={{marginTop:7,fontSize:12,color:C.rd,fontWeight:700}}>⚠️ {erro}</div>}
       <div style={{marginTop:11,padding:"11px 13px",background:C.azC,borderRadius:10,fontSize:11,color:C.az,lineHeight:1.7}}>💡 Ao cadastrar, um <strong>código exclusivo</strong> é gerado. O cliente utiliza para registrar a visita no App.</div>
       <button onClick={cad} style={{width:"100%",marginTop:16,padding:15,borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${C.az}44`}}>Cadastrar e Gerar Código 📱</button>
@@ -254,7 +260,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 }
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
-  const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");
+  const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
   const ABAS=[{id:"qr",emoji:"📱",label:"Meu Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"rank",emoji:"🏅",label:"Ranking"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
@@ -275,9 +281,9 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
     return { op: o, t, i };
   }).sort((a, b) => b.t - a.t), [ops, cl]);
   const pos = rank.findIndex(r => r.op.id === op.id) + 1;
-  const isDefault = op.senha === "1234";
+  const isDefault = String(op.senha || "") === "1234";
 
-  function mudarS(){if(altS.n.length<4){setMsgS("❌ Mínimo 4 caracteres.");return;}if(altS.n!==altS.c){setMsgS("❌ Senhas não conferem.");return;}if(!isDefault && altS.a!==op.senha){setMsgS("❌ Senha atual incorreta.");return;}setOps(ops.map(o=>o.id===op.id?{...o,senha:altS.n}:o));setMsgS("✅ Senha alterada!");setTimeout(()=>{setShowAlt(false);setMsgS("");setAltS({a:"",n:"",c:""});},2000);}
+  function mudarS(){if(altS.n.length<4){setMsgS("❌ Mínimo 4 caracteres.");return;}if(altS.n!==altS.c){setMsgS("❌ Senhas não conferem.");return;}if(!isDefault && String(altS.a)!==String(op.senha)){setMsgS("❌ Senha atual incorreta.");return;}setOps(ops.map(o=>o.id===op.id?{...o,senha:altS.n}:o));setMsgS("✅ Senha alterada!");setTimeout(()=>{setShowAlt(false);setMsgS("");setAltS({a:"",n:"",c:""});},2000);}
 
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     {/* Forçar troca de senha se for 1234 */}
@@ -286,9 +292,9 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
         <div style={{fontSize:44,marginBottom:15}}>🔒</div>
         <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:8}}>Troca Obrigatória</div>
         <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Para sua segurança, você deve alterar a senha padrão (1234) no primeiro acesso.</div>
-        <div style={{textAlign:"left",display:"flex",flexDirection:"column",gap:12}}>
-          <div><label style={L}>Nova Senha</label><input value={altS.n} onChange={e=>setAltS({...altS,n:e.target.value})} type="password" placeholder="Mínimo 4 caracteres" style={I}/></div>
-          <div><label style={L}>Confirmar Nova Senha</label><input value={altS.c} onChange={e=>setAltS({...altS,c:e.target.value})} type="password" placeholder="Repita a nova senha" style={I}/></div>
+        <div style={{textAlign:"left",display:"flex",flexDirection:"column",gap:12,maxHeight:"80vh",overflowY:"auto"}}>
+          <div style={{position:"relative"}}><label style={L}>Nova Senha</label><input value={altS.n} onChange={e=>setAltS({...altS,n:e.target.value})} type={vis.n?"text":"password"} placeholder="Mínimo 4 caracteres" style={{...I,paddingRight:40}}/><button onClick={()=>setVis({...vis,n:!vis.n})} style={{position:"absolute",right:11,top:32,background:"none",border:"none",fontSize:18,cursor:"pointer",opacity:.5}}>{vis.n?"🙈":"👁️"}</button></div>
+          <div style={{position:"relative"}}><label style={L}>Confirmar Nova Senha</label><input value={altS.c} onChange={e=>setAltS({...altS,c:e.target.value})} type={vis.c?"text":"password"} placeholder="Repita a nova senha" style={{...I,paddingRight:40}}/><button onClick={()=>setVis({...vis,c:!vis.c})} style={{position:"absolute",right:11,top:32,background:"none",border:"none",fontSize:18,cursor:"pointer",opacity:.5}}>{vis.c?"🙈":"👁️"}</button></div>
           {msgS && <div style={{fontSize:12,fontWeight:700,color:msgS.startsWith("✅")?C.vd:C.rd}}>{msgS}</div>}
           <button onClick={mudarS} style={{marginTop:8,padding:14,borderRadius:12,border:"none",background:C.az,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>Salvar Nova Senha</button>
         </div>
@@ -303,10 +309,10 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
           <button onClick={()=>setShowAlt(false)} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:C.sb}}>✕</button>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:12}}>
-          <div><label style={L}>Senha Atual</label><input value={altS.a} onChange={e=>setAltS({...altS,a:e.target.value})} type="password" style={I}/></div>
+          <div style={{position:"relative"}}><label style={L}>Senha Atual</label><input value={altS.a} onChange={e=>setAltS({...altS,a:e.target.value})} type={vis.a?"text":"password"} style={{...I,paddingRight:40}}/><button onClick={()=>setVis({...vis,a:!vis.a})} style={{position:"absolute",right:11,top:32,background:"none",border:"none",fontSize:18,cursor:"pointer",opacity:.5}}>{vis.a?"🙈":"👁️"}</button></div>
           <div style={{height:1,background:C.bd,margin:"5px 0"}}/>
-          <div><label style={L}>Nova Senha</label><input value={altS.n} onChange={e=>setAltS({...altS,n:e.target.value})} type="password" placeholder="Mínimo 4 dígitos" style={I}/></div>
-          <div><label style={L}>Confirmar Nova</label><input value={altS.c} onChange={e=>setAltS({...altS,c:e.target.value})} type="password" style={I}/></div>
+          <div style={{position:"relative"}}><label style={L}>Nova Senha</label><input value={altS.n} onChange={e=>setAltS({...altS,n:e.target.value})} type={vis.n?"text":"password"} placeholder="Mínimo 4 dígitos" style={{...I,paddingRight:40}}/><button onClick={()=>setVis({...vis,n:!vis.n})} style={{position:"absolute",right:11,top:32,background:"none",border:"none",fontSize:18,cursor:"pointer",opacity:.5}}>{vis.n?"🙈":"👁️"}</button></div>
+          <div style={{position:"relative"}}><label style={L}>Confirmar Nova</label><input value={altS.c} onChange={e=>setAltS({...altS,c:e.target.value})} type={vis.c?"text":"password"} style={{...I,paddingRight:40}}/><button onClick={()=>setVis({...vis,c:!vis.c})} style={{position:"absolute",right:11,top:32,background:"none",border:"none",fontSize:18,cursor:"pointer",opacity:.5}}>{vis.c?"🙈":"👁️"}</button></div>
           {msgS && <div style={{fontSize:12,fontWeight:700,color:msgS.startsWith("✅")?C.vd:C.rd}}>{msgS}</div>}
           <button onClick={mudarS} style={{marginTop:10,padding:14,borderRadius:12,border:"none",background:C.az,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>Atualizar Senha</button>
         </div>
