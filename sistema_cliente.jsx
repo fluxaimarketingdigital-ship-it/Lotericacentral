@@ -641,18 +641,19 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV,status:"pending",detalhes:sel};
         
         const auths=[...(c.auths||[]),auth];
-        const validas=auths.filter(a=>a.valida!==false && a.status === "approved");
-        const ganhou=isV && (validas.length % cfg.meta === 0);
+        // Para o prêmio de meta, consideramos as aprovadas + a nova que está entrando (pendente)
+        const totalParaMeta = auths.filter(a=>a.valida!==false && a.status!=="rejected").length;
+        const ganhou=isV && (totalParaMeta % cfg.meta === 0);
         
         const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
         const cUpd={...c,auths};
-        
         const novPr=[...premios];
+        
         if(ganhou)novPr.push({id:uid(),clientId:c.id,authId:auth.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now(),status:"pending"});
         if(pr)novPr.push({id:uid(),clientId:c.id,authId:auth.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now(),status:"pending"});
         
         // Transição de UI IMEDIATA dentro do bloco
-        setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
+        setNP({total:totalParaMeta,ganhouMeta:ganhou,premioRl:pr});
         setStep("ok");
 
         // Atualizações Globais (Aguardar sincronização)
@@ -900,15 +901,17 @@ function HistItem({a, cfg}){
   const d = a.detalhes || {};
   return(
     <div style={{borderBottom:`1px solid ${C.bd}11`}}>
-      <div onClick={()=>setExp(!exp)} style={{padding:"12px 17px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:exp?C.bg:"#fff"}}>
-        <div style={{width:34,height:34,borderRadius:10,background:`${corS}22`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
+      <div onClick={()=>setExp(!exp)} style={{padding:"12px 17px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:exp?C.bg:"#fff",borderLeft:`4px solid ${corS}`}}>
+        <div style={{width:34,height:34,borderRadius:10,background:`${corS}12`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,border:`1px solid ${corS}33`}}>
+          {s==="approved"?"✅":s==="pending"?"⏳":"❌"}
+        </div>
         <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{a.opNome||"Operadora"} · {brl(a.total)}</div>
+          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{a.opNome||"Atendimento"} · {brl(a.total)}</div>
           <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}</div>
         </div>
         <div style={{textAlign:"right"}}>
-           <div style={{background:`${corS}15`,color:corS,fontSize:8,fontWeight:900,padding:"2px 7px",borderRadius:5,textTransform:"uppercase"}}>{labelS}</div>
-           <div style={{fontSize:12,color:C.sb,marginTop:2}}>{exp?"▲":"▼"}</div>
+           <div style={{background:corS,color:"#fff",fontSize:8,fontWeight:900,padding:"2px 8px",borderRadius:6,textTransform:"uppercase",boxShadow:`0 2px 5px ${corS}44`}}>{labelS}</div>
+           <div style={{fontSize:12,color:C.sb,marginTop:3}}>{exp?"▲":"▼"}</div>
         </div>
       </div>
       

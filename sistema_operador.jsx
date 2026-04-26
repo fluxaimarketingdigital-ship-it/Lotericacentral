@@ -654,14 +654,18 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
   const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
   
   function updateStatus(newS){
+    if(newS==="rejected"){
+      if(window.confirm("Recusar este registro irá EXCLUÍ-LO permanentemente do sistema (e seus prêmios). Confirma?")){
+        deleteAuth();
+      }
+      return;
+    }
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
     if(newS==="approved"){
-      // Aprova todos os prêmios vinculados a este registro
       setPr(pr.map(p=>p.authId===a.id?{...p, status:"approved"}:p));
-    } else {
-      // Se recusar ou desativar, os prêmios também devem ser invalidados (ou voltar para pendente)
-      setPr(pr.map(p=>p.authId===a.id?{...p, status:newS==="pending"?"pending":"rejected"}:p));
+    } else if(newS==="pending"){
+      setPr(pr.map(p=>p.authId===a.id?{...p, status:"pending"}:p));
     }
   }
 
@@ -847,12 +851,36 @@ function APr({pr, cl, cfg, setPr}){
             {isP && (() => {
               const cli = cl.find(x=>x.id===p.clientId);
               const authV = cli?.auths?.find(x=>x.id===p.authId);
-              const isLocked = p.tipo === "raspadinha" && (!authV || authV.status !== "approved");
+              
+              // Regra Estrita: Meta prêmios precisam do total de visitas aprovadas correspondente
+              let isLocked = false;
+              let reason = "";
+              
+              if(p.tipo === "raspadinha"){
+                const approvedCount = (cli?.auths||[]).filter(x=>x.status==="approved").length;
+                // Encontrar qual o "índice" deste prêmio meta entre os prêmios meta do cliente
+                const metaPrs = pr.filter(x=>x.clientId===p.clientId && x.tipo==="raspadinha").sort((a,b)=>a.data-b.data);
+                const prizeIdx = metaPrs.findIndex(x=>x.id===p.id) + 1;
+                const required = prizeIdx * cfg.meta;
+                
+                if(approvedCount < required){
+                  isLocked = true;
+                  reason = `Faltam ${required - approvedCount} visitas aprovadas`;
+                }
+                if(authV && authV.status !== "approved"){
+                  isLocked = true;
+                  reason = `Aprove a visita #${authV.controle} primeiro`;
+                }
+              } else if(authV && authV.status !== "approved"){
+                // Relâmpago também depende da visita estar aprovada
+                isLocked = true;
+                reason = "Visita pendente";
+              }
               
               if(isLocked) return (
                 <div style={{flex:1,display:"flex",flexDirection:"column",gap:4}}>
-                  <button disabled style={{width:"100%",background:"#eee",color:"#9ca3af",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"not-allowed"}}>Aprovar Bloqueado</button>
-                  <div style={{fontSize:8,color:C.rd,fontWeight:700,textAlign:"center"}}>Aprove a visita #{authV?.controle||"?"} primeiro</div>
+                  <button disabled style={{width:"100%",background:"#eee",color:"#9ca3af",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"not-allowed"}}>Bloqueado</button>
+                  <div style={{fontSize:8,color:C.rd,fontWeight:700,textAlign:"center"}}>{reason}</div>
                 </div>
               );
               
