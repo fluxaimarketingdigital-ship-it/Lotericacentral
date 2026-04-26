@@ -532,6 +532,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   const[nota,  setNota]    = useState(0);
   const[opToken,setOpToken] = useState(opQR?.id||"");
   const[errF,  setErrF]    = useState("");
+  const[valida,setValida]  = useState(false);
   const[novoProg,setNP]   = useState(null);
 
 
@@ -568,7 +569,6 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     if(!opToken){setErrF("Selecione ou identifique a Operadora que te atendeu.");return;}
     if(!controle){setErrF("Informe o número do comprovante (Controle).");return;}
     if(!dataRec){setErrF("Informe a data que consta no comprovante.");return;}
-    if(!foto){setErrF("Anexe uma foto nítida do comprovante para validar.");return;}
     if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
     
     // Validar Controle Único (Global)
@@ -603,12 +603,13 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
     setTimeout(()=>{
       const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
-      const valida = totalPagamentos >= minV;
-      const auth={id:uid(),data:dataRec,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida};
+      const isV = totalPagamentos >= minV;
+      setValida(isV);
+      const auth={id:uid(),data:dataRec,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV};
       
       const auths=[...(c.auths||[]),auth];
       const validas=auths.filter(a=>a.valida!==false);
-      const ganhou=valida && (validas.length % cfg.meta === 0);
+      const ganhou=isV && (validas.length % cfg.meta === 0);
       
       const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
       const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
@@ -616,7 +617,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       if(ganhou)novPr.push({id:uid(),clientId:c.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now()});
       if(pr)novPr.push({id:uid(),clientId:c.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now()});
       setPr(novPr);setNP({total:auths.length,ganhouMeta:ganhou,premioRl:pr});
-      if(pr)setTimeout(()=>setRelamp({...pr,ganhou}), 1000);setStep("ok");
+      if(pr)setTimeout(()=>setRelamp({...pr,ganhou:isV}), 1000);setStep("ok");
     },1400);
   }
 
