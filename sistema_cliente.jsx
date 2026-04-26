@@ -572,9 +572,22 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
     
     // Validar Controle Único (Global)
-    const controleExiste = clients.some(cli => (cli.auths||[]).some(a => a.controle === controle || a.nsu === controle));
-    if(controleExiste){
-      setErrF("❌ Este Controle já foi usado. Para novos testes, mude o número (ex: adicione um dígito).");
+    const conflicto = (() => {
+      for (const cli of clients) {
+        for (const a of (cli.auths || [])) {
+          if (a.controle && String(a.controle).trim() === String(controle).trim()) {
+            return { cNome: cli.nome, data: a.data };
+          }
+          if (a.nsu && String(a.nsu).trim() === String(controle).trim()) {
+            return { cNome: cli.nome, data: a.data };
+          }
+        }
+      }
+      return null;
+    })();
+
+    if (conflicto) {
+      setErrF(`❌ Este Controle já foi usado por ${conflicto.cNome} em ${fDT(conflicto.data)}. Mude o número para testar.`);
       return;
     }
 
