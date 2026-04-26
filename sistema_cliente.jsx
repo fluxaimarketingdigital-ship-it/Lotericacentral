@@ -704,7 +704,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
             <input value={controle} onChange={e=>setControle(e.target.value.replace(/\D/g,""))} placeholder="Ex: 545118" style={{width:"100%",marginTop:5,...I}} />
           </div>
         </div>
-        <label style={LS}>Foto do Comprovante (Legível) *</label>
+        <label style={LS}>Foto do Comprovante (opcional)</label>
         <div style={{marginTop:5,position:"relative"}}>
           <input type="file" accept="image/*" capture="environment" onChange={e=>{if(e.target.files[0]) setFoto(URL.createObjectURL(e.target.files[0]))}} style={{display:"none"}} id="foto-inp" />
           <label htmlFor="foto-inp" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:foto?C.vdC:C.azC,color:foto?C.vd:C.az,padding:14,borderRadius:12,border:`2px dashed ${foto?C.vd:C.az}44`,cursor:"pointer",fontWeight:800,fontSize:14}}>
