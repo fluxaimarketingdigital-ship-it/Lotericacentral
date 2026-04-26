@@ -572,8 +572,11 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
     
     // Validar Controle Único (Global)
-    const controleExiste = clients.some(cli => (cli.auths||[]).some(a => a.nsu === controle || a.controle === controle));
-    if(controleExiste){setErrF("❌ Este comprovante (Controle) já foi utilizado em outro registro.");return;}
+    const controleExiste = clients.some(cli => (cli.auths||[]).some(a => a.controle === controle || a.nsu === controle));
+    if(controleExiste){
+      setErrF("❌ Este Controle já foi usado. Para novos testes, mude o número (ex: adicione um dígito).");
+      return;
+    }
 
     // Validar Prazo (ex: máximo 7 dias atrás E dentro da vigência)
     const dC = new Date(dataRec); const dH = new Date();
