@@ -654,7 +654,10 @@ function ACl({cl,setCl,ops,cfg,pr}){
     <input value={bus} onChange={e=>setBus(e.target.value)} placeholder="🔍 Buscar por nome ou WhatsApp…" style={{...I}}/>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="👥" msg="Nenhum cliente encontrado."/>}
-      {lista.map((c,i)=>{const prog=(c.auths?.length||0)%cfg.meta;const raspa=Math.floor((c.auths?.length||0)/cfg.meta);const ganhou=(c.auths?.length||0)>0&&c.auths.length%cfg.meta===0;const prCl=pr.filter(p=>p.clientId===c.id);return(<div key={c.id}>
+      {lista.map((c,i)=>{
+        const authsV = (c.auths||[]).filter(a=>a.valida!==false && a.status === "approved");
+        const countV = authsV.length;
+        const prog=countV%cfg.meta;const raspa=Math.floor(countV/cfg.meta);const ganhou=countV>0&&countV%cfg.meta===0;const prCl=pr.filter(p=>p.clientId===c.id && p.status === "approved");return(<div key={c.id}>
         <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}22`,cursor:"pointer",background:exp===c.id?C.azC:"transparent"}} onClick={()=>setExp(exp===c.id?null:c.id)}>
           <div style={{display:"flex",gap:9,alignItems:"center",marginBottom:3}}>
             <div style={{width:32,height:32,borderRadius:"50%",background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:C.az,flexShrink:0}}>{c.nome?.[0]?.toUpperCase()||"?"}</div>
@@ -672,17 +675,71 @@ function ACl({cl,setCl,ops,cfg,pr}){
             {raspa>0&&<><br/>{cfg.premioMeta.emoji} {raspa} prêmio{raspa!==1?"s":""}</>}
           </div>
           
-          <div style={{fontWeight:800,fontSize:10,color:C.tx,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Histórico de Visitas</div>
-          <div style={{display:"flex",flexDirection:"column",gap:6,marginBottom:12}}>
-            {(c.auths||[]).slice(-5).reverse().map(a => (
-              <div key={a.id} style={{background:"#fff",borderRadius:8,padding:8,border:`1px solid ${C.bd}66`,display:"flex",flexDirection:"column",gap:4}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                  <div style={{fontSize:10,fontWeight:700}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
-                  {a.nota > 0 && <span style={{fontSize:9,fontWeight:800,color:C.ou2}}>⭐ {a.nota}</span>}
+          <div style={{fontWeight:800,fontSize:10,color:C.tx,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Histórico e Aprovações</div>
+          <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:12}}>
+            {(c.auths||[]).slice().reverse().map(a => {
+              const [expA, setExpA] = useState(false);
+              const s = a.status || (a.valida?"approved":"rejected"); // fallback legacy
+              const corS = s==="approved"?C.vd : s==="pending"?C.ou : C.rd;
+              const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
+              
+              function updateStatus(newS){
+                const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS}:x);
+                setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+                // Se aprovar, aprovar prêmios vinculados também
+                if(newS==="approved"){
+                  setPr(pr.map(p=>p.authId===a.id?{...p, status:"approved"}:p));
+                }
+              }
+
+              function deleteAuth(){
+                if(!window.confirm("Remover esta autenticação PERMANENTEMENTE? Isso removerá o prêmio vinculado também.")) return;
+                const newAuths = c.auths.filter(x=>x.id!==a.id);
+                setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+                setPr(pr.filter(p=>p.authId!==a.id));
+              }
+
+              return(
+                <div key={a.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${expA?C.az:C.bd+"66"}`,overflow:"hidden"}}>
+                  <div onClick={()=>setExpA(!expA)} style={{padding:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:expA?C.azC:"#fff"}}>
+                    <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
+                    <div style={{flex:1}}>
+                      <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
+                      <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS}</div>
+                    </div>
+                    <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
+                  </div>
+                  
+                  {expA && <div style={{padding:12,borderTop:`1px solid ${C.bd}33`,background:"#fafafa"}}>
+                     <div style={{fontSize:11,display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+                        {Object.entries(a.detalhes||{}).map(([fid, val]) => {
+                          const f = cfg.formulario.campos.find(x=>x.id===fid);
+                          if(!f || !val) return null;
+                          return <div key={fid} style={{display:"flex",justifyContent:"space-between",borderBottom:`1px solid ${C.bd}11`,paddingBottom:2}}>
+                            <span>{f.emoji} {f.nome}</span>
+                            <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
+                          </div>
+                        })}
+                        {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
+                        <div style={{marginTop:5,color:C.sb,fontSize:10}}>Protocolo: <strong>{a.controle}</strong></div>
+                        <div style={{color:C.sb,fontSize:10}}>Nota: <strong>{a.nota}/10</strong> ⭐</div>
+                     </div>
+
+                     {a.foto && <div style={{marginBottom:12}}>
+                        <div style={{fontSize:9,fontWeight:800,marginBottom:5,color:C.az}}>COMPROVANTE:</div>
+                        <img src={a.foto} style={{width:"100%",borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
+                     </div>}
+
+                     <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
+                        {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar</button>}
+                        {s!=="pending" && <button onClick={()=>updateStatus("pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter para Pendente</button>}
+                        <button onClick={deleteAuth} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>🗑️ Excluir</button>
+                     </div>
+                  </div>}
                 </div>
-                {a.obs && <div style={{fontSize:9,color:C.sb,fontStyle:"italic"}}>"{a.obs}"</div>}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
@@ -709,8 +766,9 @@ function APr({pr,cl,cfg}){
       {pr.length===0&&<V em="🎁" msg="Nenhum prêmio ainda."/>}
       {[...pr].reverse().map((p,i)=><div key={p.id} style={{padding:"10px 13px",borderBottom:i<pr.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:36,height:36,borderRadius:10,flexShrink:0,background:p.tipo==="relampago"?C.ouC:C.vdC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20}}>{p.emoji||cfg.premioMeta.emoji}</div>
-        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{p.nome}</div><div style={{fontSize:10,color:C.sb}}>{cN(p.clientId)} · {fDT(p.data)}</div></div>
-        {cW(p.clientId)&&<a href={`https://wa.me/55${cW(p.clientId)}?text=${encodeURIComponent(`Olá! Seu ${p.nome} está disponível! Venha retirar na Lotérica Central.`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none",flexShrink:0}}>📲</a>}
+        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:p.status==="pending"?"#9ca3af":C.tx}}>{p.nome}</div><div style={{fontSize:10,color:C.sb}}>{cN(p.clientId)} · {fDT(p.data)}</div></div>
+        {p.status==="pending" && <span style={{background:C.ouC,color:C.ou2,fontSize:8,fontWeight:900,padding:"2px 7px",borderRadius:5,marginRight:5}}>PENDENTE</span>}
+        {cW(p.clientId)&&p.status!=="pending"&&<a href={`https://wa.me/55${cW(p.clientId)}?text=${encodeURIComponent(`Olá! Seu ${p.nome} está disponível! Venha retirar na Lotérica Central.`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none",flexShrink:0}}>📲</a>}
       </div>)}
     </div>
   </div>);
