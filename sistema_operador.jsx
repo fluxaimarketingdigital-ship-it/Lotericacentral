@@ -140,8 +140,17 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
 
 function Home({ops,cl,setRole,setOpSel,setTela}){
   const[senha,setSenha]=useState("");const[showS,setShowS]=useState(false);const[erroS,setErroS]=useState("");const[showOps,setShowOps]=useState(false);
+  const[opLogin,setOpLogin]=useState(null);const[senhaOp,setSenhaOp]=useState("");const[erroOp,setErroOp]=useState("");
   const totalAuths=cl.reduce((s,c)=>s+(c.auths?.length||0),0);
   function entrarAdmin(){if(senha==="central2026"){setRole("admin");setTela("admin");}else setErroS("Senha incorreta.");}
+  function entrarOp(){
+    if(!opLogin) return;
+    if(opLogin.senha === senhaOp || !opLogin.senha) { // if no password, allow (for legacy)
+      setOpSel(opLogin);setRole("op");setTela("op");
+    } else {
+      setErroOp("Senha incorreta.");
+    }
+  }
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column"}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:"0 0 30px 30px",padding:"44px 22px 40px",textAlign:"center",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-50,right:-50,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.07}}/>
@@ -158,13 +167,21 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
         </div>
         {showOps&&<div style={{maxHeight:240,overflowY:"auto"}}>
           {ops.length===0&&<div style={{padding:"16px",textAlign:"center",fontSize:12,color:C.sb}}>Nenhuma operadora cadastrada ainda.</div>}
-          {ops.map((o,i)=><div key={o.id} onClick={()=>{setOpSel(o);setRole("op");setTela("op");}}
+          {ops.map((o,i)=><div key={o.id} onClick={()=>{setOpLogin(o);setSenhaOp("");setErroOp("");}}
             style={{padding:"11px 15px",borderBottom:`1px solid ${C.bd}22`,display:"flex",alignItems:"center",gap:11,cursor:"pointer"}}
             onMouseEnter={e=>e.currentTarget.style.background=C.azC} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
             <div style={{width:34,height:34,borderRadius:"50%",background:oc(i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:"#fff",flexShrink:0}}>{o.nome[0].toUpperCase()}</div>
             <div style={{flex:1}}><div style={{fontWeight:800,fontSize:13,color:C.tx}}>{o.nome}</div><div style={{fontSize:10,color:C.sb}}>{fD(o.cadastro)}</div></div>
             <span style={{fontSize:16,color:C.sb}}>→</span>
           </div>)}
+          {opLogin && <div style={{padding:"11px 15px",background:C.azC,borderTop:`1px solid ${C.bd}`}}>
+            <div style={{fontSize:11,fontWeight:800,color:C.az,marginBottom:8}}>SENHA DE {opLogin.nome.toUpperCase()}</div>
+            <div style={{display:"flex",gap:7}}>
+              <input value={senhaOp} onChange={e=>setSenhaOp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&entrarOp()} type="password" placeholder="Senha..." autoFocus style={{flex:1,...I}}/>
+              <button onClick={entrarOp} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>ENTRAR</button>
+            </div>
+            {erroOp && <div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroOp}</div>}
+          </div>}
           <div onClick={()=>setTela("opreg")} style={{padding:"11px 15px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",color:C.az,fontWeight:800,fontSize:12,borderTop:`1px solid ${C.bd}`}}>
             <span style={{fontSize:17}}>➕</span> Cadastrar Nova Operadora
           </div>
@@ -198,8 +215,8 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
 }
 
 function OpReg({ops,setOps,setOpSel,setRole,setTela}){
-  const[nome,setNome]=useState("");const[erro,setErro]=useState("");const[nova,setNova]=useState(null);
-  function cad(){const n=(nome||"").trim();if(!n){setErro("Informe o nome.");return;}if(ops.some(o=>o.nome.toLowerCase()===n.toLowerCase())){setErro("Nome já cadastrado.");return;}const op={id:uidOp(ops),nome:n,cadastro:now()};setOps([...ops,op]);setNova(op);setNome("");setErro("");}
+  const[nome,setNome]=useState("");const[senha,setSenha]=useState("");const[erro,setErro]=useState("");const[nova,setNova]=useState(null);
+  function cad(){const n=(nome||"").trim();const s=(senha||"").trim();if(!n){setErro("Informe o nome.");return;}if(!s){setErro("Defina uma senha.");return;}if(ops.some(o=>o.nome.toLowerCase()===n.toLowerCase())){setErro("Nome já cadastrado.");return;}const op={id:uidOp(ops),nome:n,senha:s,cadastro:now()};setOps([...ops,op]);setNova(op);setNome("");setSenha("");setErro("");}
   if(nova)return(<div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},#5b21b6)`,padding:"28px 18px",textAlign:"center"}}>
     <div style={{fontSize:54,animation:"pop .5s",marginBottom:10}}>✅</div>
     <div style={{fontWeight:900,fontSize:22,color:"#fff",marginBottom:6}}>Cadastrada!</div>
@@ -220,6 +237,8 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
     <div style={{background:"#fff",borderRadius:"24px 24px 0 0",minHeight:"calc(100vh - 110px)",padding:"22px 19px"}}>
       <label style={L}>👤 Nome *</label>
       <input value={nome} onChange={e=>{setNome(e.target.value);setErro("");}} onKeyDown={e=>e.key==="Enter"&&cad()} placeholder="Ex: Maria, Caixa 01…" autoFocus style={{...I,marginTop:6,border:`2px solid ${nome?C.az:C.bd}`,background:nome?C.azC:"#fff"}}/>
+      <label style={{...L,marginTop:12}}>🔒 Senha de Acesso *</label>
+      <input value={senha} onChange={e=>{setSenha(e.target.value);setErro("");}} type="password" placeholder="Mínimo 4 caracteres" style={{...I,marginTop:6,border:`2px solid ${senha?C.az:C.bd}`,background:senha?C.azC:"#fff"}}/>
       {erro&&<div style={{marginTop:7,fontSize:12,color:C.rd,fontWeight:700}}>⚠️ {erro}</div>}
       <div style={{marginTop:11,padding:"11px 13px",background:C.azC,borderRadius:10,fontSize:11,color:C.az,lineHeight:1.7}}>💡 Ao cadastrar, um <strong>código exclusivo</strong> é gerado. O cliente utiliza para registrar a visita no App.</div>
       <button onClick={cad} style={{width:"100%",marginTop:16,padding:15,borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${C.az}44`}}>Cadastrar e Gerar Código 📱</button>
