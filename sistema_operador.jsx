@@ -215,7 +215,7 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
 }
 
 function OpReg({ops,setOps,setOpSel,setRole,setTela}){
-  const[nome,setNome]=useState("");const[senha,setSenha]=useState("");const[erro,setErro]=useState("");const[nova,setNova]=useState(null);
+  const[nome,setNome]=useState("");const[senha,setSenha]=useState("1234");const[erro,setErro]=useState("");const[nova,setNova]=useState(null);
   function cad(){const n=(nome||"").trim();const s=(senha||"").trim();if(!n){setErro("Informe o nome.");return;}if(!s){setErro("Defina uma senha.");return;}if(ops.some(o=>o.nome.toLowerCase()===n.toLowerCase())){setErro("Nome já cadastrado.");return;}const op={id:uidOp(ops),nome:n,senha:s,cadastro:now()};setOps([...ops,op]);setNova(op);setNome("");setSenha("");setErro("");}
   if(nova)return(<div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},#5b21b6)`,padding:"28px 18px",textAlign:"center"}}>
     <div style={{fontSize:54,animation:"pop .5s",marginBottom:10}}>✅</div>
@@ -254,7 +254,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 }
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
-  const[aba,setAba]=useState("qr");
+  const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");
   const ABAS=[{id:"qr",emoji:"📱",label:"Meu Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"rank",emoji:"🏅",label:"Ranking"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
@@ -275,10 +275,49 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
     return { op: o, t, i };
   }).sort((a, b) => b.t - a.t), [ops, cl]);
   const pos = rank.findIndex(r => r.op.id === op.id) + 1;
+  const isDefault = op.senha === "1234";
+
+  function mudarS(){if(altS.n.length<4){setMsgS("❌ Mínimo 4 caracteres.");return;}if(altS.n!==altS.c){setMsgS("❌ Senhas não conferem.");return;}if(!isDefault && altS.a!==op.senha){setMsgS("❌ Senha atual incorreta.");return;}setOps(ops.map(o=>o.id===op.id?{...o,senha:altS.n}:o));setMsgS("✅ Senha alterada!");setTimeout(()=>{setShowAlt(false);setMsgS("");setAltS({a:"",n:"",c:""});},2000);}
+
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
+    {/* Forçar troca de senha se for 1234 */}
+    {isDefault && <div style={{position:"fixed",inset:0,background:"rgba(0,52,120,.95)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:"#fff",borderRadius:24,padding:24,width:"100%",maxWidth:400,textAlign:"center",animation:"pop .4s"}}>
+        <div style={{fontSize:44,marginBottom:15}}>🔒</div>
+        <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:8}}>Troca Obrigatória</div>
+        <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Para sua segurança, você deve alterar a senha padrão (1234) no primeiro acesso.</div>
+        <div style={{textAlign:"left",display:"flex",flexDirection:"column",gap:12}}>
+          <div><label style={L}>Nova Senha</label><input value={altS.n} onChange={e=>setAltS({...altS,n:e.target.value})} type="password" placeholder="Mínimo 4 caracteres" style={I}/></div>
+          <div><label style={L}>Confirmar Nova Senha</label><input value={altS.c} onChange={e=>setAltS({...altS,c:e.target.value})} type="password" placeholder="Repita a nova senha" style={I}/></div>
+          {msgS && <div style={{fontSize:12,fontWeight:700,color:msgS.startsWith("✅")?C.vd:C.rd}}>{msgS}</div>}
+          <button onClick={mudarS} style={{marginTop:8,padding:14,borderRadius:12,border:"none",background:C.az,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>Salvar Nova Senha</button>
+        </div>
+      </div>
+    </div>}
+
+    {/* Modal de troca voluntária */}
+    {showAlt && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.6)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:"#fff",borderRadius:22,padding:22,width:"100%",maxWidth:400,animation:"up .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+          <div style={{fontWeight:900,fontSize:17,color:C.tx}}>🔒 Alterar Minha Senha</div>
+          <button onClick={()=>setShowAlt(false)} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:C.sb}}>✕</button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
+          <div><label style={L}>Senha Atual</label><input value={altS.a} onChange={e=>setAltS({...altS,a:e.target.value})} type="password" style={I}/></div>
+          <div style={{height:1,background:C.bd,margin:"5px 0"}}/>
+          <div><label style={L}>Nova Senha</label><input value={altS.n} onChange={e=>setAltS({...altS,n:e.target.value})} type="password" placeholder="Mínimo 4 dígitos" style={I}/></div>
+          <div><label style={L}>Confirmar Nova</label><input value={altS.c} onChange={e=>setAltS({...altS,c:e.target.value})} type="password" style={I}/></div>
+          {msgS && <div style={{fontSize:12,fontWeight:700,color:msgS.startsWith("✅")?C.vd:C.rd}}>{msgS}</div>}
+          <button onClick={mudarS} style={{marginTop:10,padding:14,borderRadius:12,border:"none",background:C.az,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit"}}>Atualizar Senha</button>
+        </div>
+      </div>
+    </div>}
     <div style={{background:`linear-gradient(135deg,${oc(idx)},${C.az})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-30,right:-30,width:130,height:130,borderRadius:"50%",background:"rgba(255,255,255,.06)"}}/>
-      <button onClick={()=>{setRole(null);setOpSel(null);setTela("home");}} style={BV}>← Sair</button>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <button onClick={()=>{setRole(null);setOpSel(null);setTela("home");}} style={BV}>← Sair</button>
+        <button onClick={()=>setShowAlt(true)} style={{...BV,background:C.ou,color:C.az}}>🔒 Mudar Senha</button>
+      </div>
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>{op.nome}</div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)",marginTop:1}}>Operador de Caixa · {fD(op.cadastro)}</div>
       <div style={{display:"flex",gap:7,marginTop:13}}>
@@ -517,7 +556,7 @@ function AOps({ops,setOps,cl,cfg}){
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
         <div style={{flex:1}}>
           {eId===r.op.id?<div style={{display:"flex",gap:5}}><input value={eN} onChange={e=>setEN(e.target.value)} style={{flex:1,...I,padding:"5px 9px",fontSize:12}}/><button onClick={()=>{setOps(ops.map(o=>o.id===r.op.id?{...o,nome:eN}:o));setEId(null);}} style={{background:C.vd,color:"#fff",border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✓</button><button onClick={()=>setEId(null)} style={{background:"#f3f4f6",color:C.sb,border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button></div>
-          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>🏆 Dia 05</span>}<button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{marginLeft:"auto",background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(window.confirm(`Remover operadora ${r.op.nome}?`)) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div>}
+          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>🏆 Dia 05</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(window.confirm(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(window.confirm(`Remover operadora ${r.op.nome}?`)) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
           <div style={{fontSize:10,color:C.sb,marginTop:2}}>Desde {fD(r.op.cadastro)}</div>
         </div>
       </div>
