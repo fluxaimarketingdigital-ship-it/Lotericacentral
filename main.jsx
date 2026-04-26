@@ -37,15 +37,63 @@ function AppMenu() {
   )
 }
 
+const PASSWORD = 'central2026';
+
+function AccessGate({ children }) {
+  const [auth, setAuth] = React.useState(sessionStorage.getItem('access_granted') === 'true');
+  const [pass, setPass] = React.useState('');
+  const [error, setError] = React.useState('');
+
+  const handleLogin = () => {
+    if (pass === PASSWORD) {
+      sessionStorage.setItem('access_granted', 'true');
+      setAuth(true);
+    } else {
+      setError('Acesso negado. Senha incorreta.');
+    }
+  };
+
+  if (!auth) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#003478', padding: '20px', fontFamily: '"Nunito", sans-serif' }}>
+        <div style={{ background: '#fff', borderRadius: '24px', padding: '40px', width: '100%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+          <div style={{ fontSize: '64px', marginBottom: '20px' }}>🔐</div>
+          <h1 style={{ fontSize: '24px', fontWeight: 900, color: '#0d2137', marginBottom: '10px' }}>Acesso Restrito</h1>
+          <p style={{ fontSize: '14px', color: '#5a7a96', marginBottom: '30px' }}>Este é um ambiente de testes da Lotérica Central. Por favor, insira a senha de acesso.</p>
+          <input 
+            type="password" 
+            value={pass} 
+            onChange={(e) => setPass(e.target.value)} 
+            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+            placeholder="Digite a senha..." 
+            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: '2px solid #dde6f5', marginBottom: '15px', fontSize: '16px', textAlign: 'center', outline: 'none' }}
+          />
+          {error && <div style={{ color: '#ef4444', fontSize: '13px', fontWeight: 700, marginBottom: '15px' }}>⚠️ {error}</div>}
+          <button 
+            onClick={handleLogin}
+            style={{ width: '100%', padding: '15px', borderRadius: '12px', border: 'none', background: '#003478', color: '#fff', fontWeight: 900, fontSize: '16px', cursor: 'pointer' }}
+          >
+            Entrar no Sistema
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return children;
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<AppMenu />} />
-        <Route path="/infografico" element={<Infografico />} />
-        <Route path="/cliente" element={<SistemaCliente />} />
-        <Route path="/operador" element={<SistemaOperador />} />
-      </Routes>
-    </BrowserRouter>
+    <AccessGate>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppMenu />} />
+          <Route path="/infografico" element={<Infografico />} />
+          <Route path="/cliente" element={<SistemaCliente />} />
+          <Route path="/operador" element={<SistemaOperador />} />
+        </Routes>
+      </BrowserRouter>
+    </AccessGate>
   </React.StrictMode>,
 )
