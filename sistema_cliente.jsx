@@ -514,7 +514,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
 
 function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,setAba}){
   const[step,  setStep]    = useState(opQR?"form":"start");
-  const[nsu,   setNsu]     = useState("");
+  const[controle,setControle] = useState("");
   const[dataRec,setDataRec] = useState(hoje());
   const[foto,  setFoto]    = useState(null);
   const[sel,   setSel]     = useState({});
@@ -539,15 +539,15 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
   async function gravar(){
     if(!opToken){setErrF("Selecione ou identifique a Operadora que te atendeu.");return;}
-    if(!nsu){setErrF("Informe o número do comprovante (NSU).");return;}
+    if(!controle){setErrF("Informe o número do comprovante (Controle).");return;}
     if(!dataRec){setErrF("Informe a data que consta no comprovante.");return;}
     if(!foto){setErrF("Anexe uma foto nítida do comprovante para validar.");return;}
     if(obrigF.length>0){setErrF(`Selecione: ${obrigF.map(f=>f.nome).join(", ")}`);return;}
     if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
     
-    // Validar NSU Único (Global)
-    const nsuExiste = clients.some(cli => (cli.auths||[]).some(a => a.nsu === nsu));
-    if(nsuExiste){setErrF("❌ Este comprovante (NSU) já foi utilizado em outro registro.");return;}
+    // Validar Controle Único (Global)
+    const controleExiste = clients.some(cli => (cli.auths||[]).some(a => a.nsu === controle || a.controle === controle));
+    if(controleExiste){setErrF("❌ Este comprovante (Controle) já foi utilizado em outro registro.");return;}
 
     // Validar Prazo (ex: máximo 7 dias atrás E dentro da vigência)
     const dC = new Date(dataRec); const dH = new Date();
@@ -577,7 +577,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
     setTimeout(()=>{
       const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
-      const auth={id:uid(),data:dataRec,nsu,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now()};
+      const auth={id:uid(),data:dataRec,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now()};
       const auths=[...(c.auths||[]),auth];const ganhou=auths.length%cfg.meta===0;
       const pr=sortear(sels,cfg);const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
       const novPr=[...premios];
@@ -591,7 +591,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
     <div style={{width:58,height:58,borderRadius:"50%",border:`4px solid ${C.az}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
     <div style={{fontWeight:800,fontSize:16,color:C.az}}>Validando regulamento…</div>
-    <div style={{fontSize:12,color:C.sb}}>Verificando NSU e integridade dos dados 🛡️</div>
+    <div style={{fontSize:12,color:C.sb}}>Verificando Controle e integridade dos dados 🛡️</div>
   </div>);
 
   if(step==="ok"){
@@ -662,8 +662,8 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
             <input type="date" value={dataRec} onChange={e=>setDataRec(e.target.value)} style={{width:"100%",marginTop:5,...I,fontSize:13}} />
           </div>
           <div>
-            <label style={LS}>NSU / Registro *</label>
-            <input value={nsu} onChange={e=>setNsu(e.target.value.replace(/\D/g,""))} placeholder="Ex: 545118" style={{width:"100%",marginTop:5,...I}} />
+            <label style={LS}>Controle / Registro *</label>
+            <input value={controle} onChange={e=>setControle(e.target.value.replace(/\D/g,""))} placeholder="Ex: 545118" style={{width:"100%",marginTop:5,...I}} />
           </div>
         </div>
         <label style={LS}>Foto do Comprovante (Legível) *</label>

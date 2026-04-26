@@ -72,14 +72,14 @@ const qrGateNew = `  const [camAtiva, setCamAtiva] = useState(false);
           setTimeout(()=>{
             setValidando(false);
             setCamAtiva(false);
-            const nsuRandom=Math.floor(10000+Math.random()*90000).toString();
-            // Verifica Duplicidade do NSU globalmente
-            const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===nsuRandom));
+            const controleRandom=Math.floor(10000+Math.random()*90000).toString();
+            // Verifica Duplicidade do Controle globalmente
+            const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===controleRandom));
             if(jaUsou){
               setErrQR("Comprovante duplicado! Já registrado.");
               return;
             }
-            setOpLoc({id:nsuRandom,nome:"Extração por IA"});
+            setOpLoc({id:controleRandom,nome:"Extração por IA"});
             // Preenchimento de IA "falso" para o protótipo:
             const triggerJogo = Math.random() > 0.5;
             const newSel = {"boleto": "50.00"};
@@ -96,11 +96,11 @@ const qrGateNew = `  const [camAtiva, setCamAtiva] = useState(false);
     </div>}
 
     <div style={{background:"#f9fafb",borderRadius:14,padding:"14px",border:\`1px dashed \${C.bd}\`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Câmera falhou? Insira o NSU manualmente</div>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Câmera falhou? Insira o Controle manualmente</div>
       <div style={{display:"flex",gap:7}}>
-        <input value={codM} onChange={e=>{setCodM(e.target.value.replace(/\\D/g,""));setErrQR("");}} placeholder="NSU impresso" style={{flex:1,padding:"10px 12px",border:\`1.5px solid \${C.bd}\`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"}}/>
+        <input value={codM} onChange={e=>{setCodM(e.target.value.replace(/\\D/g,""));setErrQR("");}} placeholder="Controle impresso" style={{flex:1,padding:"10px 12px",border:\`1.5px solid \${C.bd}\`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"}}/>
         <button onClick={()=>{
-          if(codM.length<4){setErrQR("NSU inválido.");return;}
+          if(codM.length<4){setErrQR("Controle inválido.");return;}
           const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===codM));
           if(jaUsou){setErrQR("Comprovante já registrado!");return;}
           setOpLoc({id:codM,nome:"Inserção Manual"});
@@ -129,7 +129,7 @@ const headValidadoOld = `    {/* Operador validado */}
 const headValidadoNew = `    {/* Comprovante validado */}
     <div style={{background:C.vdC,borderRadius:14,padding:"13px 15px",border:\`1.5px solid \${C.vd}44\`,display:"flex",gap:11,alignItems:"center",animation:"pop .5s ease"}}>
       <div style={{width:42,height:42,borderRadius:12,background:C.vd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>📄</div>
-      <div style={{flex:1}}><div style={{fontWeight:800,fontSize:12,color:C.vd}}>Cupom Lido com Sucesso!</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>NSU: {opLoc?.id||"—"}</div></div>
+      <div style={{flex:1}}><div style={{fontWeight:800,fontSize:12,color:C.vd}}>Cupom Lido com Sucesso!</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>Controle: {opLoc?.id||"—"}</div></div>
       <button onClick={()=>{setOpLoc(null);setOpQR(null);setStep("cam");}} style={{background:"none",border:\`1px solid \${C.vd}44\`,borderRadius:8,padding:"5px 10px",fontSize:11,color:C.vd,cursor:"pointer",fontFamily:"inherit"}}>Repetir</button>
     </div>`;
 

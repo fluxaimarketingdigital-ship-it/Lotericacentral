@@ -4,7 +4,7 @@ const pathClient = 'sistema_cliente.jsx';
 let content = fs.readFileSync(pathClient, 'utf8');
 
 const targetOld = `      // Buscar CONTROLE: XXXXXX -> "TERM 062635" ou "CONTROLE: 545118"
-      let matchNsu = txt.match(/(?:CONTROLE|TERM)[:\\s\\.-]*([0-9]{5,10})/);`;
+      let matchControle = txt.match(/(?:CONTROLE|TERM)[:\\s\\.-]*([0-9]{5,10})/);`;
 
 const newLogic = `      // Extrair total e blocos
       let totalAchado = 0;
@@ -27,7 +27,7 @@ const newLogic = `      // Extrair total e blocos
       }
 
       // Buscar CONTROLE: XXXXXX -> "TERM 062635" ou "CONTROLE: 545118"
-      let matchNsu = txt.match(/(?:CONTROLE|TERM)[:\\s\\.-]*([0-9]{5,10})/);`;
+      let matchControle = txt.match(/(?:CONTROLE|TERM)[:\\s\\.-]*([0-9]{5,10})/);`;
 
 content = content.replace(targetOld, newLogic);
 

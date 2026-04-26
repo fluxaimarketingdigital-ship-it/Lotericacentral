@@ -42,15 +42,15 @@ if(startIndex !== -1 && endIndex !== -1) {
       console.log("✅ TEXTO OCR COMPLETO:\\n", txt);
       
       // Buscar CONTROLE: XXXXXX -> "TERM 062635" ou "CONTROLE: 545118"
-      let matchNsu = txt.match(/(?:CONTROLE|TERM)[:\\s\\.-]*([0-9]{5,10})/);
-      let nsuDet = matchNsu ? matchNsu[1] : Math.floor(100000+Math.random()*900000).toString();
+      let matchControle = txt.match(/(?:CONTROLE|TERM)[:\\s\\.-]*([0-9]{5,10})/);
+      let controleDet = matchControle ? matchControle[1] : Math.floor(100000+Math.random()*900000).toString();
 
-      const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===nsuDet || a.nsu===nsuDet));
+      const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===controleDet || a.controle===controleDet));
       if(jaUsou){
-        setErrQR("Comprovante "+nsuDet+" duplicado! Já registrado.");
+        setErrQR("Comprovante "+controleDet+" duplicado! Já registrado.");
         return;
       }
-      setOpLoc({id:nsuDet,nome:"Processado por Visão IA"});
+      setOpLoc({id:controleDet,nome:"Processado por Visão IA"});
       
       // Auto-preenchimento
       const newSel = {};
@@ -75,7 +75,7 @@ if(startIndex !== -1 && endIndex !== -1) {
 
   /* CAM GATE */
   if(step==="qr"||step==="cam")return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
-    <Tit em="📷" t="Escanear Comprovante" s="A IA extrai NSU e seleciona itens auto."/>
+    <Tit em="📷" t="Escanear Comprovante" s="A IA extrai Controle e seleciona itens auto."/>
     
     <input type="file" accept="image/*" ref={fileInputRef} onChange={e=>{ if(e.target.files[0]) processImage(e.target.files[0]); }} style={{display:"none"}} />
     
@@ -96,11 +96,11 @@ if(startIndex !== -1 && endIndex !== -1) {
     </div>}
 
     <div style={{background:"#f9fafb",borderRadius:14,padding:"14px",border:\`1px dashed \${C.bd}\`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Comprovante apagado? Digite o NSU</div>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:5}}>⌨️ Comprovante apagado? Digite o Controle</div>
       <div style={{display:"flex",gap:7}}>
-        <input value={codM} onChange={e=>{setCodM(e.target.value.replace(/\\D/g,""));setErrQR("");}} placeholder="NSU impresso" style={{flex:1,padding:"10px 12px",border:\`1.5px solid \${C.bd}\`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"}}/>
+        <input value={codM} onChange={e=>{setCodM(e.target.value.replace(/\\D/g,""));setErrQR("");}} placeholder="Controle impresso" style={{flex:1,padding:"10px 12px",border:\`1.5px solid \${C.bd}\`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"}}/>
         <button onClick={()=>{
-          if(codM.length<4){setErrQR("NSU inválido.");return;}
+          if(codM.length<4){setErrQR("Controle inválido.");return;}
           const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.opId===codM));
           if(jaUsou){setErrQR("Comprovante "+codM+" já registrado!");return;}
           setOpLoc({id:codM,nome:"Inserção Manual"});
