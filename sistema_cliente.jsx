@@ -441,7 +441,9 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
 
   const ABAS=[{id:"ini",l:"Início",em:"🏠"},{id:"reg",l:"Registrar",em:"📱"},{id:"pr",l:"Prêmios",em:"🎁"},{id:"not",l:"Notícias",em:"📰"},{id:"ct",l:"Conta",em:"👤"}];
   const c=cliente;if(!c)return null;
-  const tot=c.auths?.length||0;const prog=tot%cfg.meta;const raspa=Math.floor(tot/cfg.meta);const falt=cfg.meta-prog;const pct=Math.round((prog/cfg.meta)*100);
+  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false);
+  const tot=c.auths?.length||0;const totV=authsValidas.length;
+  const prog=totV%cfg.meta;const raspa=Math.floor(totV/cfg.meta);const falt=cfg.meta-prog;const pct=Math.round((prog/cfg.meta)*100);
   const meusPr=premios.filter(p=>p.clientId===c.id);const temPr=meusPr.length>0;
   const notsAll  = cfg.noticias||CFG0.noticias||[];
   const notsGeral= notsAll.filter(n=>n.tipo==="geral"&&n.ativo!==false);
@@ -489,7 +491,9 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
 
 /* ══════════════════════ INÍCIO ══════════════════════ */
 function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
-  const tot=c.auths?.length||0;const raspa=Math.floor(tot/cfg.meta);const prog=tot%cfg.meta;
+  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false);
+  const tot=c.auths?.length||0;const totV=authsValidas.length;
+  const raspa=Math.floor(totV/cfg.meta);const prog=totV%cfg.meta;
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.ou}44`}}>
       <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8}}>Já foi atendido?</div><div style={{fontSize:18,fontWeight:900}}>📝 Registrar Nova Visita</div></div>
@@ -501,20 +505,20 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
       <div style={{background:C.ou,color:C.az,fontWeight:900,fontSize:12,width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{nBadge}</div>
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-      {[["🎯","Atendimentos",tot,C.az],[cfg.premioMeta.emoji,"Prêmios",raspa,C.ou2],["⚡","Relâmpagos",meusPr.filter(p=>p.tipo==="relampago").length,C.rx],["📅","Esta rodada",prog,C.vd]].map(([em,t,v,cor])=>(
+      {[["🎯","Total Visitas",tot,C.az],[cfg.premioMeta.emoji,"Prêmios",raspa,C.ou2],["⚡","Relâmpagos",meusPr.filter(p=>p.tipo==="relampago").length,C.rx],["✅","Pontos Válidos",totV,C.vd]].map(([em,t,v,cor])=>(
         <div key={t} style={{background:"#fff",borderRadius:14,padding:"12px",border:`1px solid ${C.bd}`}}><div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:26,color:cor,lineHeight:1}}>{v}</div><div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div></div>
       ))}
     </div>
     {tot>0&&<div style={{background:"#fff",borderRadius:14,overflow:"hidden",border:`1.5px solid ${C.bd}`}}>
       <div style={{padding:"11px 14px",borderBottom:`1.5px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Últimas Visitas</div>
-      {[...c.auths].reverse().slice(0,4).map((a,i)=><div key={a.id} style={{padding:"10px 14px",borderBottom:i<3?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:32,height:32,borderRadius:9,background:i===0?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>🏪</div>
+      {[...c.auths].reverse().slice(0,5).map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 14px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:32,height:32,borderRadius:9,background:v?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>{v?"🏪":"⏳"}</div>
         <div style={{flex:1}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"}{(a.emojis||[]).length>0&&" · "+(a.emojis||[]).slice(0,5).join(" ")}</div>
-          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}{a.nota?` · ⭐${a.nota}/10`:""}</div>
+          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"} · <span style={{color:v?C.vd:C.sb}}>{v?"Validada ✅":"Abaixo do Mínimo"}</span></div>
+          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total/1>0?` · ${brl(a.total)}`:""}</div>
         </div>
-        <div style={{fontWeight:900,fontSize:12,color:C.az}}>{c.auths.length-i}ª</div>
-      </div>)}
+        <div style={{fontWeight:900,fontSize:12,color:v?C.az:C.sb}}>{c.auths.length-i}ª</div>
+      </div>);})}
     </div>}
   </div>);}
 
@@ -565,8 +569,6 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     if(!controle){setErrF("Informe o número do comprovante (Controle).");return;}
     if(!dataRec){setErrF("Informe a data que consta no comprovante.");return;}
     if(!foto){setErrF("Anexe uma foto nítida do comprovante para validar.");return;}
-    if(obrigF.length>0){setErrF(`Selecione: ${obrigF.map(f=>f.nome).join(", ")}`);return;}
-    if(totalPagamentos < minV){setErrF(`❌ Valor mínimo em pagamentos/depósitos é ${brl(minV)}. Faltam ${brl(faltaVisita)}.`);return;}
     if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
     
     // Validar Controle Único (Global)
@@ -601,8 +603,13 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
     setTimeout(()=>{
       const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
-      const auth={id:uid(),data:dataRec,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now()};
-      const auths=[...(c.auths||[]),auth];const ganhou=auths.length%cfg.meta===0;
+      const valida = totalPagamentos >= minV;
+      const auth={id:uid(),data:dataRec,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida};
+      
+      const auths=[...(c.auths||[]),auth];
+      const validas=auths.filter(a=>a.valida!==false);
+      const ganhou=valida && (validas.length % cfg.meta === 0);
+      
       const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
       const cUpd={...c,auths};setCl(clients.map(x=>x.id===c.id?cUpd:x));
       const novPr=[...premios];
@@ -623,9 +630,9 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     const novoTot=novoProg?.total||0;const novoPr_=novoTot%cfg.meta;const novoR=Math.floor(novoTot/cfg.meta);
     const novoPct=Math.round((novoPr_/cfg.meta)*100);const gM=novoProg?.ganhouMeta;const pRl=novoProg?.premioRl;
     return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"20px 0",animation:"fadeUp .5s ease"}}>
-      <div style={{fontSize:72,animation:"pop .6s",lineHeight:1}}>✅</div>
-      <div style={{fontWeight:900,fontSize:24,color:C.vd,textAlign:"center"}}>Autenticação Válida!</div>
-      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,textAlign:"center"}}><strong style={{color:C.tx}}>Operadora:</strong> {c.auths[c.auths.length-1]?.opNome}<br/>Visita registrada de acordo com o regulamento.</div>
+      <div style={{fontSize:72,animation:"pop .6s",lineHeight:1}}>{valida?"✅":"⏳"}</div>
+      <div style={{fontWeight:900,fontSize:24,color:valida?C.vd:C.ou,textAlign:"center"}}>{valida?"Autenticação Válida!":"Visita Registrada!"}</div>
+      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,textAlign:"center"}}><strong style={{color:C.tx}}>{valida?"Você ganhou 1 ponto!":"Registrada no histórico."}</strong><br/>{valida?"Visita válida para o prêmio principal.":`Esta visita não pontuou (valor abaixo de ${brl(minV)}).`}</div>
       <div style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:20,padding:"18px"}}>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:13}}>
           <div><div style={{fontSize:10,color:"rgba(255,255,255,.55)",fontWeight:700,textTransform:"uppercase"}}>Progresso</div><div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>{gM?<><span style={{color:C.ou,fontSize:22}}>{cfg.premioMeta.emoji}</span> Você ganhou!</>:<>Faltam <span style={{color:C.ou,fontSize:22}}>{cfg.meta-novoPr_}</span> visitas</>}</div></div>
@@ -848,6 +855,15 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela}){
             <div><div style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{lbl}</div><div style={{fontWeight:700,fontSize:14,color:C.tx,marginTop:1}}>{val}</div></div>
           </div>
         ))}
+      </div>
+      <div style={{background:"#fff",borderRadius:16,overflow:"hidden",border:`1px solid ${C.bd}`,marginTop:12}}>
+        <div style={{padding:"12px 17px",fontWeight:800,fontSize:12,color:C.tx,borderBottom:`1px solid ${C.bd}22`}}>📖 Histórico Detalhado</div>
+        {[...c.auths].reverse().map(a=>{const v=a.valida!==false;return(
+          <div key={a.id} style={{padding:"12px 17px",borderBottom:`1px solid ${C.bd}11`,display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:34,height:34,borderRadius:10,background:v?C.vdC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{v?"✅":"⏳"}</div>
+            <div style={{flex:1}}><div style={{fontWeight:800,fontSize:13,color:v?C.tx:C.sb}}>{a.opNome||"Operadora"} · {brl(a.total)}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)} · {v?"Gerou Ponto":"Apenas Histórico"}</div></div>
+          </div>
+        );})}
       </div>
       {temPr&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:15,padding:"13px 15px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:32}}>🏆</span><div><div style={{fontWeight:900,fontSize:14,color:C.az}}>Cliente Premiado!</div><div style={{fontSize:11,color:C.az,opacity:.8,marginTop:2}}>Notícias e ofertas exclusivas ativas.</div></div></div>}
       <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"17px"}}>

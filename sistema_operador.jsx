@@ -268,21 +268,29 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
   const minhas = useMemo(() => {
-    const a = [];
-    cl.forEach(c => (c.auths || []).forEach(x => {
-      if (x.opId === op.id) a.push({ ...x, cn: c.nome });
-    }));
-    return a.sort((a, b) => new Date(b.data) - new Date(a.data));
-  }, [cl, op.id]);
-  const hoje_ = minhas.filter(a => a.data?.slice(0, 10) === hoje());
+    let all = [];
+    cl.forEach(c => {
+      (c.auths || []).forEach(a => {
+        if (a.opId === op?.id) all.push({ ...a, cn: c.nome, cid: c.id });
+      });
+    });
+    return all.sort((a, b) => new Date(b.data) - new Date(a.data));
+  }, [cl, op]);
+
+  const hoje_ = useMemo(() => minhas.filter(a => a.data?.slice(0, 10) === hoje() && a.valida !== false), [minhas]);
   const meusCl = cl.filter(c => (c.auths || []).some(a => a.opId === op.id));
-  const rank = useMemo(() => ops.map((o, i) => {
-    let t = 0;
-    cl.forEach(c => (c.auths || []).forEach(a => {
-      if (a.opId === o.id) t++;
-    }));
-    return { op: o, t, i };
-  }).sort((a, b) => b.t - a.t), [ops, cl]);
+  const rank = useMemo(() => {
+    const list = ops.map((o, i) => {
+      let t = 0;
+      cl.forEach(c => {
+        (c.auths || []).forEach(a => {
+          if (a.opId === o.id && a.valida !== false) t++;
+        });
+      });
+      return { op: o, t, i };
+    });
+    return list.sort((a, b) => b.t - a.t);
+  }, [cl, ops]);
   const pos = rank.findIndex(r => r.op.id === op.id) + 1;
   const isDefault = !op.senha || String(op.senha) === "1234";
 
@@ -416,10 +424,10 @@ function OpAuths({minhas,hoje_}){
     ))}</div>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="✅" msg="Nenhuma autenticação neste período."/>}
-      {lista.map((a,i)=><div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
-        <div style={{width:32,height:32,borderRadius:9,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>🏪</div>
-        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
-      </div>)}
+      {lista.map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{width:32,height:32,borderRadius:9,background:v?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>{v?"✅":"⏳"}</div>
+        <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:v?C.tx:C.sb}}>{a.cn} · {v?"Ponto":"Histórico"}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
+      </div>);})}
     </div>
   </div>);
 }
@@ -428,9 +436,12 @@ function OpCl({meusCl,cfg}){return(<div style={{display:"flex",flexDirection:"co
   <T em="👥" t="Meus Clientes" s={`${meusCl.length} atendidos`}/>
   <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
     {meusCl.length===0&&<V em="👥" msg="Ainda nenhum cliente atendido."/>}
-    {meusCl.map((c,i)=>{const prog=(c.auths?.length||0)%cfg.meta;const ganhou=(c.auths?.length||0)>0&&c.auths.length%cfg.meta===0;return(<div key={c.id} style={{padding:"10px 13px",borderBottom:i<meusCl.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+    {meusCl.map((c,i)=>{
+      const vs=c.auths?.filter(a=>a.valida!==false)||[];
+      const prog=vs.length%cfg.meta;const ganhou=vs.length>0&&vs.length%cfg.meta===0;
+      return(<div key={c.id} style={{padding:"10px 13px",borderBottom:i<meusCl.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
       <div style={{width:34,height:34,borderRadius:"50%",background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:C.az,flexShrink:0}}>{c.nome?.[0]?.toUpperCase()||"?"}</div>
-      <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{c.nome}</div><div style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta-prog}</div></div>
+      <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{c.nome}</div><div style={{fontSize:10,color:C.sb}}>{vs.length} pts / {c.auths?.length||0} total</div></div>
       {ganhou&&<span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{cfg.premioMeta.emoji} Pronto!</span>}
       {!ganhou&&prog>=cfg.meta-3&&prog>0&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>Faltam {cfg.meta-prog}</span>}
     </div>);})}</div>
@@ -495,6 +506,7 @@ function OpRegInfo({cfg}){
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
   const[aba,setAba]=useState("dash");
   const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes"},{id:"pr",emoji:"🎁",label:"Prêmios"},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
+  const totPoints=useMemo(()=>{let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.valida!==false)n++;}));return n;},[cl]);
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
@@ -504,7 +516,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador</div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>Visão completa da lotérica</div>
       <div style={{display:"flex",gap:7,marginTop:13}}>
-        {[["👥",cl.length,"Clientes"],["✅",totA,"Auths"],["📅",hjA,"Hoje"],["🎁",pr.length,"Prêmios"]].map(([em,v,l])=>(
+        {[["👥",cl.length,"Clientes"],["✅",totPoints,"Pontos"],["🏪",totA,"Visitas"],["🎁",pr.length,"Prêmios"]].map(([em,v,l])=>(
           <div key={l} style={{flex:1,background:"rgba(255,255,255,.1)",borderRadius:9,padding:"7px 4px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
             <div style={{fontSize:13}}>{em}</div><div style={{fontWeight:900,fontSize:16,color:"#fff",lineHeight:1}}>{v}</div>
             <div style={{fontSize:8,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.4,marginTop:1}}>{l}</div>
@@ -525,21 +537,31 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
 
 function ADash({ops,cl,pr,cfg}){
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
-  const prontos=cl.filter(c=>(c.auths?.length||0)>0&&c.auths.length%cfg.meta===0);
-  const perto=cl.filter(c=>{const p=(c.auths?.length||0)%cfg.meta;return p>0&&p>=cfg.meta-3&&c.auths.length%cfg.meta!==0;});
+  const totP=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.valida!==false).length||0),0),[cl]);
+  const prontos=cl.filter(c=>{
+    const vs=c.auths?.filter(a=>a.valida!==false)||[];
+    return vs.length>0 && vs.length%cfg.meta===0;
+  });
+  const perto=cl.filter(c=>{
+    const vs=c.auths?.filter(a=>a.valida!==false)||[];
+    const p=vs.length%cfg.meta;
+    return p>0 && p>=cfg.meta-3;
+  });
   const gr=useMemo(()=>{const m={};cl.forEach(c=>(c.auths||[]).forEach(a=>{const k=mAno(a.data);if(!m[k])m[k]={mes:k,auths:0};m[k].auths++;}));return Object.values(m).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-8);},[cl]);
-  const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl]);
+  const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id && a.valida!==false)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
     {prontos.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`2px solid ${C.ou}55`,boxShadow:`0 4px 14px ${C.ou}22`}}>
-      <div style={{background:C.ou,padding:"9px 13px",display:"flex",gap:7,alignItems:"center"}}><span style={{fontSize:16}}>{cfg.premioMeta.emoji}</span><span style={{fontWeight:800,fontSize:12,color:C.az}}>{prontos.length} cliente{prontos.length>1?"s":""} atingiu a meta de {cfg.meta} auths!</span></div>
-      {prontos.slice(0,3).map(c=><div key={c.id} style={{padding:"9px 13px",borderBottom:`1px solid ${C.bd}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{c.nome}</div><div style={{fontSize:10,color:C.sb}}>{c.auths.length} auths</div></div>
+      <div style={{background:C.ou,padding:"9px 13px",display:"flex",gap:7,alignItems:"center"}}><span style={{fontSize:16}}>{cfg.premioMeta.emoji}</span><span style={{fontWeight:800,fontSize:12,color:C.az}}>{prontos.length} cliente{prontos.length>1?"s":""} atingiu a meta de {cfg.meta} pontos!</span></div>
+      {prontos.slice(0,3).map(c=>{
+        const vs=c.auths.filter(a=>a.valida!==false);
+        return(<div key={c.id} style={{padding:"9px 13px",borderBottom:`1px solid ${C.bd}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{c.nome}</div><div style={{fontSize:10,color:C.sb}}>{vs.length} pontos válidos</div></div>
         <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`Olá ${c.nome?.split(" ")[0]}! 🎉 ${cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲</a>
-      </div>)}
+      </div>);})}
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-      {[["👥","Clientes",cl.length,C.az],[`${cfg.premioMeta.emoji}`,"Prêmios",pr.length,C.ou2],["✅","Auths",totA,C.vd],["⚡","Quase lá",perto.length,C.rx]].map(([em,t,v,cor])=>(
+      {[["👥","Clientes",cl.length,C.az],[cfg.premioMeta.emoji,"Prêmios",pr.length,C.ou2],["✅","Pontos",totP,C.vd],["🏪","Visitas",totA,C.rx]].map(([em,t,v,cor])=>(
         <div key={t} style={{background:"#fff",borderRadius:12,padding:"12px",border:`1px solid ${C.bd}`}}>
           <div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:24,color:cor,lineHeight:1}}>{v}</div>
           <div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div>
@@ -566,7 +588,10 @@ function ADash({ops,cl,pr,cfg}){
     </div>}
     {perto.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>⚡ Quase na meta</div>
-      {perto.slice(0,5).map((c,i)=>{const falt=cfg.meta-c.auths.length%cfg.meta;return(<div key={c.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+      {perto.slice(0,5).map((c,i)=>{
+        const vs=c.auths.filter(a=>a.valida!==false);
+        const falt=cfg.meta-vs.length%cfg.meta;
+        return(<div key={c.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <span style={{flex:1,fontWeight:700,fontSize:12,color:C.tx}}>{c.nome?.split(" ")[0]}</span>
         <span style={{background:C.ouC,color:C.ou2,fontSize:10,fontWeight:800,padding:"2px 9px",borderRadius:20}}>Falta{falt>1?"m":""} {falt}</span>
       </div>);})}
@@ -1047,9 +1072,9 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
     </div>
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
-      {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Auths","Prêmios"],...cl.map(c=>[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,Math.floor((c.auths?.length||0)/cfg.meta)])],`clientes_${hoje()}.csv`)],
+        {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Visitas","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
         ["🎁","Prêmios",`${pr.length} registros`,()=>csv([["ID","Cliente","Tipo","Nome","Data"],...pr.map(p=>[p.id,cl.find(c=>c.id===p.clientId)?.nome||"",p.tipo,p.nome,fDT(p.data)])],`premios_${hoje()}.csv`)],
-        ["✅","Autenticações","Todas as visitas",()=>{const rows=[["Cliente","Operador","Data","Total","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,(a.servicos||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
+        ["✅","Autenticações","Todas as visitas",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
       ].map(([ic,t,s,fn])=><div key={t} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 12px",background:C.bg,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:7}}><span style={{fontSize:22}}>{ic}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{t}</div><div style={{fontSize:10,color:C.sb}}>{s}</div></div><button onClick={fn} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>⬇️ CSV</button></div>)}
     </div>
   </div>);
