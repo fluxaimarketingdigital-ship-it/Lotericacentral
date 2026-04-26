@@ -655,13 +655,14 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         setNP({total:validas.length,ganhouMeta:ganhou,premioRl:pr});
         setStep("ok");
 
-        // Atualizações Globais (podem causar re-render do pai)
-        setCl(clients.map(x=>x.id===c.id?cUpd:x));
-        setCli(cUpd);
-        setPr(novPr);
+        // Atualizações Globais (Aguardar sincronização)
+        await setCl(clients.map(x=>x.id===c.id?cUpd:x));
+        await setCli(cUpd);
+        await setPr(novPr);
         if(pr)setRelamp({...pr,cliNome:c.nome});
       } catch (err) {
-        setErrF("Erro ao salvar: " + err.message);
+        console.error(err);
+        setErrF("Falha na sincronização: Verifique sua internet e tente novamente.");
         setStep("form");
       } finally {
         setSub(false);

@@ -17,7 +17,7 @@ const database = getDatabase(app);
 export const DB = {
   save: (k, v) => {
     try { window.localStorage.setItem(k, JSON.stringify(v)); } catch (_) {}
-    set(ref(database, k), { _k: k, data: v }).catch(console.error);
+    return set(ref(database, k), { _k: k, data: v });
   },
   load: async (k) => {
     try {
