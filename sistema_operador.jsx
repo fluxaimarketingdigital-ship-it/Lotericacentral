@@ -261,7 +261,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
-  const ABAS=[{id:"qr",emoji:"📱",label:"Meu Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"rank",emoji:"🏅",label:"Ranking"}];
+  const ABAS=[{id:"qr",emoji:"📱",label:"Meu Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"info",emoji:"📜",label:"Regulamento"},{id:"rank",emoji:"🏅",label:"Ranking"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
   const minhas = useMemo(() => {
@@ -339,6 +339,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
       {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops}/>}
       {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
+      {aba==="info" &&<OpRegInfo cfg={cfg}/>}
       {aba==="rank" &&<OpRank  rank={rank} opId={op.id}/>}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={oc(idx)}/>
@@ -442,6 +443,48 @@ function OpRank({rank,opId}){return(<div style={{display:"flex",flexDirection:"c
     </div>);})}</div>
   <div style={{background:C.ouC,borderRadius:11,padding:"10px 12px",border:`1px solid ${C.ou}44`,fontSize:11,color:C.ou2,lineHeight:1.7}}>🏆 <strong>Todo dia 05:</strong> as 2 operadoras com mais auths do mês ganham prêmio especial!</div>
 </div>);}
+
+function OpRegInfo({cfg}){
+  const reg = (cfg.regulamento||"")
+    .replace("{meta}",cfg.meta)
+    .replace("{premioNome}",cfg.premioMeta.nome)
+    .replace("{dataInicio}",fD(cfg.dataInicio))
+    .replace("{dataFim}",fD(cfg.dataFim));
+
+  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
+    <T em="📜" t="Campanha e Regulamento" s="Acompanhe as regras vigentes"/>
+    
+    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>📅 Vigência da Campanha</div>
+      <div style={{display:"flex",gap:8}}>
+        <div style={{flex:1,background:C.bg,borderRadius:10,padding:10,textAlign:"center"}}><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Início</div><div style={{fontWeight:900,fontSize:13,color:C.az}}>{fD(cfg.dataInicio)}</div></div>
+        <div style={{flex:1,background:C.bg,borderRadius:10,padding:10,textAlign:"center"}}><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Término</div><div style={{fontWeight:900,fontSize:13,color:C.rd}}>{fD(cfg.dataFim)}</div></div>
+      </div>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>🎁 Prêmios Disponíveis</div>
+      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+        <div style={{background:C.vdC,borderRadius:11,padding:10,display:"flex",alignItems:"center",gap:10,border:`1px solid ${C.vd}33`}}>
+          <div style={{fontSize:24}}>{cfg.premioMeta.emoji}</div>
+          <div style={{flex:1}}><div style={{fontSize:9,fontWeight:800,color:C.vd,textTransform:"uppercase"}}>Cada {cfg.meta} Visitas</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>{cfg.premioMeta.nome}</div></div>
+        </div>
+        {cfg.relampagos.filter(r=>r.ativo).map(r=>(
+          <div key={r.id} style={{background:C.rxC,borderRadius:11,padding:10,display:"flex",alignItems:"center",gap:10,border:`1px solid ${C.rx}33`}}>
+            <div style={{fontSize:24}}>{r.emoji}</div>
+            <div style={{flex:1}}><div style={{fontSize:9,fontWeight:800,color:C.rx,textTransform:"uppercase"}}>Sorteio Relâmpago</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>{r.nome}</div></div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>⚖️ Regulamento Completo</div>
+      <div style={{background:C.bg,borderRadius:10,padding:12,fontSize:12,color:C.tx,lineHeight:1.7,whiteSpace:"pre-wrap",maxHeight:300,overflowY:"auto",fontFamily:"inherit"}}>{reg}</div>
+    </div>
+    <div style={{background:C.azC,borderRadius:10,padding:12,fontSize:11,color:C.az,lineHeight:1.6,border:`1px dashed ${C.az}44`}}>⚠️ <strong>Atenção:</strong> Somente o Administrador pode alterar estas regras. Caso note algum erro, informe ao gerente.</div>
+  </div>);
+}
 
 /* ═══════ ADMIN PANEL ═══════ */
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
