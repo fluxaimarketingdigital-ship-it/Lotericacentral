@@ -559,7 +559,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   const trigF   = campos.filter(f=>f.triggerRelampago&&f.ativo);
 
   const minV = cfg.minVisita || 300;
-  const minR = cfg.minRelampago || 60;
+  const minR = 0; // Removido valor mínimo para sorteio relâmpago a pedido do usuário
   const faltaVisita = Math.max(0, minV - totalPagamentos);
   const faltaRelamp = Math.max(0, minR - totalJogos);
 
@@ -572,6 +572,8 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     if(!dataRec){setErrF("Informe a data que consta no comprovante.");return;}
     if(nota===0){setErrF("Avalie o atendimento de 1 a 10.");return;}
     
+    setStep("loading");
+
     // Validar Controle Único (Global)
     const conflicto = (() => {
       for (const cli of clients) {
@@ -588,6 +590,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     })();
 
     if (conflicto) {
+      setStep("form");
       setErrF(`❌ O número [${controle}] já consta como usado por ${conflicto.cNome} em ${fDT(conflicto.data)}. Use um número diferente.`);
       return;
     }
@@ -599,10 +602,12 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     
     const diff = Math.floor((dH - dC) / (1000 * 60 * 60 * 24));
     if(diff < 0 || diff > 7){ 
+       setStep("form");
        setErrF("❌ A data do comprovante está fora do prazo permitido (máximo 7 dias atrás).");
        return;
     }
     if(dC < dIni || dC > dFim){
+      setStep("form");
       setErrF(`❌ Visita inválida. A campanha atual é válida de ${fD(dIni)} a ${fD(dFim)}.`);
       return;
     }
@@ -621,8 +626,6 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
        return; 
     }
 
-    setStep("loading");
-
     setTimeout(()=>{
       // Usar a data do recebimento mas garantir meio-dia para evitar shift de timezone
       const dIso = `${dataRec}T12:00:00`;
@@ -636,7 +639,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       const validas=auths.filter(a=>a.valida!==false);
       const ganhou=isV && (validas.length % cfg.meta === 0);
       
-      const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
+      const pr=sortear(sels,cfg); // Sem valor mínimo para o sorteio relâmpago
       const cUpd={...c,auths};
       
       const novPr=[...premios];
@@ -650,7 +653,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       if(pr)setTimeout(()=>setRelamp({...pr,ganhou:isV}), 500);
       setStep("ok");
       setSub(false);
-    }, 800);
+    }, 600); // 600ms para ser perceptível mas não demorado
   }
 
   if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
