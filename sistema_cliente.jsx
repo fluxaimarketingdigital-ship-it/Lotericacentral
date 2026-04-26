@@ -559,7 +559,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   const trigF   = campos.filter(f=>f.triggerRelampago&&f.ativo);
 
   const minV = cfg.minVisita || 300;
-  const minR = 0; // Removido valor mínimo para sorteio relâmpago a pedido do usuário
+  const minR = cfg.minRelampago || 60;
   const faltaVisita = Math.max(0, minV - totalPagamentos);
   const faltaRelamp = Math.max(0, minR - totalJogos);
 
@@ -639,7 +639,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       const validas=auths.filter(a=>a.valida!==false);
       const ganhou=isV && (validas.length % cfg.meta === 0);
       
-      const pr=sortear(sels,cfg); // Sem valor mínimo para o sorteio relâmpago
+      const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
       const cUpd={...c,auths};
       
       const novPr=[...premios];
@@ -650,10 +650,10 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       setCl(clients.map(x=>x.id===c.id?cUpd:x));
       setCli(cUpd);
       setPr(novPr);
-      if(pr)setTimeout(()=>setRelamp({...pr,ganhou:isV}), 500);
+      if(pr)setRelamp({...pr,cliNome:c.nome}); // Chamada direta sem delay longo
       setStep("ok");
       setSub(false);
-    }, 600); // 600ms para ser perceptível mas não demorado
+    }, 600);
   }
 
   if(step==="loading")return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",minHeight:340,gap:18}}>
