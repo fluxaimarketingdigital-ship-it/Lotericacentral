@@ -1097,13 +1097,33 @@ function HistItem({a, cfg, c, clients, setCl}){
            </div>
         )}
 
-        {a.foto ? (
-          <div>
-            <div style={{fontSize:9,fontWeight:800,marginBottom:4,color:C.az}}>ANEXO DO COMPROVANTE:</div>
-            <img src={a.foto} style={{width:"100%",maxWidth:200,borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
-          </div>
-        ) : (
-          <div style={{fontSize:10,color:C.sb,fontStyle:"italic",marginTop:5}}>⚠️ Comprovante não anexado</div>
+function HistItem({a,cfg,c,clients,setCl,setVoucherVer}){
+  const [exp,setExp]=useState(false);
+  const s=a.status||(a.valida===false?"rejected":"approved");
+  const corS=s==="approved"?C.vd:s==="pending"?C.ou:C.rd;
+  const labelS=s==="approved"?"Aprovada":s==="pending"?"Aguardando Auditoria":"Recusada";
+  
+  // Encontrar prêmio vinculado a esta visita
+  const pr = (c.premios||[]).find(p=>p.authId===a.id && p.status!=="rejected");
+
+  return(
+    <div style={{borderBottom:`1px solid ${C.bd}22`}}>
+      <div onClick={()=>setExp(!exp)} style={{padding:"12px 17px",display:"flex",alignItems:"center",gap:11,cursor:"pointer",background:exp?C.bg:"#fff"}}>
+        <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fD(a.data)} <span style={{fontWeight:400,color:C.sb}}>· {labelS}</span></div>
+          <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} {pr && <span style={{color:C.ou,fontWeight:900}}>· {pr.emoji||"🎁"} Ganhou Prêmio!</span>}</div>
+        </div>
+        <div style={{fontSize:12,color:C.sb}}>{exp?"▲":"▼"}</div>
+      </div>
+      {exp && <div style={{padding:12,background:"#fafafa",fontSize:11}}>
+        {Object.entries(a.detalhes||{}).map(([fid,val])=>{
+          const f=cfg.formulario.campos.find(x=>x.id===fid);
+          if(!f||!val)return null;
+          return <div key={fid} style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span>{f.emoji} {f.nome}</span><strong>{f.comValor?brl(val):"Sim"}</strong></div>
+        })}
+        {pr && pr.status!=="pending" && (
+          <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pr);}} style={{width:"100%",marginTop:10,background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontWeight:800,fontSize:10,cursor:"pointer"}}>🎫 Visualizar Cupom Digital</button>
         )}
       </div>}
     </div>
@@ -1112,6 +1132,7 @@ function HistItem({a, cfg, c, clients, setCl}){
 
 function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerrada,dFim,dIni}){
   const[sub,setSub]=useState("dados");
+  const[voucherVer,setVoucherVer]=useState(null);
   return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
     <Tit em="👤" t="Minha Conta"/>
     <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`}}>{[["dados","Meus Dados"],["reg","Regulamento"]].map(s=><button key={s[0]} onClick={()=>setSub(s[0])} style={{flex:1,padding:"8px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:12,background:sub===s[0]?C.az:"transparent",color:sub===s[0]?"#fff":C.sb,transition:"all .2s"}}>{s[1]}</button>)}</div>
@@ -1141,7 +1162,7 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
               </div>);
               dividerAdded = true;
             }
-            items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl}/>);
+            items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer}/>);
           });
           return items;
         })()}
@@ -1168,6 +1189,7 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
         </pre>
       </div>
     </div>}
+    {voucherVer && <VoucherCard p={voucherVer} cli={c} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);}
 
 /* ══════════════════════ OVERLAY RELÂMPAGO ══════════════════════ */
@@ -1186,8 +1208,44 @@ function PremioOvl({relamp,setRelamp,cli,wts}){
   </div>);}
 
 /* ══════════════════════ MICRO ══════════════════════ */
-function Tit({em,t,s}){return(<div style={{marginBottom:4}}><div style={{fontWeight:900,fontSize:19,color:C.tx}}>{em} {t}</div>{s&&<div style={{fontSize:11,color:C.sb,marginTop:2}}>{s}</div>}</div>);}
-function Vz({em,msg}){return(<div style={{textAlign:"center",padding:"34px 20px",color:C.sb}}><div style={{fontSize:44,marginBottom:9,opacity:.4}}>{em}</div><div style={{fontSize:12,lineHeight:1.8}}>{msg}</div></div>);}
-function Alerta({msg}){return(<div style={{background:C.rdC,border:`1px solid ${C.rd}33`,borderRadius:10,padding:"9px 12px",fontSize:12,color:C.rd,fontWeight:700,marginBottom:10}}>⚠️ {msg}</div>);}
-function Cp({label,value,onChange,placeholder,type="text",sub,ativo}){return(<div style={{marginBottom:14}}><label style={LS}>{label}</label>{sub&&<div style={{fontSize:10,color:C.sb,marginBottom:5,lineHeight:1.4}}>{sub}</div>}<input value={value} onChange={e=>onChange(e.target.value)} type={type} placeholder={placeholder} style={{...I, border:`2px solid ${ativo?C.az:C.bd}`, background:ativo?C.azC:"#fff", marginTop:5}}/></div>);}
-function Sp({label}){return(<span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10}}><span style={{width:17,height:17,border:"3px solid #9ca3af",borderTopColor:"transparent",borderRadius:"50%",display:"inline-block",animation:"sp .7s linear infinite"}}/>{label}</span>);}
+function VoucherCard({p, cli, cfg, onClose}){
+  const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
+  const msg = `🎉 *MEU CUPOM DE RETIRADA*\n\nGanhei: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\nVálido até: *${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
+    <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
+      <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:25,textAlign:"center",position:"relative"}}>
+        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.1}}/>
+        <div style={{background:"#fff",width:80,height:80,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 8px 20px rgba(0,0,0,.2)"}}>
+          <div style={{fontWeight:900,fontSize:10,color:C.az,textAlign:"center"}}>LOTÉRICA<br/>CENTRAL</div>
+        </div>
+        <div style={{color:C.ou,fontSize:10,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
+        <div style={{color:"#fff",fontSize:22,fontWeight:900}}>Cupom Digital</div>
+      </div>
+      <div style={{padding:"25px 22px",textAlign:"center"}}>
+        <div style={{fontSize:18,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
+        <div style={{background:C.bg,borderRadius:18,padding:18,marginBottom:20,border:`1px solid ${C.bd}`}}>
+          <div style={{fontSize:36,marginBottom:6}}>{p.emoji||cfg.premioMeta.emoji}</div>
+          <div style={{fontSize:18,fontWeight:900,color:C.az}}>{p.nome}</div>
+        </div>
+        <div style={{display:"flex",gap:10,marginBottom:20}}>
+          <div style={{flex:1,background:C.ouC,borderRadius:12,padding:10,border:`1px solid ${C.ou}33`}}>
+            <div style={{fontSize:9,fontWeight:800,color:C.ou2,textTransform:"uppercase"}}>Código Voucher</div>
+            <div style={{fontSize:18,fontWeight:900,color:C.tx,fontFamily:"monospace",letterSpacing:1}}>{p.id.toUpperCase()}</div>
+          </div>
+          <div style={{flex:1,background:C.rdC,borderRadius:12,padding:10,border:`1px solid ${C.rd}33`}}>
+            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Válido Até</div>
+            <div style={{fontSize:15,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
+          </div>
+        </div>
+        <div style={{fontSize:10,color:C.sb,background:C.bg,padding:10,borderRadius:10,marginBottom:20}}>
+          📸 Tire um <b>Print desta tela</b> para apresentar no caixa da Lotérica Central.
+        </div>
+        <a href={`https://wa.me/${cfg.wts}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:12,padding:14,fontWeight:900,fontSize:14,textDecoration:"none",display:"flex",alignItems:"center",gap:8,justifyContent:"center",boxShadow:"0 10px 20px rgba(37,211,102,.3)"}}>
+          📲 Compartilhar no WhatsApp
+        </a>
+      </div>
+      <div style={{background:C.bg,padding:15,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
+        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar Cupom</button>
+      </div>
+    </div>
+  </div>);}

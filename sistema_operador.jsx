@@ -819,60 +819,35 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
   </div>);
 }
 
-function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
+function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer}){
   const [expA, setExpA] = useState(false);
-  const s = a.status || (a.valida?"approved":"rejected"); // fallback legacy
-  const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
-  const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : s==="not_counted"?"Histórico" : "Recusado";
-  
-  function updateStatus(newS){
-    if(newS==="rejected"){
-      if(window.confirm("Recusar este registro? O cliente poderá alterar os dados e reenviar.")){
-        const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:"rejected", modificado:false, obsAdmin:"Incompatibilidade das informações"}:x);
-        setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
-        setPr(pr.map(p=>p.authId===a.id?{...p, status:"pending"}:p));
-      }
-      return;
-    }
-    const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, obsAdmin:""}:x);
+  const s = a.status || (a.valida?"approved":"rejected");
+  const updateStatus = (newS) => {
+    if(newS==="rejected" && !window.confirm("Recusar este registro?")) return;
+    const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, obsAdmin:newS==="rejected"?"Recusado":""}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
-    if(newS==="approved"){
-      setPr(pr.map(p=>p.authId===a.id?{...p, status:"approved"}:p));
-    } else if(newS==="pending"){
-      setPr(pr.map(p=>p.authId===a.id?{...p, status:"pending"}:p));
-    }
-  }
-
+    setPr(pr.map(p=>p.authId===a.id?{...p, status:newS==="approved"?"approved":"pending"}:p));
+  };
   function handleUpload(e){
     const f=e.target.files[0]; if(!f)return;
     const r=new FileReader(); r.onload=async()=>{
       const img=r.result;
       const newAuths = c.auths.map(x=>x.id===a.id?{...x, foto:img}:x);
       await setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
-      alert("✅ Comprovante anexado com sucesso!");
+      alert("✅ Comprovante anexado!");
     };
     r.readAsDataURL(f);
   }
-
-  function deleteAuth(){
-    if(!window.confirm("Remover esta autenticação PERMANENTEMENTE? Isso removerá o prêmio vinculado também.")) return;
-    const newAuths = c.auths.filter(x=>x.id!==a.id);
-    setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
-    setPr(pr.filter(p=>p.authId!==a.id));
-  }
-
   return(
-    <div key={a.id} style={{background:"#fff",borderRadius:10,border:`1px solid ${expA?C.az:C.bd+"66"}`,overflow:"hidden"}}>
+    <div style={{background:"#fff",borderRadius:10,border:`1px solid ${expA?C.az:C.bd+"66"}`,overflow:"hidden"}}>
       <div onClick={()=>setExpA(!expA)} style={{padding:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:expA?C.azC:"#fff"}}>
         <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
         <div style={{flex:1}}>
           <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
           <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS}</div>
-          {a.modificado && <div style={{fontSize:9,color:C.ou,fontWeight:800,marginTop:3}}>✏️ Alterado pelo Cliente</div>}
         </div>
         <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
       </div>
-      
       {expA && <div style={{padding:12,borderTop:`1px solid ${C.bd}33`,background:"#fafafa"}}>
          <div style={{fontSize:11,display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
             {Object.entries(a.detalhes||{}).map(([fid, val]) => {
@@ -883,57 +858,20 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
                 <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
               </div>
             })}
-            {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
-            <div style={{marginTop:5,color:C.sb,fontSize:10}}>Protocolo: <strong>{a.controle}</strong></div>
-            <div style={{color:C.sb,fontSize:10}}>Nota: <strong>{a.nota}/10</strong> ⭐</div>
          </div>
-
-         {a.foto ? (
-           <div style={{marginBottom:12}}>
-              <div style={{fontSize:9,fontWeight:800,marginBottom:5,color:C.az}}>COMPROVANTE:</div>
-              <img src={a.foto} style={{width:"100%",borderRadius:8,border:`1px solid ${C.bd}`,cursor:"zoom-in"}} onClick={()=>window.open(a.foto)} alt="comprovante" />
-           </div>
-         ) : (
-           <div style={{marginBottom:12,padding:12,border:`1px dashed ${C.bd}`,borderRadius:9,textAlign:"center"}}>
-             <div style={{fontSize:11,color:C.sb,marginBottom:8}}>⚠️ Sem comprovante anexado</div>
-             <label style={{display:"inline-block",background:C.az,color:"#fff",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:800,cursor:"pointer"}}>
-               📸 Anexar Comprovante
-               <input type="file" accept="image/*" onChange={handleUpload} style={{display:"none"}}/>
-             </label>
-           </div>
-         )}
-
+         {a.foto ? <img src={a.foto} style={{width:"100%",borderRadius:8,marginBottom:12,cursor:"pointer"}} onClick={()=>window.open(a.foto)} alt="comprovante"/> : <div style={{marginBottom:12,padding:12,border:`1px dashed ${C.bd}`,textAlign:"center",fontSize:10,color:C.sb}}>⚠️ Sem comprovante</div>}
          {pr.filter(px=>px.authId===a.id).map(px=>(
-            <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:C.vdC,borderRadius:10,border:`1px solid ${px.status==="pending"?C.ou:C.vd}33`,display:"flex",alignItems:"center",gap:10}}>
-              <div style={{fontSize:24}}>{px.emoji||"🎁"}</div>
+            <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:C.vdC,borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
+              <div style={{fontSize:20}}>{px.emoji||"🎁"}</div>
               <div style={{flex:1}}>
-                <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{px.nome} {px.status==="pending"?"(Pendente)":px.status==="redeemed"?"(Retirado)":"(Aprovado)"}</div>
-                <div style={{fontSize:10,color:C.sb}}>{px.tipo==="relampago"?"Prêmio Relâmpago":"Prêmio de Meta"}</div>
-                {(px.status==="approved" || px.status==="redeemed") && <div style={{fontSize:10,marginTop:4,color:C.tx,fontWeight:800}}>Voucher: <span style={{fontFamily:"monospace",color:C.az,letterSpacing:1,fontSize:11}}>{px.id.toUpperCase()}</span></div>}
-                
-                {px.status==="pending" && (
-                   <div style={{display:"flex",gap:5,marginTop:6}}>
-                      <button onClick={()=>{
-                        const authsV = (c.auths||[]).filter(x=>x.valida!==false && x.status==="approved").length;
-                        if(px.tipo==="raspadinha" && authsV < cfg.meta){ alert(`❌ Você precisa aprovar ${cfg.meta} visitas deste cliente antes de liberar o prêmio!`); return; }
-                        setPr(pr.map(p=>p.id===px.id?{...p, status:"approved"}:p));
-                      }} style={{background:C.vd,color:"#fff",border:"none",borderRadius:5,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>Aprovar Prêmio</button>
-                      
-                      <button onClick={()=>{
-                        setPr(pr.map(p=>p.id===px.id?{...p, status:"rejected"}:p));
-                      }} style={{background:C.rd,color:"#fff",border:"none",borderRadius:5,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>Recusar Prêmio</button>
-                   </div>
-                )}
+                <div style={{fontSize:11,fontWeight:800}}>{px.nome}</div>
+                {px.status!=="pending" && <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer",marginTop:5}}>🎫 Ver Cupom</button>}
               </div>
-              {c.whats && px.status==="approved" && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*\n\nSeu código do voucher é: *${px.id.toUpperCase()}*\n\nApresente este código no caixa da Lotérica Central para resgatar! 🏆`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 WhatsApp</a>}
             </div>
          ))}
-
-         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar Autenticação</button>}
-            {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar Autenticação</button>}
-            {s!=="pending" && <button onClick={()=>updateStatus("pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter para Pendente</button>}
-            <button onClick={deleteAuth} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>🗑️ Excluir Autenticação</button>
+         <div style={{display:"flex",gap:6}}>
+            {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
+            {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar</button>}
          </div>
       </div>}
     </div>
@@ -942,95 +880,62 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
 
 function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
   const[exp,setExp]=useState(null);
+  const[voucherVer,setVoucherVer]=useState(null);
   const opN=id=>ops.find(o=>o.id===id)?.nome||"—";
   const lista=useMemo(()=>{const q=bus.toLowerCase().trim();return cl.filter(c=>!q||c.nome?.toLowerCase().includes(q)||c.whats?.includes(q)).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));},[cl,bus]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="👥" t="Todos os Clientes" s={`${cl.length} cadastrados`}/>
     <input value={bus} onChange={e=>setBus(e.target.value)} placeholder="🔍 Buscar por nome ou WhatsApp…" style={{...I}}/>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="👥" msg="Nenhum cliente encontrado."/>}
-      {lista.map((c,i)=>{
-        const authsV = (c.auths||[]).filter(a=>a.valida!==false && a.status === "approved");
-        const countV = authsV.length;
-        const prog=countV%cfg.meta;const raspa=Math.floor(countV/cfg.meta);const ganhou=countV>0&&countV%cfg.meta===0;const prCl=pr.filter(p=>p.clientId===c.id && p.status === "approved");return(<div key={c.id}>
-        <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}22`,cursor:"pointer",background:exp===c.id?C.azC:"transparent"}} onClick={()=>setExp(exp===c.id?null:c.id)}>
-          <div style={{display:"flex",gap:9,alignItems:"center",marginBottom:3}}>
-            <div style={{width:32,height:32,borderRadius:"50%",background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:C.az,flexShrink:0}}>{c.nome?.[0]?.toUpperCase()||"?"}</div>
-            <div style={{flex:1}}>
-              <div style={{fontWeight:700,fontSize:12,color:C.tx,display:"flex",gap:4,alignItems:"center",flexWrap:"wrap"}}>
-                {c.nome}
-                {ganhou&&<span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>{cfg.premioMeta.emoji}</span>}
-                {prCl.length>0&&<span style={{background:C.rxC,color:C.rx,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>⚡{prCl.length}</span>}
-                {(c.auths?.filter(a=>a.status==="pending").length>0)&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>⏳ {c.auths?.filter(a=>a.status==="pending").length} pendente</span>}
-              </div>
-              <div style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta-prog}</div>
-            </div>
-            <div style={{textAlign:"right"}}><div style={{fontWeight:900,fontSize:14,color:C.az}}>{c.auths?.length||0}</div><div style={{fontSize:9,color:C.sb}}>auth</div></div>
+      {lista.map(c=>(<div key={c.id} style={{borderBottom:`1px solid ${C.bd}22`}}>
+        <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{padding:12,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:exp===c.id?C.bg:"#fff"}}>
+          <div style={{width:34,height:34,borderRadius:10,background:C.azC,color:C.az,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>{c.nome?.charAt(0)}</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:12,color:C.tx,display:"flex",alignItems:"center",gap:6}}>{c.nome} {c.auths?.filter(a=>a.status==="pending").length>0&&<span style={{background:C.ouC,color:C.ou2,fontSize:8,padding:"1px 4px",borderRadius:5}}>⏳ {c.auths.filter(a=>a.status==="pending").length} pendente</span>}</div>
+            <div style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
-          <div style={{background:C.bg,borderRadius:3,height:3,overflow:"hidden",marginLeft:41}}><div style={{height:"100%",background:`linear-gradient(90deg,${C.az},${C.ou})`,width:(prog/cfg.meta*100)+"%",borderRadius:3}}/></div>
         </div>
-        {exp===c.id&&<div style={{background:"#f4f8ff",padding:"10px 13px",borderBottom:`1px solid ${C.bd}`}}>
-          <div style={{fontSize:10,color:C.sb,lineHeight:1.7,marginBottom:10}}>
-            📱 {c.whats?.replace(/(\d{2})(\d{5})(\d{4})/,"($1) $2-$3")}<br/>
-            📅 Nascimento: <strong>{fmtDN(c.nasc)}</strong><br/>
-            🗓️ Membro desde {fD(c.cadastro)}
-            {c.email&&<><br/>📧 {c.email}</>}
-            {raspa>0&&<><br/>{cfg.premioMeta.emoji} {raspa} prêmio{raspa!==1?"s":""}</>}
+        {exp===c.id&&<div style={{padding:"12px 13px",background:"#fcfdfe",display:"flex",flexDirection:"column",gap:10}}>
+          <div style={{fontSize:10,color:C.sb,display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <div>📞 {c.whats||"—"}</div>
+            <div>🎂 Nascimento: {fmtDN(c.nasc)}</div>
           </div>
-          
-          <div style={{fontWeight:800,fontSize:10,color:C.tx,marginBottom:6,textTransform:"uppercase",letterSpacing:.5}}>Histórico e Aprovações</div>
-          <div style={{display:"flex",flexDirection:"column",gap:7,marginBottom:12}}>
-            {(c.auths||[]).slice().reverse().map(a => <AuthHistItem key={a.id} a={a} c={c} cl={cl} setCl={setCl} pr={pr} setPr={setPr} cfg={cfg} opN={opN}/>)}
-          </div>
-
-          <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-            {ganhou && !prCl.some(p=>p.status==="redeemed") && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`Olá ${c.nome?.split(" ")[0]}! ${cfg.premioMeta.emoji} ${cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 Avisar Prêmio</a>}
-            <button onClick={()=>{if(window.confirm(`Remover ${c.nome} e todo seu histórico (inclusive prêmios)?`)){
-              setCl(cl.filter(x=>x.id!==c.id));
-              setPr(pr.filter(p=>p.clientId!==c.id));
-              setExp(null);
-            }}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover Tudo</button>
+          <div style={{display:"flex",flexDirection:"column",gap:7}}>
+            {c.auths?.slice().reverse().map(a=>{
+               const s = a.status || (a.valida===false?"rejected":"approved");
+               const corS = s==="approved"?C.vd:s==="pending"?C.ou:C.rd;
+               const labelS = s==="approved"?"Aprovada":s==="pending"?"Aguardando Auditoria":"Recusada";
+               return <AAud key={a.id} a={a} c={c} corS={corS} labelS={labelS} opN={opN} brl={brl} fDT={fDT} cfg={cfg} setCl={setCl} cl={cl} pr={pr} setPr={setPr} setVoucherVer={setVoucherVer}/>;
+            })}
           </div>
         </div>}
-      </div>);})}
+      </div>))}
     </div>
+    {voucherVer && <OpVoucherCard p={voucherVer} cli={cl.find(c=>c.id===voucherVer.clientId)} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);
 }
 
 function APr({pr, cl, cfg, setPr}){
   const [voucherVer, setVoucherVer] = useState(null);
   const cN=id=>cl.find(c=>c.id===id)?.nome||"—";
-  const cW=id=>cl.find(c=>c.id===id)?.whats||"";
-  
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🎁" t="Prêmios Distribuídos" s={`${pr.length} total`}/>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{[[`${cfg.premioMeta.emoji}`,"Meta",pr.filter(p=>p.tipo==="raspadinha").length,C.vd],["⚡","Relâmpago",pr.filter(p=>p.tipo==="relampago").length,C.rx]].map(([em,l,v,cor])=>(
-      <div key={l} style={{background:"#fff",borderRadius:12,padding:"13px",textAlign:"center",border:`1px solid ${C.bd}`}}><div style={{fontSize:22,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:24,color:cor}}>{v}</div><div style={{fontSize:10,color:C.sb,fontWeight:700}}>{l}</div></div>
-    ))}</div>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
-      {pr.length===0&&<V em="🎁" msg="Nenhum prêmio ainda."/>}
       {[...pr].reverse().map((p,i)=>{
-        const cliN=cN(p.clientId);
-        const cliW=cW(p.clientId);
+        const cli=cl.find(c=>c.id===p.clientId);
         const isP = p.status==="pending";
         const isR = p.status==="redeemed";
-        const msg=`🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cliN.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código de voucher é: *${p.id.toUpperCase()}*\n\nApresente este código no caixa da Lotérica Central para resgatar! 🏆`;
-
         return(<div key={p.id} style={{padding:"12px 13px",borderBottom:i<pr.length-1?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:10}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:40,height:40,borderRadius:10,flexShrink:0,background:p.tipo==="relampago"?(isP?C.ouC:C.rxC):(isP?C.ouC:C.vdC),display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{p.emoji||cfg.premioMeta.emoji}</div>
+            <div style={{width:40,height:40,borderRadius:10,background:p.tipo==="relampago"?(isP?C.ouC:C.rxC):(isP?C.ouC:C.vdC),display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{p.emoji||cfg.premioMeta.emoji}</div>
             <div style={{flex:1}}>
               <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div>
-              <div style={{fontSize:10,color:C.sb}}><strong style={{color:C.az}}>{cliN}</strong> · {fDT(p.data)}</div>
-              <div style={{fontSize:9,color:C.sb,marginTop:2}}>WhatsApp: {cliW||"—"}</div>
+              <div style={{fontSize:10,color:C.sb}}><strong style={{color:C.az}}>{cli?.nome}</strong></div>
             </div>
-            {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.ou}33`}}>PENDENTE</span>}
-            {!isP && !isR && <span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.vd}33`}}>APROVADO</span>}
-            {isR && <span style={{background:C.azC,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.az}33`}}>RETIRADO ✅</span>}
+            {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6}}>PENDENTE</span>}
           </div>
-          
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {cliW && !isR && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5,flex:1,justifyContent:"center"}}>📲 WhatsApp c/ Texto</a>}
-            {!isR && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>}
-            {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado em {fDT(p.redeemedAt||p.data)}</div>}
+            {!isR && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom Digital</button>}
+            {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado</div>}
           </div>
         </div>);
       })}
@@ -1041,21 +946,21 @@ function APr({pr, cl, cfg, setPr}){
 
 function OpVoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
+  const msg = `🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cli?.nome?.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código do voucher é: *${p.id.toUpperCase()}*\n\nValidade: *${fD(dVal)}*\n\nApresente este cupom no caixa da Lotérica Central para resgatar! 🏆`;
+  
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:25,textAlign:"center",position:"relative"}}>
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-        <div style={{background:"#fff",width:85,height:85,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 8px 20px rgba(0,0,0,.2)"}}>
+        <div style={{background:"#fff",width:80,height:80,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 8px 20px rgba(0,0,0,.2)"}}>
           <div style={{fontWeight:900,fontSize:10,color:C.az,textAlign:"center"}}>LOTÉRICA<br/>CENTRAL</div>
         </div>
         <div style={{color:C.ou,fontSize:10,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
         <div style={{color:"#fff",fontSize:22,fontWeight:900}}>Cliente Premiado</div>
       </div>
       <div style={{padding:"25px 22px",textAlign:"center"}}>
-        <div style={{fontSize:11,color:C.sb,textTransform:"uppercase",fontWeight:800,letterSpacing:1,marginBottom:4}}>Parabéns,</div>
-        <div style={{fontSize:20,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
+        <div style={{fontSize:18,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
         <div style={{background:C.bg,borderRadius:18,padding:18,marginBottom:20,border:`1px solid ${C.bd}`}}>
-          <div style={{fontSize:10,color:C.sb,fontWeight:800,textTransform:"uppercase",marginBottom:6}}>Você Ganhou</div>
           <div style={{fontSize:36,marginBottom:6}}>{p.emoji||cfg.premioMeta.emoji}</div>
           <div style={{fontSize:18,fontWeight:900,color:C.az}}>{p.nome}</div>
         </div>
@@ -1069,9 +974,15 @@ function OpVoucherCard({p, cli, cfg, onClose}){
             <div style={{fontSize:15,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
           </div>
         </div>
+        <div style={{fontSize:10,color:C.sb,background:C.bg,padding:10,borderRadius:10,marginBottom:20}}>
+          📸 Tire um <b>Print desta tela</b> para enviar como imagem, ou use o botão abaixo para enviar o texto.
+        </div>
+        <a href={`https://wa.me/55${cli?.whats}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:12,padding:14,fontWeight:900,fontSize:14,textDecoration:"none",display:"flex",alignItems:"center",gap:8,justifyContent:"center",boxShadow:"0 10px 20px rgba(37,211,102,.3)"}}>
+          📲 Enviar para o WhatsApp
+        </a>
       </div>
       <div style={{background:C.bg,padding:15,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
-        <button onClick={onClose} style={{background:C.az,color:"#fff",border:"none",borderRadius:12,padding:12,fontWeight:900,fontSize:14,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar</button>
+        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar Cupom</button>
       </div>
     </div>
   </div>);}
