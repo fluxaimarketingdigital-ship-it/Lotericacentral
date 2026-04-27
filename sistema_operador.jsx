@@ -111,22 +111,25 @@ export default function App(){
   const[cl,setCl_]=useState([]);
   const[pr,setPr_]=useState([]);
   const[cfg,setCfg_]=useState(DCFG);
+  const[opPrizes,setOpPrizes_]=useState([]);
   const setOps=d=>{setOps_(d); return DB.save("lc-ops",d);};
   const setCl=d=>{setCl_(d); return DB.save("lc-cl",d);};
   const setPr=d=>{setPr_(d); return DB.save("lc-pr",d);};
   const setCfg=d=>{setCfg_(d); return DB.save("lc-cfg",d);};
+  const setOpPrizes=d=>{setOpPrizes_(d); return DB.save("lc-op-prizes",d);};
   useEffect(()=>{(async()=>{
-    try{const[o,c,p,f]=await Promise.all([DB.load("lc-ops"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg")]);
-      if(Array.isArray(o))setOps_(o);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);
+    try{const[o,c,p,f,opp]=await Promise.all([DB.load("lc-ops"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg"),DB.load("lc-op-prizes")]);
+      if(Array.isArray(o))setOps_(o);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);
       if(f)setCfg_({...DCFG,...f,relampagos:f.relampagos||DCFG.relampagos,premioMeta:f.premioMeta||DCFG.premioMeta,noticias:f.noticias||DCFG.noticias,formulario:{...DCFG.formulario,...(f.formulario||{}),cats:f.formulario?.cats||DCFG.formulario.cats,campos:f.formulario?.campos||DCFG.formulario.campos}});}catch(_){}
     setTimeout(()=>setTela("home"),1400);
 
     DB.listen?.("lc-ops", val => { if(Array.isArray(val)) setOps_(val); });
     DB.listen?.("lc-cl", val => { if(Array.isArray(val)) setCl_(val); });
     DB.listen?.("lc-pr", val => { if(Array.isArray(val)) setPr_(val); });
+    DB.listen?.("lc-op-prizes", val => { if(Array.isArray(val)) setOpPrizes_(val); });
     DB.listen?.("lc-cfg", val => { if(val) setCfg_(prev => ({...DCFG,...prev,...val})); });
   })();},[]);
-  const ctx={tela,setTela,role,setRole,opSel,setOpSel,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg};
+  const ctx={tela,setTela,role,setRole,opSel,setOpSel,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes};
   return(<><style>{CSS}</style>
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:520,margin:"0 auto",fontSize:13,color:C.tx}}>
       {tela==="splash"&&<Splash/>}{tela==="home"&&<Home{...ctx}/>}{tela==="opreg"&&<OpReg{...ctx}/>}
@@ -569,7 +572,7 @@ function OpVoucher({pr, setPr, cl, op}){
 }
 
 /* ═══════ ADMIN PANEL ═══════ */
-function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
+function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opPrizes,setOpPrizes}){
   const[aba,setAba]=useState("dash");
   const[bus,setBus]=useState("");
   const totPoints=useMemo(()=>{let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.valida!==false)n++;}));return n;},[cl]);
@@ -594,7 +597,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
       {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus}/>}
-      {aba==="ops" &&<AOps  ops={ops} setOps={setOps} cl={cl} cfg={cfg}/>}
+      {aba==="ops" &&<AOps  ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes}/>}
       {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus}/>}
       {aba==="pr"  &&<APr   pr={pr} setPr={setPr} cl={cl} cfg={cfg}/>}
       {aba==="cfg" &&<ACfg  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
@@ -617,7 +620,8 @@ function ADash({ops,cl,pr,cfg,setAba,setBus}){
     return p>0 && p>=cfg.meta-3;
   });
   const gr=useMemo(()=>{const m={};cl.forEach(c=>(c.auths||[]).forEach(a=>{const k=mAno(a.data);if(!m[k])m[k]={mes:k,auths:0};m[k].auths++;}));return Object.values(m).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-8);},[cl]);
-  const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id && a.valida!==false)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl]);
+  const lastReset = cfg.lastReset || "2000-01-01";
+  const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id && a.valida!==false && a.data >= lastReset)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl,lastReset]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
     {pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
@@ -705,10 +709,50 @@ function FeedbackDash({cl,ops}){
   </div>);
 }
 
-function AOps({ops,setOps,cl,cfg}){
+function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
   const[eId,setEId]=useState(null);const[eN,setEN]=useState("");
-  const rank=useMemo(()=>ops.map((o,i)=>{let a=0,cs=new Set();cl.forEach(c=>(c.auths||[]).forEach(x=>{if(x.opId===o.id){a++;cs.add(c.id);}}));return{op:o,i,a,cs:cs.size};}).sort((a,b)=>b.a-a.a),[ops,cl]);
+  const lastReset = cfg.lastReset || "2000-01-01";
+  const rank=useMemo(()=>ops.map((o,i)=>{
+    let a=0,cs=new Set();
+    cl.forEach(c=>(c.auths||[]).forEach(x=>{
+      if(x.opId===o.id && x.valida!==false && x.data >= lastReset){
+        a++; cs.add(c.id);
+      }
+    }));
+    return{op:o,i,a,cs:cs.size};
+  }).sort((a,b)=>b.a-a.a),[ops,cl,lastReset]);
+
+  function encerrarCiclo(){
+    if(!window.confirm("Deseja encerrar o ciclo mensal atual? Os 2 primeiros colocados serão registrados para premiação e o ranking voltará a zero.")) return;
+    const v1 = rank[0]; const v2 = rank[1];
+    if(!v1 || v1.a === 0){ alert("Nenhuma autenticação registrada neste ciclo."); return; }
+    const novoPremio = {
+      id: uid(),
+      data: now(),
+      periodo: mAno(lastReset),
+      vencedores: [
+        {opId: v1.op.id, opNome: v1.op.nome, auths: v1.a, rank: 1},
+        ...(v2 && v2.a > 0 ? [{opId: v2.op.id, opNome: v2.op.nome, auths: v2.a, rank: 2}] : [])
+      ],
+      status: "pending"
+    };
+    setOpPrizes([novoPremio, ...(opPrizes||[])]);
+    setCfg({...cfg, lastReset: now()});
+    alert("✅ Ciclo encerrado com sucesso! Vencedores registrados.");
+  }
+
+  function pagar(pid){
+    if(!window.confirm("Confirmar que os prêmios deste ciclo foram pagos?")) return;
+    setOpPrizes(opPrizes.map(p=>p.id===pid?{...p, status:"paid", paidAt:now()}:p));
+  }
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🏅" t="Operadoras" s={`${ops.length} cadastradas`}/>
+    {rank.length > 0 && (
+      <div style={{background:C.az,borderRadius:14,padding:16,display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,boxShadow:`0 4px 12px ${C.az}44`}}>
+        <div><div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase"}}>Ciclo Mensal Atual</div><div style={{color:"#fff",fontWeight:900,fontSize:14}}>Desde {fD(lastReset)}</div></div>
+        <button onClick={encerrarCiclo} style={{background:C.ou,color:C.az,border:"none",borderRadius:9,padding:"8px 14px",fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🏆 Encerrar Ciclo</button>
+      </div>
+    )}
+
     {rank.map((r,i)=><div key={r.op.id} style={{background:"#fff",borderRadius:13,padding:"13px",border:i<2?`2px solid ${C.ou}55`:`1px solid ${C.bd}`}}>
       <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
@@ -722,6 +766,36 @@ function AOps({ops,setOps,cl,cfg}){
       <div style={{marginTop:8,background:"#f3f4f6",borderRadius:6,height:5,overflow:"hidden"}}><div style={{height:"100%",background:oc(r.i),borderRadius:6,width:(r.a/Math.max(rank[0]?.a||1,1)*100)+"%"}}/></div>
     </div>)}
     {ops.length===0&&<V em="👤" msg="Nenhuma operadora cadastrada."/>}
+
+    {opPrizes && opPrizes.length > 0 && (
+      <div style={{marginTop:20}}>
+        <T em="🎁" t="Histórico de Prêmios" s="Controle de pagamentos das operadoras"/>
+        <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:10}}>
+          {opPrizes.map(p => (
+            <div key={p.id} style={{background:"#fff",borderRadius:13,padding:14,border:`1px solid ${p.status==="paid"?C.vd+"33":C.bd}`}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
+                <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Ciclo {p.periodo}</div>
+                <div style={{background:p.status==="paid"?C.vdC:C.ouC,color:p.status==="paid"?C.vd:C.ou2,fontSize:9,fontWeight:900,padding:"2px 8px",borderRadius:20}}>{p.status==="paid"?"✅ PAGO":"⏳ PENDENTE"}</div>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {p.vencedores.map(v => (
+                  <div key={v.opId} style={{display:"flex",justifyContent:"space-between",fontSize:12,alignItems:"center",background:C.bg,padding:"6px 10px",borderRadius:8}}>
+                    <span style={{fontWeight:700}}>{v.rank}º {v.opNome}</span>
+                    <span style={{fontWeight:800,color:C.az}}>{v.auths} auths</span>
+                  </div>
+                ))}
+              </div>
+              {p.status === "pending" && (
+                <button onClick={()=>pagar(p.id)} style={{width:"100%",marginTop:12,background:C.vd,color:"#fff",border:"none",borderRadius:9,padding:"8px",fontWeight:800,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>Confirmar Pagamento</button>
+              )}
+              {p.status === "paid" && (
+                <div style={{fontSize:9,color:C.sb,textAlign:"right",marginTop:8}}>Pago em {fDT(p.paidAt)}</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
   </div>);
 }
 
