@@ -271,8 +271,11 @@ function Regulamento({setTela,cfg}){
         <div style={{marginTop:12,fontWeight:900,fontSize:20,color:"#fff"}}>📋 Regulamento</div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.6)",marginTop:3}}>Leia até o final para continuar</div>
       </div>
-      {/* Texto */}
       <div style={{flex:1,overflow:"hidden",display:"flex",flexDirection:"column",padding:"14px 16px 0"}}>
+        <div style={{background:"#fff",borderRadius:15,padding:12,border:`1px solid ${C.bd}`,display:"flex",gap:8,marginBottom:12}}>
+          <div style={{flex:1,background:C.bg,borderRadius:10,padding:8,textAlign:"center"}}><div style={{fontSize:8,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Início</div><div style={{fontWeight:900,fontSize:13,color:C.az}}>{fD(cfg.dataInicio)}</div></div>
+          <div style={{flex:1,background:C.bg,borderRadius:10,padding:8,textAlign:"center"}}><div style={{fontSize:8,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Término</div><div style={{fontWeight:900,fontSize:13,color:C.rd}}>{fD(cfg.dataFim)}</div></div>
+        </div>
         <div onScroll={onScroll}
           style={{flex:1,overflowY:"auto",background:"#fff",borderRadius:16,padding:"18px 16px",border:`1px solid ${C.bd}`,maxHeight:"calc(100vh - 240px)"}}>
           <pre style={{fontSize:12,color:C.tx,lineHeight:2,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{txt}</pre>

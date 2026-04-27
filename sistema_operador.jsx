@@ -38,7 +38,7 @@ Destinado a clientes que realizarem transações na unidade. A participação é
 
 6. DISPOSIÇÕES GERAIS
 • LGPD: Dados protegidos e usados exclusivamente para o programa.
-• VIGÊNCIA: Prazo indeterminado, podendo ser alterado com aviso prévio de 7 dias. Comprovantes com mais de 7 dias ou fora da vigência não serão validados.`,
+• VIGÊNCIA: Campanha válida de {dataInicio} a {dataFim}. Visitas fora deste prazo ou registradas após 7 dias não serão validados.`,
   appUrl:"", wts:"5575999990000",
   noticias: [
     { id:"ng1", tipo:"geral",   ativo:true,  emoji:"🎰", titulo:"Mega-Sena Acumulada!",             corpo:"Prêmio estimado em R$ 120 milhões! Aposte agora na lotérica.",                                         data:"2026-04-15" },
@@ -556,7 +556,13 @@ function OpRegulamento({cfg}){
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     <T em="📋" t="Regulamento da Promoção" s="Consulte as regras vigentes"/>
-    <div style={{background:"#fff",borderRadius:16,padding:22,border:`1px solid ${C.bd}`,boxShadow:`0 4px 15px rgba(0,0,0,.03)`,maxHeight:"calc(100vh - 200px)",overflowY:"auto"}}>
+    
+    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`,display:"flex",gap:8,marginBottom:4}}>
+      <div style={{flex:1,background:C.bg,borderRadius:10,padding:10,textAlign:"center"}}><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Início</div><div style={{fontWeight:900,fontSize:13,color:C.az}}>{fD(dIni)}</div></div>
+      <div style={{flex:1,background:C.bg,borderRadius:10,padding:10,textAlign:"center"}}><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Término</div><div style={{fontWeight:900,fontSize:13,color:C.rd}}>{fD(dFim)}</div></div>
+    </div>
+
+    <div style={{background:"#fff",borderRadius:16,padding:22,border:`1px solid ${C.bd}`,boxShadow:`0 4px 15px rgba(0,0,0,.03)`,maxHeight:"calc(100vh - 280px)",overflowY:"auto"}}>
       <div style={{lineHeight:1.8,fontSize:13,whiteSpace:"pre-wrap",color:C.tx,fontFamily:"inherit"}}>
         {rTxt}
       </div>
