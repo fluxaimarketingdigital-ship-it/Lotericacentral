@@ -453,60 +453,7 @@ function OpCl({meusCl,cfg}){return(<div style={{display:"flex",flexDirection:"co
     </div>);})}</div>
 </div>);}
 
-function OpRank({rank,opId}){return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
-  <T em="🏅" t="Ranking" s="Classificação por autenticações"/>
-  <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
-    {rank.map((r,i)=>{const eu=r.op.id===opId;return(<div key={r.op.id} style={{padding:"11px 13px",borderBottom:i<rank.length-1?`1px solid ${C.bd}22`:"none",background:eu?C.azC:"transparent",display:"flex",alignItems:"center",gap:10}}>
-      <div style={{width:30,height:30,borderRadius:"50%",flexShrink:0,background:i===0?C.ou:i===1?"#cbd5e1":i===2?"#fcd34d":oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:i<3?14:11,color:"#fff"}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
-      <div style={{flex:1}}><div style={{fontWeight:eu?900:700,fontSize:13,color:eu?C.az:C.tx,display:"flex",gap:5,alignItems:"center"}}>{r.op.nome}{eu&&<span style={{background:C.az,color:"#fff",fontSize:9,fontWeight:800,padding:"1px 6px",borderRadius:9}}>EU</span>}{i<2&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"1px 6px",borderRadius:9}}>🏆 Dia 05</span>}</div></div>
-      <div style={{fontWeight:900,fontSize:16,color:eu?C.az:C.tx}}>{r.t}<span style={{fontSize:10,color:C.sb,fontWeight:400}}> auth</span></div>
-    </div>);})}</div>
-  <div style={{background:C.ouC,borderRadius:11,padding:"10px 12px",border:`1px solid ${C.ou}44`,fontSize:11,color:C.ou2,lineHeight:1.7}}>🏆 <strong>Todo dia 05:</strong> as 2 operadoras com mais auths do mês ganham prêmio especial!</div>
-</div>);}
 
-function OpRegInfo({cfg}){
-  const reg = (cfg.regulamento||"")
-    .replace(/{meta}/g,cfg.meta)
-    .replace(/{premioNome}/g,cfg.premioMeta.nome)
-    .replace(/{minVisita}/g,cfg.minVisita||300)
-    .replace(/{minRelampago}/g,cfg.minRelampago||60)
-    .replace(/{dataInicio}/g,fD(cfg.dataInicio))
-    .replace(/{dataFim}/g,fD(cfg.dataFim));
-
-  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
-    <T em="📜" t="Campanha e Regulamento" s="Acompanhe as regras vigentes"/>
-    
-    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>📅 Vigência da Campanha</div>
-      <div style={{display:"flex",gap:8}}>
-        <div style={{flex:1,background:C.bg,borderRadius:10,padding:10,textAlign:"center"}}><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Início</div><div style={{fontWeight:900,fontSize:13,color:C.az}}>{fD(cfg.dataInicio)}</div></div>
-        <div style={{flex:1,background:C.bg,borderRadius:10,padding:10,textAlign:"center"}}><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Término</div><div style={{fontWeight:900,fontSize:13,color:C.rd}}>{fD(cfg.dataFim)}</div></div>
-      </div>
-    </div>
-
-    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>🎁 Prêmios Disponíveis</div>
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        <div style={{background:C.vdC,borderRadius:11,padding:10,display:"flex",alignItems:"center",gap:10,border:`1px solid ${C.vd}33`}}>
-          <div style={{fontSize:24}}>{cfg.premioMeta.emoji}</div>
-          <div style={{flex:1}}><div style={{fontSize:9,fontWeight:800,color:C.vd,textTransform:"uppercase"}}>Cada {cfg.meta} Visitas</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>{cfg.premioMeta.nome}</div></div>
-        </div>
-        {cfg.relampagos.filter(r=>r.ativo).map(r=>(
-          <div key={r.id} style={{background:C.rxC,borderRadius:11,padding:10,display:"flex",alignItems:"center",gap:10,border:`1px solid ${C.rx}33`}}>
-            <div style={{fontSize:24}}>{r.emoji}</div>
-            <div style={{flex:1}}><div style={{fontSize:9,fontWeight:800,color:C.rx,textTransform:"uppercase"}}>Sorteio Relâmpago</div><div style={{fontWeight:900,fontSize:14,color:C.tx}}>{r.nome}</div></div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>⚖️ Regulamento Completo</div>
-      <div style={{background:C.bg,borderRadius:10,padding:12,fontSize:12,color:C.tx,lineHeight:1.7,whiteSpace:"pre-wrap",maxHeight:300,overflowY:"auto",fontFamily:"inherit"}}>{reg}</div>
-    </div>
-    <div style={{background:C.azC,borderRadius:10,padding:12,fontSize:11,color:C.az,lineHeight:1.6,border:`1px dashed ${C.az}44`}}>⚠️ <strong>Atenção:</strong> Somente o Administrador pode alterar estas regras. Caso note algum erro, informe ao gerente.</div>
-  </div>);
-}
 
 function OpVoucher({pr, setPr, cl, op}){
   const [cod, setCod] = useState("");
