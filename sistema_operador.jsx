@@ -589,19 +589,30 @@ function OpRank({rank,op,pos}){
 }
 
 function OpRegulamento({cfg}){
-  const rTxt = (cfg.regulamento||DCFG.regulamento)
-    .replace(/{meta}/g, cfg.meta||15)
-    .replace(/{premioNome}/g, cfg.premioMeta?.nome||"Prêmio")
-    .replace(/{dataInicio}/g, fD(cfg.dataInicio||"2026-04-01"))
-    .replace(/{dataFim}/g, fD(cfg.dataFim||"2026-12-31"));
+  const meta = cfg.meta || 15;
+  const pNome = cfg.premioMeta?.nome || "Prêmio";
+  const minV = cfg.minVisita || 300;
+  const minR = cfg.minRelampago || 60;
+  const dIni = cfg.dataInicio || "2026-04-01";
+  const dFim = cfg.dataFim || "2026-12-31";
 
-  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
-    <T em="📋" t="Regulamento da Promoção" s="Regras e vigência"/>
-    <div style={{background:"#fff",borderRadius:16,padding:22,border:`1px solid ${C.bd}`,lineHeight:1.8,fontSize:13,whiteSpace:"pre-wrap",color:C.tx,boxShadow:`0 4px 15px rgba(0,0,0,.03)`}}>
-      {rTxt}
+  const rTxt = (cfg.regulamento && cfg.regulamento.trim().length > 0 ? cfg.regulamento : DCFG.regulamento)
+    .replace(/{meta}/g, meta)
+    .replace(/{premioNome}/g, pNome)
+    .replace(/{minVisita}/g, minV)
+    .replace(/{minRelampago}/g, minR)
+    .replace(/{dataInicio}/g, fD(dIni))
+    .replace(/{dataFim}/g, fD(dFim));
+
+  return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+    <T em="📋" t="Regulamento da Promoção" s="Consulte as regras vigentes"/>
+    <div style={{background:"#fff",borderRadius:16,padding:22,border:`1px solid ${C.bd}`,boxShadow:`0 4px 15px rgba(0,0,0,.03)`,maxHeight:"calc(100vh - 200px)",overflowY:"auto"}}>
+      <div style={{lineHeight:1.8,fontSize:13,whiteSpace:"pre-wrap",color:C.tx,fontFamily:"inherit"}}>
+        {rTxt}
+      </div>
     </div>
-    <div style={{background:C.azC,borderRadius:12,padding:15,border:`1px solid ${C.az}22`,fontSize:11,color:C.az,lineHeight:1.6}}>
-      ⚠️ <strong>Atenção Operador:</strong> Este regulamento é definido pelo administrador. Em caso de dúvidas sobre pontuação ou prêmios, consulte o gerente.
+    <div style={{background:C.azC,borderRadius:12,padding:14,border:`1px solid ${C.az}22`,fontSize:11,color:C.az,lineHeight:1.6}}>
+      💡 <strong>Nota para Operador:</strong> Este regulamento é gerenciado pelo administrador. Em caso de dúvidas, consulte o gerente.
     </div>
   </div>);
 }
