@@ -268,7 +268,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
-  const ABAS=[{id:"qr",emoji:"📱",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"},{id:"reg",emoji:"📋",label:"Regras"}];
+  const ABAS=[{id:"qr",emoji:"📱",label:"Código"},{id:"reg",emoji:"📋",label:"Regras"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
   const lastReset = cfg.lastReset || "2000-01-01";
@@ -1678,9 +1678,9 @@ function CfgNoticias({cfg,setCfg}){
 function T({em,t,s}){return(<div style={{marginBottom:4}}><div style={{fontWeight:900,fontSize:19,color:C.tx}}>{em} {t}</div>{s&&<div style={{fontSize:11,color:C.sb,marginTop:2}}>{s}</div>}</div>);}
 function V({em,msg}){return(<div style={{padding:"26px 20px",textAlign:"center",color:C.sb}}><div style={{fontSize:40,marginBottom:8,opacity:.4}}>{em}</div><div style={{fontSize:12,lineHeight:1.7}}>{msg}</div></div>);}
 function Pts(){return(<div style={{display:"flex",gap:8,justifyContent:"center",marginTop:6}}>{[0,1,2].map(i=><div key={i} style={{width:9,height:9,borderRadius:"50%",background:C.ou,animation:`dt 1.1s ${i*.22}s infinite`}}/>)}</div>);}
-function Nav({abas,aba,setAba,cor}){return(<nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:520,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 18px rgba(0,52,120,.09)",zIndex:100}}>
-  {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"9px 3px 11px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?"#f0f4fb":"#fff",borderTop:`2.5px solid ${aba===a.id?cor:"transparent"}`,transition:"all .2s",position:"relative"}}>
-    {a.badge>0 && <div style={{position:"absolute",top:3,right:"15%",background:C.rd,color:"#fff",fontSize:9,fontWeight:900,padding:"1px 5px",borderRadius:10}}>{a.badge}</div>}
-    <div style={{fontSize:17,marginBottom:2}}>{a.emoji}</div><div style={{fontSize:9,fontWeight:aba===a.id?800:600,color:aba===a.id?cor:C.sb,lineHeight:1}}>{a.label}</div>
+function Nav({abas,aba,setAba,cor}){return(<nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:520,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,0,0,.08)",zIndex:100}}>
+  {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"8px 2px 10px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?"#f0f4fb":"#fff",borderTop:`2.5px solid ${aba===a.id?cor:"transparent"}`,transition:"all .2s",position:"relative"}}>
+    {a.badge>0 && <div style={{position:"absolute",top:3,right:"15%",background:C.rd,color:"#fff",fontSize:8,fontWeight:900,padding:"1px 4px",borderRadius:10}}>{a.badge}</div>}
+    <div style={{fontSize:16,marginBottom:2}}>{a.emoji}</div><div style={{fontSize:8,fontWeight:aba===a.id?800:600,color:aba===a.id?cor:C.sb,lineHeight:1}}>{a.label}</div>
   </button>)}
 </nav>);}
