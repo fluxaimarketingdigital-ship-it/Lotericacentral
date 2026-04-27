@@ -275,6 +275,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const ABAS=[{id:"qr",emoji:"📱",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
+  const lastReset = cfg.lastReset || "2000-01-01";
   const minhas = useMemo(() => {
     let all = [];
     cl.forEach(c => {
@@ -290,15 +291,13 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const rank = useMemo(() => {
     const list = ops.map((o, i) => {
       let t = 0;
-      cl.forEach(c => {
-        (c.auths || []).forEach(a => {
-          if (a.opId === o.id && a.valida !== false) t++;
-        });
-      });
+      cl.forEach(c => (c.auths || []).forEach(a => {
+        if (a.opId === o.id && a.valida !== false && a.data >= lastReset) t++;
+      }));
       return { op: o, t, i };
     });
     return list.sort((a, b) => b.t - a.t);
-  }, [cl, ops]);
+  }, [cl, ops, lastReset]);
   const pos = rank.findIndex(r => r.op.id === op.id) + 1;
   const isDefault = !op.senha || String(op.senha) === "1234";
 
@@ -579,7 +578,7 @@ function OpVoucher({pr, setPr, cl, op}){
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opPrizes,setOpPrizes}){
   const[aba,setAba]=useState("dash");
   const[bus,setBus]=useState("");
-  const totPoints=useMemo(()=>{let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.valida!==false)n++;}));return n;},[cl]);
+  const totPoints=useMemo(()=>{let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.status === "approved")n++;}));return n;},[cl]);
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
   const pendsG = useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending").length||0),0),[cl]);
@@ -625,7 +624,7 @@ function ADash({ops,cl,pr,cfg,setAba,setBus}){
   });
   const gr=useMemo(()=>{const m={};cl.forEach(c=>(c.auths||[]).forEach(a=>{const k=mAno(a.data);if(!m[k])m[k]={mes:k,auths:0};m[k].auths++;}));return Object.values(m).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-8);},[cl]);
   const lastReset = cfg.lastReset || "2000-01-01";
-  const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id && a.valida!==false && a.data >= lastReset)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl,lastReset]);
+  const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id && a.status === "approved" && a.data >= lastReset)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl,lastReset]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
     {pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
@@ -719,7 +718,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
   const rank=useMemo(()=>ops.map((o,i)=>{
     let a=0,cs=new Set();
     cl.forEach(c=>(c.auths||[]).forEach(x=>{
-      if(x.opId===o.id && x.valida!==false && x.data >= lastReset){
+      if(x.opId===o.id && x.status === "approved" && x.data >= lastReset){
         a++; cs.add(c.id);
       }
     }));

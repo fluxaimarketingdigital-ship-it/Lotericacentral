@@ -647,7 +647,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
         const isV = totalPagamentos >= minV;
         setValida(isV);
-        const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV,status:"pending",detalhes:sel};
+        const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV,status:isV?"pending":"not_counted",detalhes:sel};
         const auths=[...(c.auths||[]),auth];
         // Para o prêmio de meta, consideramos as aprovadas + a nova que está entrando (pendente)
         const totalParaMeta = auths.filter(a=>a.status!=="rejected").length;
