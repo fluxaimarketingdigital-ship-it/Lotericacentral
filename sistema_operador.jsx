@@ -809,8 +809,9 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
             <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:C.vdC,borderRadius:10,border:`1px solid ${px.status==="pending"?C.ou:C.vd}33`,display:"flex",alignItems:"center",gap:10}}>
               <div style={{fontSize:24}}>{px.emoji||"🎁"}</div>
               <div style={{flex:1}}>
-                <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{px.nome} {px.status==="pending"?"(Pendente)":"(Aprovado)"}</div>
+                <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{px.nome} {px.status==="pending"?"(Pendente)":px.status==="redeemed"?"(Retirado)":"(Aprovado)"}</div>
                 <div style={{fontSize:10,color:C.sb}}>{px.tipo==="relampago"?"Prêmio Relâmpago":"Prêmio de Meta"}</div>
+                {(px.status==="approved" || px.status==="redeemed") && <div style={{fontSize:10,marginTop:4,color:C.tx,fontWeight:800}}>Voucher: <span style={{fontFamily:"monospace",color:C.az,letterSpacing:1,fontSize:11}}>{px.id.toUpperCase()}</span></div>}
                 
                 {px.status==="pending" && (
                    <div style={{display:"flex",gap:5,marginTop:6}}>
@@ -826,7 +827,7 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
                    </div>
                 )}
               </div>
-              {c.whats && px.status==="approved" && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲</a>}
+              {c.whats && px.status==="approved" && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*\n\nSeu código do voucher é: *${px.id.toUpperCase()}*\n\nApresente este código no caixa da Lotérica Central para resgatar! 🏆`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 WhatsApp</a>}
             </div>
          ))}
 
@@ -884,7 +885,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr}){
           </div>
 
           <div style={{display:"flex",gap:7,flexWrap:"wrap"}}>
-            {ganhou&&<a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`Olá ${c.nome?.split(" ")[0]}! ${cfg.premioMeta.emoji} ${cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 Avisar Prêmio</a>}
+            {ganhou && !prCl.some(p=>p.status==="redeemed") && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`Olá ${c.nome?.split(" ")[0]}! ${cfg.premioMeta.emoji} ${cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 11px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 Avisar Prêmio</a>}
             <button onClick={()=>{if(window.confirm(`Remover ${c.nome} e todo seu histórico (inclusive prêmios)?`)){
               setCl(cl.filter(x=>x.id!==c.id));
               setPr(pr.filter(p=>p.clientId!==c.id));
@@ -930,7 +931,8 @@ function APr({pr, cl, cfg, setPr}){
         const cliN=cN(p.clientId);
         const cliW=cW(p.clientId);
         const isP = p.status==="pending";
-        const msg=`🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cliN.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nRetire seu prêmio aqui na *Lotérica Central*! 🏆`;
+        const isR = p.status==="redeemed";
+        const msg=`🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cliN.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código de voucher é: *${p.id.toUpperCase()}*\n\nApresente este código no caixa da Lotérica Central para resgatar! 🏆`;
 
         return(<div key={p.id} style={{padding:"12px 13px",borderBottom:i<pr.length-1?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:10}}>
           <div style={{display:"flex",alignItems:"center",gap:10}}>
@@ -940,12 +942,14 @@ function APr({pr, cl, cfg, setPr}){
               <div style={{fontSize:10,color:C.sb}}><strong style={{color:C.az}}>{cliN}</strong> · {fDT(p.data)}</div>
               <div style={{fontSize:9,color:C.sb,marginTop:2}}>WhatsApp: {cliW||"—"}</div>
             </div>
-            {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.ou}33`}}>AGUARDANDO APROVAÇÃO</span>}
-            {!isP && <span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.vd}33`}}>APROVADO ✅</span>}
+            {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.ou}33`}}>PENDENTE</span>}
+            {!isP && !isR && <span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.vd}33`}}>APROVADO</span>}
+            {isR && <span style={{background:C.azC,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6,border:`1px solid ${C.az}33`}}>RETIRADO ✅</span>}
           </div>
           
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {cliW && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5,flex:1,justifyContent:"center"}}>📲 WhatsApp Prêmio</a>}
+            {cliW && !isR && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5,flex:1,justifyContent:"center"}}>📲 WhatsApp c/ Voucher</a>}
+            {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado no balcão em {fDT(p.redeemedAt||p.data)} por {p.opRedeemed||"Op"}</div>}
           </div>
         </div>);
       })}
