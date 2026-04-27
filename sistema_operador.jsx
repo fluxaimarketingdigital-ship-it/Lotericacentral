@@ -552,7 +552,17 @@ function ADash({ops,cl,pr,cfg}){
   const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id && a.valida!==false)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
-    {prontos.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`2px solid ${C.ou}55`,boxShadow:`0 4px 14px ${C.ou}22`}}>
+    {pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
+       <div style={{background:C.rx,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rx}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s",marginBottom:11}}>
+         <span style={{fontSize:24}}>⚡</span>
+         <div style={{flex:1}}>
+            <div style={{fontWeight:900,fontSize:14}}>Novo Prêmio Relâmpago Pendente!</div>
+            <div style={{fontSize:11,opacity:.9}}>Audite o histórico do cliente para conferir e aprovar.</div>
+         </div>
+       </div>
+    )}
+
+    {prontos.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`2px solid ${C.ou}55`,boxShadow:`0 4px 14px ${C.ou}22`,marginBottom:11}}>
       <div style={{background:C.ou,padding:"9px 13px",display:"flex",gap:7,alignItems:"center"}}><span style={{fontSize:16}}>{cfg.premioMeta.emoji}</span><span style={{fontWeight:800,fontSize:12,color:C.az}}>{prontos.length} cliente{prontos.length>1?"s":""} atingiu a meta de {cfg.meta} pontos!</span></div>
       {prontos.slice(0,3).map(c=>{
         const vs=c.auths.filter(a=>a.valida!==false);
@@ -824,6 +834,16 @@ function APr({pr, cl, cfg, setPr}){
   }
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🎁" t="Prêmios Distribuídos" s={`${pr.length} total`}/>
+    {pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
+       <div style={{background:C.rx,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rx}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s"}}>
+         <span style={{fontSize:24}}>⚡</span>
+         <div style={{flex:1}}>
+            <div style={{fontWeight:900,fontSize:14}}>Novo Prêmio Relâmpago Pendente!</div>
+            <div style={{fontSize:11,opacity:.9}}>Há clientes aguardando a auditoria de prêmios relâmpago.</div>
+         </div>
+       </div>
+    )}
+
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{[[`${cfg.premioMeta.emoji}`,"Meta",pr.filter(p=>p.tipo==="raspadinha").length,C.vd],["⚡","Relâmpago",pr.filter(p=>p.tipo==="relampago").length,C.rx]].map(([em,l,v,cor])=>(
       <div key={l} style={{background:"#fff",borderRadius:12,padding:"13px",textAlign:"center",border:`1px solid ${C.bd}`}}><div style={{fontSize:22,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:24,color:cor}}>{v}</div><div style={{fontSize:10,color:C.sb,fontWeight:700}}>{l}</div></div>
     ))}</div>
@@ -848,49 +868,7 @@ function APr({pr, cl, cfg, setPr}){
           </div>
           
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {isP && (() => {
-              const cli = cl.find(x=>x.id===p.clientId);
-              const authV = cli?.auths?.find(x=>x.id===p.authId);
-              
-              // Regra Estrita: Meta prêmios precisam do total de visitas aprovadas correspondente
-              let isLocked = false;
-              let reason = "";
-              
-              if(p.tipo === "raspadinha"){
-                const approvedCount = (cli?.auths||[]).filter(x=>x.status==="approved").length;
-                // Encontrar qual o "índice" deste prêmio meta entre os prêmios meta do cliente
-                const metaPrs = pr.filter(x=>x.clientId===p.clientId && x.tipo==="raspadinha").sort((a,b)=>a.data-b.data);
-                const prizeIdx = metaPrs.findIndex(x=>x.id===p.id) + 1;
-                const required = prizeIdx * cfg.meta;
-                
-                if(approvedCount < required){
-                  isLocked = true;
-                  reason = `Faltam ${required - approvedCount} visitas aprovadas`;
-                }
-                if(authV && authV.status !== "approved"){
-                  isLocked = true;
-                  reason = `Aprove a visita #${authV.controle} primeiro`;
-                }
-              } else if(authV && authV.status !== "approved"){
-                // Relâmpago também depende da visita estar aprovada
-                isLocked = true;
-                reason = "Visita pendente";
-              }
-              
-              if(isLocked) return (
-                <div style={{flex:1,display:"flex",flexDirection:"column",gap:4}}>
-                  <button disabled style={{width:"100%",background:"#eee",color:"#9ca3af",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"not-allowed"}}>Bloqueado</button>
-                  <div style={{fontSize:8,color:C.rd,fontWeight:700,textAlign:"center"}}>{reason}</div>
-                </div>
-              );
-              
-              return <button onClick={()=>updateP(p.id,"approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>;
-            })()}
-            {!isP && <button onClick={()=>updateP(p.id,"pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter</button>}
-            
-            {cliW && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5}}>📲 Cupom</a>}
-            
-            <button onClick={()=>delP(p.id)} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 10px",fontSize:11,cursor:"pointer",marginLeft:"auto"}}>🗑️</button>
+            {cliW && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5,flex:1,justifyContent:"center"}}>📲 WhatsApp Prêmio</a>}
           </div>
         </div>);
       })}

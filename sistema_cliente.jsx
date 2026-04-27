@@ -491,7 +491,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
 
 /* ══════════════════════ INÍCIO ══════════════════════ */
 function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
-  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status === "approved");
+  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const raspa=Math.floor(totV/cfg.meta);const prog=totV%cfg.meta;
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
@@ -514,7 +514,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
       {[...c.auths].reverse().slice(0,5).map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 14px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:32,height:32,borderRadius:9,background:v?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>{v?"🏪":"⏳"}</div>
         <div style={{flex:1}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"} · <span style={{color:v?C.vd:C.sb}}>{v?"Validada ✅":"Abaixo do Mínimo"}</span></div>
+          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"} · <span style={{color:a.status==="pending"?C.ou:v?C.vd:C.sb}}>{a.status==="pending"?"Pendente ⏳":v?"Validada ✅":"Abaixo do Mínimo"}</span></div>
           <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total/1>0?` · ${brl(a.total)}`:""}</div>
         </div>
         <div style={{fontWeight:900,fontSize:12,color:v?C.az:C.sb}}>{c.auths.length-i}ª</div>
