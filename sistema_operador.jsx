@@ -571,6 +571,7 @@ function OpVoucher({pr, setPr, cl, op}){
 /* ═══════ ADMIN PANEL ═══════ */
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
   const[aba,setAba]=useState("dash");
+  const[bus,setBus]=useState("");
   const totPoints=useMemo(()=>{let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.valida!==false)n++;}));return n;},[cl]);
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
@@ -592,9 +593,9 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
       </div>
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
-      {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg}/>}
+      {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus}/>}
       {aba==="ops" &&<AOps  ops={ops} setOps={setOps} cl={cl} cfg={cfg}/>}
-      {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr}/>}
+      {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus}/>}
       {aba==="pr"  &&<APr   pr={pr} setPr={setPr} cl={cl} cfg={cfg}/>}
       {aba==="cfg" &&<ACfg  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
     </div>
@@ -602,13 +603,14 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
   </div>);
 }
 
-function ADash({ops,cl,pr,cfg}){
+function ADash({ops,cl,pr,cfg,setAba,setBus}){
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const totP=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.valida!==false).length||0),0),[cl]);
-  const prontos=cl.filter(c=>{
-    const vs=c.auths?.filter(a=>a.valida!==false)||[];
-    return vs.length>0 && vs.length%cfg.meta===0;
-  });
+  const prontos=useMemo(() => {
+    return cl.filter(c => 
+      pr.some(p => p.clientId === c.id && p.tipo === "raspadinha" && p.status === "pending")
+    );
+  }, [cl, pr]);
   const perto=cl.filter(c=>{
     const vs=c.auths?.filter(a=>a.valida!==false)||[];
     const p=vs.length%cfg.meta;
@@ -634,7 +636,7 @@ function ADash({ops,cl,pr,cfg}){
         const vs=c.auths.filter(a=>a.valida!==false);
         return(<div key={c.id} style={{padding:"9px 13px",borderBottom:`1px solid ${C.bd}`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <div><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{c.nome}</div><div style={{fontSize:10,color:C.sb}}>{vs.length} pontos válidos</div></div>
-        <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`Olá ${c.nome?.split(" ")[0]}! 🎉 ${cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome)}`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲</a>
+        <button onClick={()=>{ setBus(c.whats); setAba("cl"); }} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"5px 12px",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>🔍 Auditar</button>
       </div>);})}
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
@@ -844,8 +846,8 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
   );
 }
 
-function ACl({cl,setCl,ops,cfg,pr,setPr}){
-  const[bus,setBus]=useState("");const[exp,setExp]=useState(null);
+function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
+  const[exp,setExp]=useState(null);
   const opN=id=>ops.find(o=>o.id===id)?.nome||"—";
   const lista=useMemo(()=>{const q=bus.toLowerCase().trim();return cl.filter(c=>!q||c.nome?.toLowerCase().includes(q)||c.whats?.includes(q)).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));},[cl,bus]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="👥" t="Todos os Clientes" s={`${cl.length} cadastrados`}/>
