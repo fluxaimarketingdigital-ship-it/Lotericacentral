@@ -78,7 +78,7 @@ const uidOp=(ops=[])=>{
   return cod;
 };
 const now=()=>new Date().toISOString();
-const fD=d=>new Date(d).toLocaleDateString("pt-BR");
+const fD=d=>new Date(d + (d?.includes("T") ? "" : "T12:00:00")).toLocaleDateString("pt-BR");
 const fDT=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 const mAno=d=>{
   if(!d || d === "2000-01-01") return "Início";
