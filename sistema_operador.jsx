@@ -291,8 +291,10 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const rank = useMemo(() => {
     const list = ops.map((o, i) => {
       let t = 0;
+      const lrTime = new Date(lastReset).getTime();
       cl.forEach(c => (c.auths || []).forEach(a => {
-        if (a.opId === o.id && a.valida !== false && a.data >= lastReset) t++;
+        const isVal = a.valida !== false && a.status !== "rejected" && a.status !== "not_counted";
+        if (a.opId === o.id && isVal && new Date(a.data).getTime() >= lrTime) t++;
       }));
       return { op: o, t, i };
     });
@@ -578,7 +580,13 @@ function OpVoucher({pr, setPr, cl, op}){
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opPrizes,setOpPrizes}){
   const[aba,setAba]=useState("dash");
   const[bus,setBus]=useState("");
-  const totPoints=useMemo(()=>{let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.status === "approved")n++;}));return n;},[cl]);
+  const totPoints=useMemo(()=>{
+    let n=0; 
+    cl.forEach(c=>(c.auths||[]).forEach(a=>{
+      if(a.status === "approved" || (a.status === "pending" && a.valida !== false)) n++;
+    }));
+    return n;
+  },[cl]);
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
   const pendsG = useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending").length||0),0),[cl]);
@@ -624,7 +632,15 @@ function ADash({ops,cl,pr,cfg,setAba,setBus}){
   });
   const gr=useMemo(()=>{const m={};cl.forEach(c=>(c.auths||[]).forEach(a=>{const k=mAno(a.data);if(!m[k])m[k]={mes:k,auths:0};m[k].auths++;}));return Object.values(m).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-8);},[cl]);
   const lastReset = cfg.lastReset || "2000-01-01";
-  const topOps=useMemo(()=>ops.map((o,i)=>{let t=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.opId===o.id && a.status === "approved" && a.data >= lastReset)t++;}));return{op:o,t,i};}).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl,lastReset]);
+  const lrTime = new Date(lastReset).getTime();
+  const topOps=useMemo(()=>ops.map((o,i)=>{
+    let t=0;
+    cl.forEach(c=>(c.auths||[]).forEach(a=>{
+      const isVal = a.status === "approved" || (a.status === "pending" && a.valida !== false);
+      if(a.opId===o.id && isVal && new Date(a.data).getTime() >= lrTime) t++;
+    }));
+    return{op:o,t,i};
+  }).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl,lastReset]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
     {pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
@@ -715,10 +731,12 @@ function FeedbackDash({cl,ops}){
 function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
   const[eId,setEId]=useState(null);const[eN,setEN]=useState("");
   const lastReset = cfg.lastReset || "2000-01-01";
+  const lrTime = new Date(lastReset).getTime();
   const rank=useMemo(()=>ops.map((o,i)=>{
     let a=0,cs=new Set();
     cl.forEach(c=>(c.auths||[]).forEach(x=>{
-      if(x.opId===o.id && x.status === "approved" && x.data >= lastReset){
+      const isVal = x.status === "approved" || (x.status === "pending" && x.valida !== false);
+      if(x.opId===o.id && isVal && new Date(x.data).getTime() >= lrTime){
         a++; cs.add(c.id);
       }
     }));

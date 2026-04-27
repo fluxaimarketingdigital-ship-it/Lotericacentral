@@ -642,7 +642,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         const h = String(agora.getHours()).padStart(2, '0');
         const m = String(agora.getMinutes()).padStart(2, '0');
         const s = String(agora.getSeconds()).padStart(2, '0');
-        const dIso = `${dataRec}T${h}:${m}:${s}`;
+        const dIso = new Date(`${dataRec}T${h}:${m}:${s}`).toISOString();
         
         const emojis=sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
         const isV = totalPagamentos >= minV;
