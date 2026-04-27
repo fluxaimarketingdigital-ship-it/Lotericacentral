@@ -441,7 +441,14 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
 
   const ABAS=[{id:"ini",l:"Início",em:"🏠"},{id:"reg",l:"Registrar",em:"📱"},{id:"pr",l:"Prêmios",em:"🎁"},{id:"not",l:"Notícias",em:"📰"},{id:"ct",l:"Conta",em:"👤"}];
   const c=cliente;if(!c)return null;
-  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected" && a.status !== "not_counted");
+  const dIni = cfg.dataInicio || "2000-01-01";
+  const dFim = cfg.dataFim || "2100-01-01";
+  const dFimDate = new Date(dFim + "T23:59:59");
+  const agora = new Date();
+  const encerrada = agora > dFimDate;
+  const diasFaltam = Math.ceil((dFimDate - agora) / (1000 * 60 * 60 * 24));
+
+  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected" && a.status !== "not_counted" && a.data >= dIni);
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const meta = cfg.meta || 15;
   const unredeemedMeta = (premios||[]).filter(p=>p.clientId===c.id && p.tipo==="raspadinha" && p.status!=="redeemed");
@@ -458,9 +465,23 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
     {/* HEADER */}
     <div style={{background:`linear-gradient(150deg,${C.az},${C.az2})`,padding:"22px 20px 26px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:C.ou,opacity:.07}}/>
-      <div style={{fontSize:11,color:"rgba(255,255,255,.5)",fontWeight:700,textTransform:"uppercase",letterSpacing:1.5,marginBottom:3}}>{NOME}</div>
-      <div style={{fontWeight:900,fontSize:22,color:"#fff",marginBottom:1}}>Olá, {c.nome?.split(" ")[0]}! 👋</div>
-      <div style={{fontSize:11,color:"rgba(255,255,255,.45)"}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
+      <div style={{zIndex:1,position:"relative"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:800,color:C.ou,letterSpacing:2,textTransform:"uppercase"}}>{NOME}</div>
+          {diasFaltam > 0 && diasFaltam <= 2 && (
+            <div style={{background:C.ou,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20,animation:"dt 1s infinite"}}>
+              ⚠️ CAMPANHA ENCERRA EM {diasFaltam} DIA{diasFaltam>1?"S":""}!
+            </div>
+          )}
+          {encerrada && (
+            <div style={{background:C.rd,color:"#fff",fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20}}>
+              🚫 CAMPANHA ENCERRADA
+            </div>
+          )}
+        </div>
+        <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:22}}>{c.nome?.split(" ")[0]}!</span> 👋</div>
+        <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
+      </div>
       <div style={{marginTop:16,background:"rgba(255,255,255,.12)",borderRadius:20,padding:"15px 17px",border:"1px solid rgba(255,255,255,.18)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
           <div>
@@ -481,7 +502,14 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
     {/* CONTEÚDO */}
     <div style={{flex:1,padding:"14px 14px 82px"}}>
       {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba}/>}
-      {aba==="reg"&&<FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>}
+      {aba==="reg" && (encerrada ? (
+        <div style={{padding:30,textAlign:"center",animation:"up .4s"}}>
+          <div style={{fontSize:60,marginBottom:15}}>⌛</div>
+          <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:8}}>Campanha Encerrada</div>
+          <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Esta campanha chegou ao fim em {fD(dFim)}. Aguarde a nova campanha para registrar suas visitas e pontuar novamente!</div>
+          <button onClick={()=>setAba("ini")} style={{marginTop:20,background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Voltar ao Início</button>
+        </div>
+      ) : <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>)}
       {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts}/>}
       {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
       {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl}/>}
@@ -1090,8 +1118,12 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl}){
         ))}
       </div>
       <div style={{background:"#fff",borderRadius:16,overflow:"hidden",border:`1px solid ${C.bd}`,marginTop:12}}>
-        <div style={{padding:"12px 17px",fontWeight:800,fontSize:12,color:C.tx,borderBottom:`1px solid ${C.bd}22`}}>📖 Histórico Detalhado</div>
+        <div style={{padding:"12px 17px",fontWeight:800,fontSize:12,color:C.tx,borderBottom:`1px solid ${C.bd}22`,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span>📖 Histórico Detalhado</span>
+          {encerrada && <span style={{fontSize:9,background:C.rdC,color:C.rd,padding:"2px 8px",borderRadius:20,fontWeight:900}}>Campanha Encerrada</span>}
+        </div>
         {((c.auths||[]).length===0) && <div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhuma visita registrada ainda.</div>}
+        {encerrada && <div style={{padding:12,background:C.bg,margin:10,borderRadius:10,fontSize:10,color:C.sb,textAlign:"center",border:`1px dashed ${C.bd}`}}>⚠️ Visitas após {fD(dFim)} não pontuam neste ciclo.</div>}
         {[...(c.auths||[])].reverse().map(a=><HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl}/>)}
       </div>
       {temPr&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:15,padding:"13px 15px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:32}}>🏆</span><div><div style={{fontWeight:900,fontSize:14,color:C.az}}>Cliente Premiado!</div><div style={{fontSize:11,color:C.az,opacity:.8,marginTop:2}}>Notícias e ofertas exclusivas ativas.</div></div></div>}
