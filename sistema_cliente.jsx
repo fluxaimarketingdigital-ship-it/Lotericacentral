@@ -953,11 +953,11 @@ function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexD
 </div>);}
 
 /* ══════════════════════ CONTA ══════════════════════ */
-function HistItem({a, cfg, c, clients, setCl}){
+function HistItem({a, cfg, c, clients, setCl, setVoucherVer}){
   const [exp, setExp] = useState(false);
   const s = a.status || (a.valida!==false?"approved":"rejected"); // fallback legacy
   const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
-  const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : s==="not_counted"?"Histórico" : "Recusado";
+  const labelS = s==="approved"?"Aprovada" : s==="pending"?"Aguardando Auditoria" : s==="not_counted"?"Histórico" : "Recusada";
   const d = a.detalhes || {};
 
   const [isEditing, setIsEditing] = useState(false);
@@ -1093,46 +1093,20 @@ function HistItem({a, cfg, c, clients, setCl}){
            </div>
         )}
 
-function HistItem({a,cfg,c,clients,setCl,setVoucherVer}){
-  const [exp,setExp]=useState(false);
-  const s=a.status||(a.valida===false?"rejected":"approved");
-  const corS=s==="approved"?C.vd:s==="pending"?C.ou:C.rd;
-  const labelS=s==="approved"?"Aprovada":s==="pending"?"Aguardando Auditoria":"Recusada";
-  
-  const pLink = (c.premios||[]).find(p=>p.authId===a.id && p.status!=="rejected");
-
-  return(
-    <div style={{borderBottom:`1px solid ${C.bd}11`}}>
-      <div onClick={()=>setExp(!exp)} style={{padding:"12px 17px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:exp?C.bg:"#fff",borderLeft:`4px solid ${corS}`}}>
-        <div style={{width:34,height:34,borderRadius:10,background:`${corS}12`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,border:`1px solid ${corS}33`}}>
-          {s==="approved"?"✅":s==="pending"?"⏳":"❌"}
-        </div>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{(a.opNome||"Atendimento").split(" ")[0]} · {brl(a.total)}</div>
-          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}</div>
-        </div>
-        <div style={{textAlign:"right"}}>
-           <div style={{background:corS,color:"#fff",fontSize:8,fontWeight:900,padding:"2px 8px",borderRadius:6,textTransform:"uppercase"}}>{labelS}</div>
-           <div style={{fontSize:12,color:C.sb,marginTop:3}}>{exp?"▲":"▼"}</div>
-        </div>
-      </div>
-      {exp && <div style={{padding:"10px 17px 15px 63px",background:"#fafafa",fontSize:11,color:C.sb,animation:"fadeUp .2s"}}>
-        <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:10}}>
-           {Object.entries(a.detalhes||{}).map(([fid, val]) => {
-             const f = cfg.formulario.campos.find(x=>x.id===fid);
-             if(!f || !val) return null;
-             return <div key={fid} style={{display:"flex",justifyContent:"space-between",borderBottom:`1px solid ${C.bd}11`,paddingBottom:2}}>
-               <span>{f.emoji} {f.nome}</span>
-               <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
-             </div>
-           })}
-        </div>
-        {pLink && pLink.status==="approved" && (
-          <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pLink);}} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontWeight:800,fontSize:10,cursor:"pointer"}}>🎫 Visualizar Cupom Digital</button>
-        )}
-        {pLink && pLink.status==="redeemed" && (
-          <div style={{background:C.bg,padding:8,borderRadius:8,textAlign:"center",color:C.sb,fontSize:10,fontWeight:700}}>✅ Prêmio Retirado</div>
-        )}
+        {(() => {
+          const pLink = (c.premios||[]).find(p=>p.authId===a.id && p.status!=="rejected");
+          if(!pLink) return null;
+          return (
+            <>
+              {pLink.status==="approved" && (
+                <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pLink);}} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontWeight:800,fontSize:10,cursor:"pointer",marginTop:8}}>🎫 Visualizar Cupom Digital</button>
+              )}
+              {pLink.status==="redeemed" && (
+                <div style={{background:C.bg,padding:8,borderRadius:8,textAlign:"center",color:C.sb,fontSize:10,fontWeight:700,marginTop:8}}>✅ Prêmio Retirado</div>
+              )}
+            </>
+          );
+        })()}
       </div>}
     </div>
   );
@@ -1241,7 +1215,7 @@ function VoucherCard({p, cli, cfg, onClose}){
             <div style={{fontSize:18,fontWeight:900,color:C.tx,fontFamily:"monospace",letterSpacing:1}}>{p.id.toUpperCase()}</div>
           </div>
           <div style={{flex:1,background:C.rdC,borderRadius:12,padding:10,border:`1px solid ${C.rd}33`}}>
-            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Validade de Retirada do Prêmio</div>
+            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Válido até</div>
             <div style={{fontSize:15,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
           </div>
         </div>
