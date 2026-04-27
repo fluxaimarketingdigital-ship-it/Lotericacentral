@@ -834,10 +834,10 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
          ))}
 
          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar Visita</button>}
-            {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar Visita</button>}
+            {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar Autenticação</button>}
+            {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar Autenticação</button>}
             {s!=="pending" && <button onClick={()=>updateStatus("pending")} style={{background:"#eee",color:C.sb,border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer"}}>Reverter para Pendente</button>}
-            <button onClick={deleteAuth} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>🗑️ Excluir Visita</button>
+            <button onClick={deleteAuth} style={{background:"#fff",color:C.rd,border:`1px solid ${C.rd}44`,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>🗑️ Excluir Autenticação</button>
          </div>
       </div>}
     </div>
