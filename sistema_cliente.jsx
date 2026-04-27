@@ -1157,10 +1157,16 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
       </div>
       <button onClick={()=>{setCli(null);setTela("boas_vindas");}} style={{background:"#fff",color:C.rd,border:`1.5px solid ${C.rd}33`,borderRadius:13,padding:13,fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Sair da conta</button>
     </>}
-    {sub==="reg"&&<div style={{background:"#fff",borderRadius:13,padding:"14px",border:`1px solid ${C.bd}`,maxHeight:500,overflowY:"auto"}}>
-      <pre style={{fontSize:11,color:C.tx,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>
-        {cfg.regulamento.replace(/{meta}/g,cfg.meta).replace(/{premioNome}/g,cfg.premioMeta.nome).replace(/{minVisita}/g,cfg.minVisita||300).replace(/{minRelampago}/g,cfg.minRelampago||60).replace(/{dataInicio}/g,fD(cfg.dataInicio)).replace(/{dataFim}/g,fD(cfg.dataFim))}
-      </pre>
+    {sub==="reg"&&<div style={{display:"flex",flexDirection:"column",gap:10}}>
+      <div style={{background:"#fff",borderRadius:15,padding:12,border:`1px solid ${C.bd}`,display:"flex",gap:8}}>
+        <div style={{flex:1,background:C.bg,borderRadius:10,padding:8,textAlign:"center"}}><div style={{fontSize:8,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Início</div><div style={{fontWeight:900,fontSize:13,color:C.az}}>{fD(cfg.dataInicio)}</div></div>
+        <div style={{flex:1,background:C.bg,borderRadius:10,padding:8,textAlign:"center"}}><div style={{fontSize:8,color:C.sb,textTransform:"uppercase",fontWeight:800}}>Término</div><div style={{fontWeight:900,fontSize:13,color:C.rd}}>{fD(cfg.dataFim)}</div></div>
+      </div>
+      <div style={{background:"#fff",borderRadius:13,padding:"14px",border:`1px solid ${C.bd}`,maxHeight:500,overflowY:"auto"}}>
+        <pre style={{fontSize:11,color:C.tx,lineHeight:1.9,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>
+          {cfg.regulamento.replace(/{meta}/g,cfg.meta).replace(/{premioNome}/g,cfg.premioMeta.nome).replace(/{minVisita}/g,cfg.minVisita||300).replace(/{minRelampago}/g,cfg.minRelampago||60).replace(/{dataInicio}/g,fD(cfg.dataInicio)).replace(/{dataFim}/g,fD(cfg.dataFim))}
+        </pre>
+      </div>
     </div>}
   </div>);}
 
