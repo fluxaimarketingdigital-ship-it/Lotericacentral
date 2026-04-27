@@ -484,6 +484,10 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         </div>
         <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:22}}>{c.nome?.split(" ")[0]}!</span> 👋</div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
+        <div style={{fontSize:9,color:"rgba(255,255,255,.4)",marginTop:5,display:"flex",alignItems:"center",gap:5}}>
+          <span style={{opacity:.8}}>📅 Período da Campanha:</span>
+          <span style={{color:"#fff",fontWeight:800}}>{fD(dIni)} — {fD(dFim)}</span>
+        </div>
       </div>
       <div style={{marginTop:16,background:"rgba(255,255,255,.12)",borderRadius:20,padding:"15px 17px",border:"1px solid rgba(255,255,255,.18)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
