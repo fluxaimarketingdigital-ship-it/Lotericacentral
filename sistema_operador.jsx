@@ -88,8 +88,6 @@ const mAno=d=>{
 const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtDN = v=>{if(!v)return"—";if(v.length!==8)return v;return`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;};
 const hoje=()=>new Date().toISOString().slice(0,10);
-/* DB importado via firebase.js */
-
 
 /* ═══════ CSS ═══════ */
 const CSS=`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -104,6 +102,8 @@ body{background:#f0f4fb;font-family:'Nunito',sans-serif;}
 /* ═══════ ESTILOS ═══════ */
 const L={fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5};
 const I={padding:"11px 13px",border:`1.5px solid ${C.bd}`,borderRadius:11,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff",width:"100%"};
+const LS={fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.4};
+const IS={padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"};
 const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRadius:9,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"};
 
 /* ═══════ APP ROOT ═══════ */
@@ -146,7 +146,6 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
   <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",background:C.ou,opacity:.07}}/>
   <div style={{fontSize:68,animation:"pop .5s",filter:"drop-shadow(0 6px 18px rgba(245,168,0,.5))",zIndex:1}}>🏆</div>
   <div style={{textAlign:"center",zIndex:1}}><div style={{fontWeight:900,fontSize:26,color:"#fff"}}>Lotérica Central</div><div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:6,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div></div>
-  <Pts/>
 </div>);}
 
 function Home({ops,cl,setRole,setOpSel,setTela}){
@@ -355,7 +354,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops}/>}
       {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
-      {aba==="voucher"&&<OpVoucher pr={pr} setPr={setPr} cl={cl} op={op}/>}
+      {aba==="voucher"&&<OpVoucher pr={pr} setPr={setPr} cl={cl} op={op} cfg={cfg}/>}
       {aba==="rank" && <OpRank rank={rank} op={op} pos={pos}/>}
       {aba==="reg"  && <OpRegulamento cfg={cfg}/>}
     </div>
@@ -453,9 +452,7 @@ function OpCl({meusCl,cfg}){return(<div style={{display:"flex",flexDirection:"co
     </div>);})}</div>
 </div>);}
 
-
-
-function OpVoucher({pr, setPr, cl, op}){
+function OpVoucher({pr, setPr, cl, op, cfg}){
   const [cod, setCod] = useState("");
   const [res, setRes] = useState(null);
   
@@ -467,7 +464,7 @@ function OpVoucher({pr, setPr, cl, op}){
   }
 
   function validar(p){
-    if(!window.confirm("Confirmar a retirada deste prêmio no balcão? O progresso do cliente será zerado.")) return;
+    if(!window.confirm("Confirmar a retirada deste prêmio no balcão?")) return;
     setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", redeemedAt:new Date().toISOString(), opRedeemed:op.nome}:x));
     setRes({...res, pr:{...p, status:"redeemed"}});
     alert("✅ Retirada registrada com sucesso!");
@@ -1000,29 +997,11 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
 }
 
 function APr({pr, cl, cfg, setPr}){
+  const [voucherVer, setVoucherVer] = useState(null);
   const cN=id=>cl.find(c=>c.id===id)?.nome||"—";
   const cW=id=>cl.find(c=>c.id===id)?.whats||"";
   
-  function updateP(id, s){
-    setPr(pr.map(p=>p.id===id?{...p, status:s}:p));
-  }
-  
-  function delP(id){
-    if(!window.confirm("Remover este prêmio PERMANENTEMENTE?")) return;
-    setPr(pr.filter(p=>p.id!==id));
-  }
-
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🎁" t="Prêmios Distribuídos" s={`${pr.length} total`}/>
-    {pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
-       <div style={{background:C.rx,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rx}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s"}}>
-         <span style={{fontSize:24}}>⚡</span>
-         <div style={{flex:1}}>
-            <div style={{fontWeight:900,fontSize:14}}>Novo Prêmio Relâmpago Pendente!</div>
-            <div style={{fontSize:11,opacity:.9}}>Há clientes aguardando a auditoria de prêmios relâmpago.</div>
-         </div>
-       </div>
-    )}
-
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>{[[`${cfg.premioMeta.emoji}`,"Meta",pr.filter(p=>p.tipo==="raspadinha").length,C.vd],["⚡","Relâmpago",pr.filter(p=>p.tipo==="relampago").length,C.rx]].map(([em,l,v,cor])=>(
       <div key={l} style={{background:"#fff",borderRadius:12,padding:"13px",textAlign:"center",border:`1px solid ${C.bd}`}}><div style={{fontSize:22,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:24,color:cor}}>{v}</div><div style={{fontSize:10,color:C.sb,fontWeight:700}}>{l}</div></div>
     ))}</div>
@@ -1049,16 +1028,54 @@ function APr({pr, cl, cfg, setPr}){
           </div>
           
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {cliW && !isR && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5,flex:1,justifyContent:"center"}}>📲 WhatsApp c/ Voucher</a>}
-            {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado no balcão em {fDT(p.redeemedAt||p.data)} por {p.opRedeemed||"Op"}</div>}
+            {cliW && !isR && <a href={`https://wa.me/55${cliW}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",display:"flex",alignItems:"center",gap:5,flex:1,justifyContent:"center"}}>📲 WhatsApp c/ Texto</a>}
+            {!isR && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>}
+            {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado em {fDT(p.redeemedAt||p.data)}</div>}
           </div>
         </div>);
       })}
     </div>
+    {voucherVer && <OpVoucherCard p={voucherVer} cli={cl.find(c=>c.id===voucherVer.clientId)} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);
 }
 
-/* ═══════ CONFIG COMPLETA ═══════ */
+function OpVoucherCard({p, cli, cfg, onClose}){
+  const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
+    <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
+      <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:25,textAlign:"center",position:"relative"}}>
+        <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.1}}/>
+        <div style={{background:"#fff",width:85,height:85,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 8px 20px rgba(0,0,0,.2)"}}>
+          <div style={{fontWeight:900,fontSize:10,color:C.az,textAlign:"center"}}>LOTÉRICA<br/>CENTRAL</div>
+        </div>
+        <div style={{color:C.ou,fontSize:10,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
+        <div style={{color:"#fff",fontSize:22,fontWeight:900}}>Cliente Premiado</div>
+      </div>
+      <div style={{padding:"25px 22px",textAlign:"center"}}>
+        <div style={{fontSize:11,color:C.sb,textTransform:"uppercase",fontWeight:800,letterSpacing:1,marginBottom:4}}>Parabéns,</div>
+        <div style={{fontSize:20,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
+        <div style={{background:C.bg,borderRadius:18,padding:18,marginBottom:20,border:`1px solid ${C.bd}`}}>
+          <div style={{fontSize:10,color:C.sb,fontWeight:800,textTransform:"uppercase",marginBottom:6}}>Você Ganhou</div>
+          <div style={{fontSize:36,marginBottom:6}}>{p.emoji||cfg.premioMeta.emoji}</div>
+          <div style={{fontSize:18,fontWeight:900,color:C.az}}>{p.nome}</div>
+        </div>
+        <div style={{display:"flex",gap:10,marginBottom:20}}>
+          <div style={{flex:1,background:C.ouC,borderRadius:12,padding:10,border:`1px solid ${C.ou}33`}}>
+            <div style={{fontSize:9,fontWeight:800,color:C.ou2,textTransform:"uppercase"}}>Código Voucher</div>
+            <div style={{fontSize:18,fontWeight:900,color:C.tx,fontFamily:"monospace",letterSpacing:1}}>{p.id.toUpperCase()}</div>
+          </div>
+          <div style={{flex:1,background:C.rdC,borderRadius:12,padding:10,border:`1px solid ${C.rd}33`}}>
+            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Válido Até</div>
+            <div style={{fontSize:15,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
+          </div>
+        </div>
+      </div>
+      <div style={{background:C.bg,padding:15,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
+        <button onClick={onClose} style={{background:C.az,color:"#fff",border:"none",borderRadius:12,padding:12,fontWeight:900,fontSize:14,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar</button>
+      </div>
+    </div>
+  </div>);}
+
 function ACfg({cfg,setCfg,ops,setOps,cl,pr}){
   const[sub,setSub]=useState("meta");
   const SUBS=[{id:"meta",l:"🎯 Meta"},{id:"rl",l:"⚡ Relâmpago"},{id:"form",l:"📝 Formulário"},{id:"reg",l:"📋 Regulamento"},{id:"not",l:"📰 Notícias"},{id:"sis",l:"🔧 Sistema"}];
@@ -1076,7 +1093,6 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr}){
   </div>);
 }
 
-/* ═══════ CONFIG FORMULÁRIO ═══════ */
 function CfgForm({cfg,setCfg}){
   const form0 = cfg.formulario || {cats:[],campos:[]};
   const[campos,setCampos]=useState(form0.campos.map(c=>({...c})));
@@ -1087,40 +1103,21 @@ function CfgForm({cfg,setCfg}){
   const[showNG,setShowNG]=useState(false);
   const[showNC,setShowNC]=useState(false);
   const[msg,   setMsg]   =useState("");
-  const[aba,   setAba]   =useState("campos"); // campos | cats | preview
+  const[aba,   setAba]   =useState("campos");
 
-  const catNome=id=>cats.find(c=>c.id===id)?.nome||id;
-  const catCor =id=>cats.find(c=>c.id===id)?.cor||C.az;
-
-  function updCampo(id,k,v){setCampos(l=>l.map(c=>c.id===id?{...c,[k]:v}:c));}
-  function removeCampo(id){if(!window.confirm("Remover este campo?"))return;setCampos(l=>l.filter(c=>c.id!==id));setEditId(null);}
-  function moverCampo(id,dir){setCampos(l=>{const i=l.findIndex(c=>c.id===id);if(dir===-1&&i===0)return l;if(dir===1&&i===l.length-1)return l;const n=[...l];[n[i],n[i+dir]]=[n[i+dir],n[i]];return n;});}
-  function addCampo(){if(!novaC.nome.trim()){setMsg("❌ Informe o nome do campo.");return;}if(!novaC.cat){setMsg("❌ Selecione uma categoria.");return;}const c={...novaC,id:uid(),ativo:true};setCampos(l=>[...l,c]);setNovaC({nome:"",emoji:"📦",cat:cats[0]?.id||"",comValor:true,triggerRelampago:false,obrigatorio:false});setShowNC(false);setMsg("");}
-  function addCat(){if(!novaG.nome.trim()){setMsg("❌ Informe o nome da categoria.");return;}setCats(l=>[...l,{id:uid(),nome:novaG.nome.trim(),cor:novaG.cor}]);setNovaG({nome:"",cor:"#003478"});setShowNG(false);setMsg("");}
-  function removeCat(id){if(!window.confirm("Remover categoria? Os campos desta categoria ficarão sem categoria."))return;setCats(l=>l.filter(c=>c.id!==id));}
-
-  function salvar(){
-    setCfg({...cfg,formulario:{cats,campos}});
-    DB.save("lc-cfg",{...cfg,formulario:{cats,campos}});
-    setMsg("✅ Formulário salvo! O app do cliente já reflete as mudanças.");
-    setTimeout(()=>setMsg(""),4000);
-  }
-
+  const updCampo=(id,k,v)=>{setCampos(l=>l.map(c=>c.id===id?{...c,[k]:v}:c));}
+  const removeCampo=(id)=>{if(!window.confirm("Remover este campo?"))return;setCampos(l=>l.filter(c=>c.id!==id));setEditId(null);}
+  const moverCampo=(id,dir)=>{setCampos(l=>{const i=l.findIndex(c=>c.id===id);if(dir===-1&&i===0)return l;if(dir===1&&i===l.length-1)return l;const n=[...l];[n[i],n[i+dir]]=[n[i+dir],n[i]];return n;});}
+  const addCampo=()=>{if(!novaC.nome.trim()){setMsg("❌ Informe o nome do campo.");return;}if(!novaC.cat){setMsg("❌ Selecione uma categoria.");return;}const c={...novaC,id:uid(),ativo:true};setCampos(l=>[...l,c]);setNovaC({nome:"",emoji:"📦",cat:cats[0]?.id||"",comValor:true,triggerRelampago:false,obrigatorio:false});setShowNC(false);setMsg("");}
+  const addCat=()=>{if(!novaG.nome.trim()){setMsg("❌ Informe o nome da categoria.");return;}setCats(l=>[...l,{id:uid(),nome:novaG.nome.trim(),cor:novaG.cor}]);setNovaG({nome:"",cor:"#003478"});setShowNG(false);setMsg("");}
+  const removeCat=(id)=>{if(!window.confirm("Remover categoria?"))return;setCats(l=>l.filter(c=>c.id!==id));}
+  const salvar=()=>{ setCfg({...cfg,formulario:{cats,campos}}); DB.save("lc-cfg",{...cfg,formulario:{cats,campos}}); setMsg("✅ Salvo!"); setTimeout(()=>setMsg(""),4000); }
   const abas=[{id:"campos",l:"📋 Campos"},{id:"cats",l:"🏷️ Categorias"},{id:"preview",l:"👁️ Preview"}];
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
-    {/* info box */}
-    <div style={{background:`${C.az}0d`,borderRadius:12,padding:"11px 13px",border:`1px solid ${C.az}22`,fontSize:11,color:C.az,lineHeight:1.8}}>
-      📝 <strong>Formulário do Cliente</strong><br/>
-      Configure os produtos e serviços que o cliente pode selecionar ao registrar a visita (após o código do operador, o número de controle do comprovante, valor total e avaliação de atendimento). Todos os outros campos são opcionais, servem para histórico da visita. Campos com <strong style={{color:C.rx}}>⚡ Relâmpago</strong> habilitam o sorteio automático.
-    </div>
-
-    {/* sub-abas */}
     <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`}}>
       {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"8px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:11,background:aba===a.id?C.az:"transparent",color:aba===a.id?"#fff":C.sb,transition:"all .2s"}}>{a.l}</button>)}
     </div>
-
-    {/* ── CAMPOS ── */}
     {aba==="campos"&&(<div style={{display:"flex",flexDirection:"column",gap:8}}>
       {cats.map(cat=>{
         const cc=campos.filter(c=>c.cat===cat.id);
@@ -1129,184 +1126,81 @@ function CfgForm({cfg,setCfg}){
           <div style={{display:"flex",gap:7,alignItems:"center",marginBottom:7}}>
             <div style={{width:3,height:15,borderRadius:4,background:cat.cor}}/>
             <div style={{fontWeight:800,fontSize:11,color:cat.cor,textTransform:"uppercase",letterSpacing:.5}}>{cat.nome}</div>
-            <div style={{fontSize:10,color:C.sb}}>({cc.length} campos)</div>
           </div>
-          {cc.map((c,i)=>{
-            const gi=campos.findIndex(x=>x.id===c.id);
+          {cc.map((c)=>{
             return(<div key={c.id} style={{background:"#fff",borderRadius:12,border:`1px solid ${c.ativo?cat.cor+"33":C.bd}`,overflow:"hidden",marginBottom:6}}>
               <div style={{padding:"10px 12px",display:"flex",gap:9,alignItems:"center",cursor:"pointer",borderBottom:editId===c.id?`1px solid ${C.bd}`:"none"}} onClick={()=>setEditId(editId===c.id?null:c.id)}>
                 <div style={{width:34,height:34,borderRadius:9,background:c.ativo?`${cat.cor}15`:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{c.emoji}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontWeight:700,fontSize:12,color:c.ativo?C.tx:"#9ca3af",textDecoration:c.ativo?"none":"line-through",display:"flex",gap:5,alignItems:"center"}}>
-                    {c.nome}
-                    {c.obrigatorio&&<span style={{background:C.rdC,color:C.rd,fontSize:8,fontWeight:800,padding:"1px 5px",borderRadius:8}}>Obrigatório</span>}
-                    {c.triggerRelampago&&<span style={{background:C.rxC,color:C.rx,fontSize:8,fontWeight:800,padding:"1px 5px",borderRadius:8}}>⚡ Relâmpago</span>}
-                    {c.comValor&&<span style={{background:C.azC,color:C.az,fontSize:8,fontWeight:800,padding:"1px 5px",borderRadius:8}}>R$</span>}
-                  </div>
-                </div>
+                <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:c.ativo?C.tx:"#9ca3af",textDecoration:c.ativo?"none":"line-through"}}>{c.nome}</div></div>
                 <div style={{display:"flex",gap:5,alignItems:"center"}}>
-                  {/* Reordenar */}
                   <div style={{display:"flex",flexDirection:"column",gap:2}}>
-                    <button onClick={e=>{e.stopPropagation();moverCampo(c.id,-1);}} style={{background:"none",border:`1px solid ${C.bd}`,borderRadius:4,width:20,height:16,cursor:"pointer",fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",color:C.sb}}>▲</button>
-                    <button onClick={e=>{e.stopPropagation();moverCampo(c.id,1);}} style={{background:"none",border:`1px solid ${C.bd}`,borderRadius:4,width:20,height:16,cursor:"pointer",fontSize:8,display:"flex",alignItems:"center",justifyContent:"center",color:C.sb}}>▼</button>
+                    <button onClick={e=>{e.stopPropagation();moverCampo(c.id,-1);}} style={{background:"none",border:`1px solid ${C.bd}`,borderRadius:4,width:20,height:16,cursor:"pointer",fontSize:8,color:C.sb}}>▲</button>
+                    <button onClick={e=>{e.stopPropagation();moverCampo(c.id,1);}} style={{background:"none",border:`1px solid ${C.bd}`,borderRadius:4,width:20,height:16,cursor:"pointer",fontSize:8,color:C.sb}}>▼</button>
                   </div>
-                  {/* Toggle ativo */}
-                  <div onClick={e=>{e.stopPropagation();updCampo(c.id,"ativo",!c.ativo);}} style={{width:36,height:20,borderRadius:10,cursor:"pointer",position:"relative",background:c.ativo?C.vd:"#d1d5db",transition:"background .2s",flexShrink:0}}>
-                    <div style={{position:"absolute",top:2,left:c.ativo?18:2,width:16,height:16,borderRadius:"50%",background:"#fff",transition:"left .2s",boxShadow:"0 1px 3px rgba(0,0,0,.3)"}}/>
-                  </div>
-                  <span style={{fontSize:13,color:C.sb}}>{editId===c.id?"▲":"▼"}</span>
+                  <div onClick={e=>{e.stopPropagation();updCampo(c.id,"ativo",!c.ativo);}} style={{width:36,height:20,borderRadius:10,cursor:"pointer",position:"relative",background:c.ativo?C.vd:"#d1d5db",transition:"background .2s",flexShrink:0}}><div style={{position:"absolute",top:2,left:c.ativo?18:2,width:16,height:16,borderRadius:"50%",background:"#fff",transition:"left .2s"}}/></div>
                 </div>
               </div>
-              {editId===c.id&&<div style={{padding:"12px 12px",display:"flex",flexDirection:"column",gap:9,background:"#fafcff"}}>
-                <div style={{display:"flex",gap:7}}>
-                  <div style={{flex:0}}>
-                    <label style={LS}>Emoji</label>
-                    <input value={c.emoji} onChange={e=>updCampo(c.id,"emoji",e.target.value)} style={{width:48,marginTop:4,padding:"8px 4px",border:`1.5px solid ${C.bd}`,borderRadius:9,fontSize:18,textAlign:"center",fontFamily:"inherit",outline:"none"}}/>
-                  </div>
-                  <div style={{flex:1}}>
-                    <label style={LS}>Nome do campo *</label>
-                    <input value={c.nome} onChange={e=>updCampo(c.id,"nome",e.target.value)} style={{width:"100%",marginTop:4,...IS}}/>
-                  </div>
-                </div>
-                <div style={{display:"flex",gap:7}}>
-                  <div style={{flex:1}}>
-                    <label style={LS}>Categoria</label>
-                    <select value={c.cat} onChange={e=>updCampo(c.id,"cat",e.target.value)} style={{width:"100%",marginTop:4,...IS}}>
-                      {cats.map(g=><option key={g.id} value={g.id}>{g.nome}</option>)}
-                    </select>
-                  </div>
-                </div>
-                {/* Opções booleanas */}
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>
-                  {[["comValor","💰 Campo R$","Exibe input de valor"],["triggerRelampago","⚡ Relâmpago","Selecionar habilita sorteio"],["obrigatorio","❗ Obrigatório","Cliente deve selecionar"]].map(([key,label,hint])=>(
-                    <div key={key} style={{background:c[key]?`${cat.cor}10`:C.bg,borderRadius:9,padding:"9px 8px",border:`1.5px solid ${c[key]?cat.cor:C.bd}`,cursor:"pointer",textAlign:"center"}} onClick={()=>updCampo(c.id,key,!c[key])}>
-                      <div style={{fontSize:13,marginBottom:3}}>{label.slice(0,2)}</div>
-                      <div style={{fontWeight:700,fontSize:9,color:c[key]?cat.cor:C.sb,lineHeight:1.3}}>{label.slice(2)}</div>
-                      <div style={{fontSize:8,color:C.sb,marginTop:2,lineHeight:1.3}}>{hint}</div>
-                    </div>
-                  ))}
-                </div>
-                <button onClick={()=>removeCampo(c.id)} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"7px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este campo</button>
+              {editId===c.id&&<div style={{padding:"12px",display:"flex",flexDirection:"column",gap:9,background:"#fafcff"}}>
+                <div style={{display:"flex",gap:7}}><div style={{flex:0}}><label style={LS}>Emoji</label><input value={c.emoji} onChange={e=>updCampo(c.id,"emoji",e.target.value)} style={{width:48,marginTop:4,...IS,fontSize:18,textAlign:"center"}}/></div><div style={{flex:1}}><label style={LS}>Nome do campo *</label><input value={c.nome} onChange={e=>updCampo(c.id,"nome",e.target.value)} style={{width:"100%",marginTop:4,...IS}}/></div></div>
+                <div><label style={LS}>Categoria</label><select value={c.cat} onChange={e=>updCampo(c.id,"cat",e.target.value)} style={{width:"100%",marginTop:4,...IS}}>{cats.map(g=><option key={g.id} value={g.id}>{g.nome}</option>)}</select></div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7}}>{[["comValor","💰 R$"],["triggerRelampago","⚡ Relâmpago"],["obrigatorio","❗ Obrigatório"]].map(([k,l])=><div key={k} style={{background:c[k]?cat.cor+"10":C.bg,borderRadius:9,padding:"9px 8px",border:`1.5px solid ${c[k]?cat.cor:C.bd}`,cursor:"pointer",textAlign:"center"}} onClick={()=>updCampo(c.id,k,!c[k])}><div style={{fontSize:13,marginBottom:3}}>{l.slice(0,2)}</div><div style={{fontWeight:700,fontSize:9,color:c[k]?cat.cor:C.sb}}>{l.slice(2)}</div></div>)}</div>
+                <button onClick={()=>removeCampo(c.id)} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"7px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover</button>
               </div>}
             </div>);
           })}
         </div>);
       })}
-
-      {/* Adicionar novo campo */}
       {!showNC&&<button onClick={()=>{setShowNC(true);setNovaC({nome:"",emoji:"📦",cat:cats[0]?.id||"",comValor:true,triggerRelampago:false,obrigatorio:false});}} style={{background:C.azC,color:C.az,border:`1.5px dashed ${C.az}55`,borderRadius:12,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>➕ Adicionar Novo Campo</button>}
-      {showNC&&<div style={{background:"#fff",borderRadius:14,padding:"15px 14px",border:`2px solid ${C.az}44`}}>
-        <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>➕ Novo Campo</div>
-        <div style={{display:"flex",gap:7,marginBottom:10}}>
-          <div style={{flex:0}}><label style={LS}>Emoji</label><input value={novaC.emoji} onChange={e=>setNovaC({...novaC,emoji:e.target.value})} style={{width:48,marginTop:4,padding:"8px 4px",border:`1.5px solid ${C.bd}`,borderRadius:9,fontSize:18,textAlign:"center",fontFamily:"inherit",outline:"none"}}/></div>
-          <div style={{flex:1}}><label style={LS}>Nome *</label><input value={novaC.nome} onChange={e=>setNovaC({...novaC,nome:e.target.value})} placeholder="Ex: Recarga Celular" style={{width:"100%",marginTop:4,...IS}}/></div>
-        </div>
-        <div style={{marginBottom:10}}><label style={LS}>Categoria *</label>
-          <select value={novaC.cat} onChange={e=>setNovaC({...novaC,cat:e.target.value})} style={{width:"100%",marginTop:4,...IS}}><option value="">Selecione…</option>{cats.map(g=><option key={g.id} value={g.id}>{g.nome}</option>)}</select>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:7,marginBottom:12}}>
-          {[["comValor","💰 R$"],["triggerRelampago","⚡ Relâmpago"],["obrigatorio","❗ Obrigatório"]].map(([k,l])=>(
-            <div key={k} style={{background:novaC[k]?C.azC:C.bg,borderRadius:9,padding:"9px 8px",border:`1.5px solid ${novaC[k]?C.az:C.bd}`,cursor:"pointer",textAlign:"center"}} onClick={()=>setNovaC({...novaC,[k]:!novaC[k]})}>
-              <div style={{fontSize:14,marginBottom:2}}>{l.slice(0,2)}</div>
-              <div style={{fontWeight:700,fontSize:10,color:novaC[k]?C.az:C.sb}}>{l.slice(2)}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={addCampo} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.az,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>✅ Adicionar</button>
-          <button onClick={()=>setShowNC(false)} style={{flex:1,padding:"10px",borderRadius:10,background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
-        </div>
+      {showNC&&<div style={{background:"#fff",borderRadius:14,padding:"15px",border:`2px solid ${C.az}44`}}>
+        <div style={{fontWeight:800,fontSize:13,marginBottom:12}}>➕ Novo Campo</div>
+        <div style={{display:"flex",gap:7,marginBottom:10}}><div style={{flex:0}}><label style={LS}>Emoji</label><input value={novaC.emoji} onChange={e=>setNovaC({...novaC,emoji:e.target.value})} style={{width:48,marginTop:4,...IS,fontSize:18,textAlign:"center"}}/></div><div style={{flex:1}}><label style={LS}>Nome *</label><input value={novaC.nome} onChange={e=>setNovaC({...novaC,nome:e.target.value})} style={{width:"100%",marginTop:4,...IS}}/></div></div>
+        <div style={{marginBottom:10}}><label style={LS}>Categoria *</label><select value={novaC.cat} onChange={e=>setNovaC({...novaC,cat:e.target.value})} style={{width:"100%",marginTop:4,...IS}}><option value="">Selecione…</option>{cats.map(g=><option key={g.id} value={g.id}>{g.nome}</option>)}</select></div>
+        <div style={{display:"flex",gap:8}}><button onClick={addCampo} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.az,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>✅ Adicionar</button><button onClick={()=>setShowNC(false)} style={{flex:1,padding:"10px",borderRadius:10,background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button></div>
       </div>}
     </div>)}
-
-    {/* ── CATEGORIAS ── */}
     {aba==="cats"&&(<div style={{display:"flex",flexDirection:"column",gap:9}}>
-      {cats.map(g=><div key={g.id} style={{background:"#fff",borderRadius:12,padding:"12px 14px",border:`1px solid ${g.cor}44`,display:"flex",alignItems:"center",gap:11}}>
-        <div style={{width:22,height:22,borderRadius:"50%",background:g.cor,flexShrink:0}}/>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{g.nome}</div>
-          <div style={{fontSize:10,color:C.sb}}>{campos.filter(c=>c.cat===g.id).length} campos · {g.cor}</div>
-        </div>
-        <input type="color" value={g.cor} onChange={e=>setCats(l=>l.map(x=>x.id===g.id?{...x,cor:e.target.value}:x))} style={{width:32,height:32,borderRadius:8,border:`1px solid ${C.bd}`,cursor:"pointer",padding:2}}/>
-        <button onClick={()=>removeCat(g.id)} style={{background:C.rdC,color:C.rd,border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️</button>
-      </div>)}
-
+      {cats.map(g=><div key={g.id} style={{background:"#fff",borderRadius:12,padding:"12px 14px",border:`1px solid ${g.cor}44`,display:"flex",alignItems:"center",gap:11}}><div style={{width:22,height:22,borderRadius:"50%",background:g.cor}}/><div style={{flex:1}}><div style={{fontWeight:800,fontSize:13}}>{g.nome}</div></div><input type="color" value={g.cor} onChange={e=>setCats(l=>l.map(x=>x.id===g.id?{...x,cor:e.target.value}:x))} style={{width:32,height:32,borderRadius:8,border:`1px solid ${C.bd}`,cursor:"pointer"}}/><button onClick={()=>removeCat(g.id)} style={{background:C.rdC,color:C.rd,border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,cursor:"pointer"}}>🗑️</button></div>)}
       {!showNG&&<button onClick={()=>setShowNG(true)} style={{background:C.azC,color:C.az,border:`1.5px dashed ${C.az}55`,borderRadius:12,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>➕ Nova Categoria</button>}
       {showNG&&<div style={{background:"#fff",borderRadius:13,padding:"14px",border:`2px solid ${C.az}44`}}>
-        <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:11}}>➕ Nova Categoria</div>
-        <div style={{display:"flex",gap:8,marginBottom:10}}>
-          <input value={novaG.nome} onChange={e=>setNovaG({...novaG,nome:e.target.value})} placeholder="Nome da categoria…" style={{flex:1,...IS}}/>
-          <input type="color" value={novaG.cor} onChange={e=>setNovaG({...novaG,cor:e.target.value})} style={{width:44,height:44,borderRadius:9,border:`1px solid ${C.bd}`,cursor:"pointer",padding:3}}/>
-        </div>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={addCat} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.az,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>✅ Adicionar</button>
-          <button onClick={()=>setShowNG(false)} style={{flex:1,padding:"10px",borderRadius:10,background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
-        </div>
+        <div style={{fontWeight:800,fontSize:13,marginBottom:11}}>➕ Nova Categoria</div>
+        <div style={{display:"flex",gap:8,marginBottom:10}}><input value={novaG.nome} onChange={e=>setNovaG({...novaG,nome:e.target.value})} placeholder="Nome…" style={{flex:1,...IS}}/><input type="color" value={novaG.cor} onChange={e=>setNovaG({...novaG,cor:e.target.value})} style={{width:44,height:44,borderRadius:9,border:`1px solid ${C.bd}`,cursor:"pointer"}}/></div>
+        <div style={{display:"flex",gap:8}}><button onClick={addCat} style={{flex:2,padding:"10px",borderRadius:10,border:"none",background:C.az,color:"#fff",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>✅ Adicionar</button><button onClick={()=>setShowNG(false)} style={{flex:1,padding:"10px",borderRadius:10,background:"#fff",color:C.sb,border:`1px solid ${C.bd}`,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button></div>
       </div>}
     </div>)}
-
-    {/* ── PREVIEW ── */}
-    {aba==="preview"&&(<div style={{display:"flex",flexDirection:"column",gap:9}}>
-      <div style={{background:C.azC,borderRadius:11,padding:"10px 12px",border:`1px solid ${C.bd}`,fontSize:11,color:C.az,lineHeight:1.7}}>
-        👁️ Prévia de como o formulário aparecerá para o cliente após escanear o QR do operador. Campos inativos não aparecem.
-      </div>
-      {cats.map(g=>{
-        const cc=campos.filter(c=>c.cat===g.id&&c.ativo);
-        if(cc.length===0)return null;
-        return(<div key={g.id}>
-          <div style={{display:"flex",gap:7,alignItems:"center",marginBottom:7}}>
-            <div style={{width:3,height:15,borderRadius:4,background:g.cor}}/>
-            <div style={{fontWeight:800,fontSize:11,color:g.cor,textTransform:"uppercase",letterSpacing:.5}}>{g.nome}</div>
-            <span style={{fontSize:9,color:C.sb}}>(opcional)</span>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:10}}>
-            {cc.map(c=><div key={c.id} style={{background:"#fff",borderRadius:11,border:`2px solid ${g.cor}22`,padding:"9px 10px",display:"flex",alignItems:"center",gap:7,opacity:.85}}>
-              <span style={{fontSize:16}}>{c.emoji}</span>
-              <span style={{fontSize:11,fontWeight:700,color:C.tx,flex:1,lineHeight:1.2}}>{c.nome}</span>
-              {c.obrigatorio&&<span style={{width:7,height:7,borderRadius:"50%",background:C.rd,flexShrink:0}}/>}
-              {c.triggerRelampago&&<span style={{fontSize:9}}>⚡</span>}
-            </div>)}
-          </div>
-        </div>);
-      })}
-      <div style={{background:C.rxC,borderRadius:11,padding:"10px 12px",border:`1px solid ${C.rx}22`,fontSize:11,color:C.rx,lineHeight:1.6}}>
-        ⚡ <strong>{campos.filter(c=>c.ativo&&c.triggerRelampago).length} campo{campos.filter(c=>c.ativo&&c.triggerRelampago).length!==1?"s":""}</strong> habilitam o sorteio de Prêmio Relâmpago.
-        <br/>❗ <strong>{campos.filter(c=>c.ativo&&c.obrigatorio).length} campo{campos.filter(c=>c.ativo&&c.obrigatorio).length!==1?"s":""}</strong> obrigatórios.
-      </div>
-    </div>)}
-
-    {msg&&<div style={{padding:"10px 12px",borderRadius:10,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd:C.rd}}>{msg}</div>}
-    <button onClick={salvar} style={{width:"100%",padding:14,borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>
-      💾 Salvar Formulário — Publicar para o App do Cliente
-    </button>
+    {aba==="preview"&&(<div style={{display:"flex",flexDirection:"column",gap:9}}>{cats.map(g=>{const cc=campos.filter(c=>c.cat===g.id&&c.ativo);if(cc.length===0)return null;return(<div key={g.id}><div style={{display:"flex",gap:7,alignItems:"center",marginBottom:7}}><div style={{width:3,height:15,borderRadius:4,background:g.cor}}/><div style={{fontWeight:800,fontSize:11,color:g.cor,textTransform:"uppercase"}}>{g.nome}</div></div><div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginBottom:10}}>{cc.map(c=><div key={c.id} style={{background:"#fff",borderRadius:11,border:`2px solid ${g.cor}22`,padding:"9px 10px",display:"flex",alignItems:"center",gap:7,opacity:.85}}><span style={{fontSize:16}}>{c.emoji}</span><span style={{fontSize:11,fontWeight:700,flex:1}}>{c.nome}</span></div>)}</div></div>);})}</div>)}
+    {msg&&<div style={{padding:"10px 12px",borderRadius:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
+    <button onClick={salvar} style={{width:"100%",padding:14,borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>💾 Salvar Formulário</button>
   </div>);
 }
-
-/* ═══════ ESTILOS INTERNOS CONFIG ═══════ */
-const LS={fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.4};
-const IS={padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"};
 
 function CfgMeta({cfg,setCfg}){
   const[meta,setMeta]=useState(String(cfg.meta));
   const[minV,setMinV]=useState(cfg.minVisita||300);
+  const[valDias,setValDias]=useState(cfg.validadeDias||30);
   const[emoji,setEmoji]=useState(cfg.premioMeta.emoji);
   const[nome,setNome]=useState(cfg.premioMeta.nome);
   const[desc,setDesc]=useState(cfg.premioMeta.desc);
   const[msg,setMsg]=useState("");
-  function salvar(){const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,minVisita:parseFloat(minV),premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
+  function salvar(){const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,minVisita:parseFloat(minV),validadeDias:parseInt(valDias)||30,premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
   return(<div style={{background:"#fff",borderRadius:16,padding:18,border:`1px solid ${C.bd}`}}>
     <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:14}}>🎯 Prêmio a cada N autenticações</div>
-    <div style={{display:"flex",gap:10,marginBottom:14}}>
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
       <div style={{flex:1}}>
-        <label style={L}>📊 Visitas p/ Prêmio</label>
+        <label style={L}>📊 Meta Visitas</label>
         <div style={{display:"flex",alignItems:"center",gap:8,marginTop:7}}>
           <input value={meta} onChange={e=>setMeta(e.target.value.replace(/\D/g,""))} style={{width:"100%",padding:"10px",border:`2px solid ${C.az}`,borderRadius:11,fontSize:18,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.az}}/>
         </div>
       </div>
-      <div style={{flex:1.5}}>
-        <label style={L}>💰 Valor Mínimo Visita (R$)</label>
+      <div style={{flex:1}}>
+        <label style={L}>💰 Valor Mín (R$)</label>
         <div style={{marginTop:7}}>
           <input type="number" value={minV} onChange={e=>setMinV(e.target.value)} style={{width:"100%",padding:"10px",border:`2px solid ${C.ou}`,borderRadius:11,fontSize:18,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.tx}}/>
+        </div>
+      </div>
+      <div style={{flex:1}}>
+        <label style={L}>📅 Validade (Dias)</label>
+        <div style={{marginTop:7}}>
+          <input type="number" value={valDias} onChange={e=>setValDias(e.target.value)} style={{width:"100%",padding:"10px",border:`2px solid ${C.rd}`,borderRadius:11,fontSize:18,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.tx}}/>
         </div>
       </div>
     </div>
