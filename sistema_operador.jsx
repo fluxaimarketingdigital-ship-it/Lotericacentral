@@ -80,7 +80,11 @@ const uidOp=(ops=[])=>{
 const now=()=>new Date().toISOString();
 const fD=d=>new Date(d).toLocaleDateString("pt-BR");
 const fDT=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
-const mAno=d=>`${String(new Date(d).getMonth()+1).padStart(2,"0")}/${new Date(d).getFullYear()}`;
+const mAno=d=>{
+  if(!d || d === "2000-01-01") return "Início";
+  const dt = new Date(d + (d.includes("T") ? "" : "T12:00:00"));
+  return `${String(dt.getMonth()+1).padStart(2,"0")}/${dt.getFullYear()}`;
+};
 const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtDN = v=>{if(!v)return"—";if(v.length!==8)return v;return`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;};
 const hoje=()=>new Date().toISOString().slice(0,10);
@@ -726,10 +730,12 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
     if(!window.confirm("Deseja encerrar o ciclo mensal atual? Os 2 primeiros colocados serão registrados para premiação e o ranking voltará a zero.")) return;
     const v1 = rank[0]; const v2 = rank[1];
     if(!v1 || v1.a === 0){ alert("Nenhuma autenticação registrada neste ciclo."); return; }
+    let periodo = mAno(lastReset);
+    if(periodo === "Início") periodo = mAno(now());
     const novoPremio = {
       id: uid(),
       data: now(),
-      periodo: mAno(lastReset),
+      periodo: periodo,
       vencedores: [
         {opId: v1.op.id, opNome: v1.op.nome, auths: v1.a, rank: 1},
         ...(v2 && v2.a > 0 ? [{opId: v2.op.id, opNome: v2.op.nome, auths: v2.a, rank: 2}] : [])
@@ -775,7 +781,10 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
             <div key={p.id} style={{background:"#fff",borderRadius:13,padding:14,border:`1px solid ${p.status==="paid"?C.vd+"33":C.bd}`}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
                 <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Ciclo {p.periodo}</div>
-                <div style={{background:p.status==="paid"?C.vdC:C.ouC,color:p.status==="paid"?C.vd:C.ou2,fontSize:9,fontWeight:900,padding:"2px 8px",borderRadius:20}}>{p.status==="paid"?"✅ PAGO":"⏳ PENDENTE"}</div>
+                <div style={{display:"flex",gap:8,alignItems:"center"}}>
+                  <div style={{background:p.status==="paid"?C.vdC:C.ouC,color:p.status==="paid"?C.vd:C.ou2,fontSize:9,fontWeight:900,padding:"2px 8px",borderRadius:20}}>{p.status==="paid"?"✅ PAGO":"⏳ PENDENTE"}</div>
+                  <button onClick={()=>{if(window.confirm("Remover este registro do histórico?")) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
+                </div>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
                 {p.vencedores.map(v => (
