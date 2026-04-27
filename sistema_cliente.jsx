@@ -1123,8 +1123,21 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
           {encerrada && <span style={{fontSize:9,background:C.rdC,color:C.rd,padding:"2px 8px",borderRadius:20,fontWeight:900}}>Campanha Encerrada</span>}
         </div>
         {((c.auths||[]).length===0) && <div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhuma visita registrada ainda.</div>}
-        {encerrada && <div style={{padding:12,background:C.bg,margin:10,borderRadius:10,fontSize:10,color:C.sb,textAlign:"center",border:`1px dashed ${C.bd}`}}>⚠️ Visitas após {fD(dFim)} não pontuam neste ciclo.</div>}
-        {[...(c.auths||[])].reverse().map(a=><HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl}/>)}
+        {(() => {
+          const sorted = [...(c.auths||[])].sort((a,b)=>new Date(b.data)-new Date(a.data));
+          const items = [];
+          let dividerAdded = false;
+          sorted.forEach((a, i) => {
+            if (!dividerAdded && a.data < dIni) {
+              items.push(<div key="divider-end" style={{padding:"10px 17px", background:C.bg, color:C.sb, fontSize:10, fontWeight:900, textAlign:"center", textTransform:"uppercase", letterSpacing:1, borderTop:`1px dashed ${C.bd}`, borderBottom:`1px dashed ${C.bd}`}}>
+                🏁 Ciclo Encerrado em {fD(new Date(new Date(dIni).getTime() - 86400000))}
+              </div>);
+              dividerAdded = true;
+            }
+            items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl}/>);
+          });
+          return items;
+        })()}
       </div>
       {temPr&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:15,padding:"13px 15px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:32}}>🏆</span><div><div style={{fontWeight:900,fontSize:14,color:C.az}}>Cliente Premiado!</div><div style={{fontSize:11,color:C.az,opacity:.8,marginTop:2}}>Notícias e ofertas exclusivas ativas.</div></div></div>}
       <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"17px"}}>
