@@ -67,7 +67,7 @@ Destinado a clientes que realizarem transações na unidade. A participação é
 
 /* ═══════ CORES ═══════ */
 const C={az:"#003478",az2:"#004fa8",azC:"#e8f0fb",ou:"#f5a800",ou2:"#d97706",ouC:"#fff8e6",vd:"#00a651",vdC:"#e6f9ef",rx:"#7c3aed",rxC:"#f3eeff",rd:"#e5001e",rdC:"#fff0f0",bg:"#f0f4fb",bd:"#dde6f5",tx:"#0d2137",sb:"#5a7a96",ops:["#7c3aed","#db2777","#059669","#d97706","#1d4ed8","#dc2626","#0891b2","#b45309","#6d28d9","#be185d"]};
-const oc=i=>C.ops[i%C.ops.length];
+const oc=i=>C.ops[Math.abs(i)%C.ops.length];
 
 /* ═══════ UTILS ═══════ */
 const uid=()=>Math.random().toString(36).slice(2,9);
@@ -270,7 +270,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
   const ABAS=[{id:"qr",emoji:"📲",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
-  const idx = ops.findIndex(o => o.id === op?.id);
+  const idx = Math.max(0, ops.findIndex(o => o.id === op?.id));
   const lastReset = cfg.lastReset || "2000-01-01";
   const minhas = useMemo(() => {
     let all = [];
