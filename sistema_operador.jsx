@@ -268,7 +268,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
-  const ABAS=[{id:"qr",emoji:"📲",label:"Código"},{id:"reg",emoji:"📋",label:"Regras"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
+  const ABAS=[{id:"qr",emoji:"📲",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
   const lastReset = cfg.lastReset || "2000-01-01";
@@ -335,7 +335,10 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       <div style={{position:"absolute",top:-30,right:-30,width:130,height:130,borderRadius:"50%",background:"rgba(255,255,255,.06)"}}/>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
         <button onClick={()=>{setRole(null);setOpSel(null);setTela("home");}} style={BV}>← Sair</button>
-        <button onClick={()=>setShowAlt(true)} style={{...BV,background:C.ou,color:C.az}}>🔒 Mudar Senha</button>
+        <div style={{display:"flex",gap:6}}>
+          <button onClick={()=>setAba("reg")} style={{...BV,background:"rgba(255,255,255,.2)",color:"#fff"}}>📋 Regras</button>
+          <button onClick={()=>setShowAlt(true)} style={{...BV,background:C.ou,color:C.az}}>🔒 Mudar Senha</button>
+        </div>
       </div>
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>{op.nome} <span style={{fontSize:9,opacity:.5,fontWeight:400}}>v1.2</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)",marginTop:1}}>Operador de Caixa · {fD(op.cadastro)}</div>
