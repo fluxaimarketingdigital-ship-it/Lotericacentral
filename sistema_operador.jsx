@@ -503,6 +503,71 @@ function OpRegInfo({cfg}){
   </div>);
 }
 
+function OpVoucher({pr, setPr, cl, op}){
+  const [cod, setCod] = useState("");
+  const [res, setRes] = useState(null);
+  
+  function buscar(){
+    const v = pr.find(p=>p.id.toUpperCase()===cod.toUpperCase().trim());
+    if(!v){ setRes({erro:"Voucher não encontrado."}); return; }
+    const c = cl.find(x=>x.id===v.clientId);
+    setRes({pr: v, c: c});
+  }
+
+  function validar(p){
+    if(!window.confirm("Confirmar a retirada deste prêmio no balcão? O progresso do cliente será zerado.")) return;
+    setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", redeemedAt:new Date().toISOString(), opRedeemed:op.nome}:x));
+    setRes({...res, pr:{...p, status:"redeemed"}});
+    alert("✅ Retirada registrada com sucesso!");
+  }
+
+  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
+    <T em="🎟️" t="Validar Voucher" s="Verifique e entregue os prêmios dos clientes"/>
+    <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`}}>
+      <label style={L}>Código do Voucher</label>
+      <div style={{display:"flex",gap:8,marginTop:6}}>
+        <input value={cod} onChange={e=>{setCod(e.target.value.toUpperCase());setRes(null);}} placeholder="Ex: A1B2C3" style={{flex:1,...I,fontFamily:"monospace",fontSize:18,fontWeight:900,letterSpacing:2}}/>
+        <button onClick={buscar} style={{background:C.az,color:"#fff",border:"none",borderRadius:11,padding:"0 20px",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Buscar</button>
+      </div>
+    </div>
+
+    {res && res.erro && <div style={{background:C.rdC,color:C.rd,padding:14,borderRadius:12,fontWeight:700,textAlign:"center"}}>{res.erro}</div>}
+    
+    {res && res.pr && (
+      <div style={{background:"#fff",borderRadius:14,padding:16,border:`2px solid ${res.pr.status==="approved"?C.ou:C.bd}`}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+           <div>
+             <div style={{fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Cliente</div>
+             <div style={{fontWeight:900,fontSize:16,color:C.tx}}>{res.c?.nome}</div>
+             <div style={{fontSize:11,color:C.sb}}>{res.c?.whats}</div>
+           </div>
+           <div style={{width:44,height:44,borderRadius:12,background:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{res.pr.emoji}</div>
+        </div>
+        
+        <div style={{background:C.bg,padding:12,borderRadius:10,marginBottom:14}}>
+          <div style={{fontSize:10,color:C.sb,fontWeight:800,textTransform:"uppercase",marginBottom:4}}>Prêmio</div>
+          <div style={{fontWeight:900,fontSize:14,color:C.tx}}>{res.pr.nome}</div>
+          <div style={{fontSize:11,color:C.sb}}>{res.pr.tipo==="relampago"?"Prêmio Relâmpago":"Prêmio Meta"}</div>
+        </div>
+
+        {res.pr.status === "approved" && (
+           <button onClick={()=>validar(res.pr)} style={{width:"100%",background:C.vd,color:"#fff",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.vd}44`}}>✅ Registrar Retirada no Balcão</button>
+        )}
+        {res.pr.status === "redeemed" && (
+           <div style={{background:C.vdC,color:C.vd,padding:14,borderRadius:12,fontWeight:800,textAlign:"center",border:`1px solid ${C.vd}44`}}>
+             ✅ Prêmio já retirado em {fDT(res.pr.redeemedAt||res.pr.data)}
+           </div>
+        )}
+        {res.pr.status === "pending" && (
+           <div style={{background:C.ouC,color:C.ou2,padding:14,borderRadius:12,fontWeight:800,textAlign:"center",border:`1px solid ${C.ou}44`}}>
+             ⏳ Este prêmio ainda não foi aprovado pelo administrador.
+           </div>
+        )}
+      </div>
+    )}
+  </div>);
+}
+
 /* ═══════ ADMIN PANEL ═══════ */
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
   const[aba,setAba]=useState("dash");
