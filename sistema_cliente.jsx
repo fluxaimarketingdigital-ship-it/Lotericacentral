@@ -441,7 +441,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
 
   const ABAS=[{id:"ini",l:"Início",em:"🏠"},{id:"reg",l:"Registrar",em:"📱"},{id:"pr",l:"Prêmios",em:"🎁"},{id:"not",l:"Notícias",em:"📰"},{id:"ct",l:"Conta",em:"👤"}];
   const c=cliente;if(!c)return null;
-  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
+  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected" && a.status !== "not_counted");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const meta = cfg.meta || 15;
   const unredeemedMeta = (premios||[]).filter(p=>p.clientId===c.id && p.tipo==="raspadinha" && p.status!=="redeemed");
@@ -650,7 +650,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV,status:isV?"pending":"not_counted",detalhes:sel};
         const auths=[...(c.auths||[]),auth];
         // Para o prêmio de meta, consideramos as aprovadas + a nova que está entrando (pendente)
-        const totalParaMeta = auths.filter(a=>a.status!=="rejected").length;
+        const totalParaMeta = auths.filter(a=>a.status!=="rejected" && a.status!=="not_counted").length;
         const meta = cfg.meta || 15;
         const ganhou=isV && (totalParaMeta % meta === 0);
         
@@ -925,8 +925,8 @@ function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexD
 function HistItem({a, cfg, c, clients, setCl}){
   const [exp, setExp] = useState(false);
   const s = a.status || (a.valida!==false?"approved":"rejected"); // fallback legacy
-  const corS = s==="approved"?C.vd : s==="pending"?C.ou : C.rd;
-  const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
+  const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
+  const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : s==="not_counted"?"Histórico" : "Recusado";
   const d = a.detalhes || {};
 
   const [isEditing, setIsEditing] = useState(false);

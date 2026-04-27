@@ -828,8 +828,8 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
 function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
   const [expA, setExpA] = useState(false);
   const s = a.status || (a.valida?"approved":"rejected"); // fallback legacy
-  const corS = s==="approved"?C.vd : s==="pending"?C.ou : C.rd;
-  const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
+  const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
+  const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : s==="not_counted"?"Histórico" : "Recusado";
   
   function updateStatus(newS){
     if(newS==="rejected"){
