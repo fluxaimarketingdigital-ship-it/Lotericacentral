@@ -29,7 +29,7 @@ function AppMenu() {
         <Link to="/operador" style={{ textDecoration: 'none' }}>
            <div style={{ background: '#fff', padding: '20px', borderRadius: '12px', border: '1px solid #dde6f5', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
              <h2 style={{ color: '#003478', margin: '0 0 5px 0' }}>3. App Operador / Admin</h2>
-             <p style={{ margin: 0, color: '#5a7a96', fontSize: '14px' }}>Tela de uso do operador de caixa para gerar QR, e dashboard do gestor.</p>
+             <p style={{ margin: 0, color: '#5a7a96', fontSize: '14px' }}>Tela de uso do operador de caixa para código do operador, e dashboard do gestor.</p>
            </div>
         </Link>
       </div>
