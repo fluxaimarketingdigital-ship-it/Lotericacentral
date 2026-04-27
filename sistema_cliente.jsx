@@ -929,15 +929,97 @@ function HistItem({a, cfg, c, clients, setCl}){
   const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
   const d = a.detalhes || {};
 
-  function reUpload(e){
+  const [isEditing, setIsEditing] = useState(false);
+  const [eData, setEData] = useState(a.data ? a.data.slice(0,10) : "");
+  const [eSel, setESel] = useState(a.detalhes || {});
+  const [eFoto, setEFoto] = useState(a.foto || null);
+
+  function handleEFoto(e){
     const f=e.target.files[0]; if(!f)return;
-    const r=new FileReader(); r.onload=async()=>{
-      const newA = {...a, foto:r.result, status:"pending", modificado:true, obsModificacao:"Comprovante reenviado pelo cliente"};
-      const newAuths = c.auths.map(ax=>ax.id===a.id?newA:ax);
-      await setCl(clients.map(x=>x.id===c.id ? {...x, auths:newAuths} : x));
-      alert("✅ Comprovante reenviado com sucesso! Aguarde a nova auditoria.");
-    };
+    const r=new FileReader(); r.onload=()=>setEFoto(r.result);
     r.readAsDataURL(f);
+  }
+
+  function toggleSel(id){ setESel(p=>{const n={...p}; if(n[id]!==undefined) delete n[id]; else n[id]=true; return n;}); }
+  function setSelVal(id, v){ setESel(p=>({...p, [id]:v})); }
+
+  async function salvarEdicao(){
+    const form = cfg.formulario||{};
+    const campos = form.campos||[];
+    const sels = Object.keys(eSel).filter(k=>eSel[k]!==false&&eSel[k]!=="");
+    const totalP = Object.entries(eSel).reduce((s,[id,v])=>{
+      const c = campos.find(f=>f.id===id);
+      if(c?.cat==="bc"){return s+(parseFloat(String(v).replace(',','.'))||0);}
+      return s;
+    },0);
+    const totalJ = Object.entries(eSel).reduce((s,[id,v])=>{
+      const c = campos.find(f=>f.id===id);
+      if(c?.cat==="jg"){return s+(parseFloat(String(v).replace(',','.'))||0);}
+      return s;
+    },0);
+    const total = totalP + totalJ;
+    const isV = totalP >= (cfg.minVisita||300);
+    
+    const agora = new Date();
+    const h = String(agora.getHours()).padStart(2, '0');
+    const m = String(agora.getMinutes()).padStart(2, '0');
+    const s = String(agora.getSeconds()).padStart(2, '0');
+    const dIso = `${eData}T${h}:${m}:${s}`;
+
+    const newA = {...a, data: dIso, detalhes: eSel, selecionados: sels, total: total, valida: isV, foto: eFoto, status: "pending", modificado: true, obsModificacao: "Corrigido pelo cliente"};
+    const newAuths = c.auths.map(ax=>ax.id===a.id?newA:ax);
+    await setCl(clients.map(x=>x.id===c.id ? {...x, auths:newAuths} : x));
+    setIsEditing(false);
+    alert("✅ Alterações enviadas com sucesso! O registro passará por uma nova auditoria.");
+  }
+
+  if(isEditing){
+     const form = cfg.formulario||{};
+     const campos = (form.campos||[]).filter(f=>f.ativo);
+     return (
+       <div style={{background:"#fff",padding:16,borderBottom:`1px solid ${C.bd}33`,animation:"fadeUp .3s"}}>
+         <div style={{fontWeight:900,fontSize:14,color:C.az,marginBottom:12}}>✏️ Corrigir Informações</div>
+         
+         <div style={{marginBottom:10}}>
+           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Protocolo / Controle (Não editável)</label>
+           <div style={{background:C.bg,padding:"10px 12px",borderRadius:8,color:C.sb,fontWeight:800,fontFamily:"monospace"}}>{a.controle}</div>
+         </div>
+
+         <div style={{marginBottom:12}}>
+           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Data do Cupom</label>
+           <input type="date" value={eData} onChange={e=>setEData(e.target.value)} style={{width:"100%",marginTop:4,padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:8,fontSize:13,fontFamily:"inherit"}}/>
+         </div>
+
+         <div style={{marginBottom:14}}>
+           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",display:"block",marginBottom:6}}>Valores e Serviços</label>
+           <div style={{display:"flex",flexDirection:"column",gap:6}}>
+             {campos.map(f=>{
+                const checked = eSel[f.id]!==undefined && eSel[f.id]!==false;
+                return <div key={f.id} style={{display:"flex",gap:8,alignItems:"center",background:checked?C.azC:C.bg,padding:10,borderRadius:8,border:`1px solid ${checked?C.az:C.bd}`}}>
+                  <input type="checkbox" checked={checked} onChange={()=>toggleSel(f.id)} style={{width:18,height:18,accentColor:C.az}}/>
+                  <span style={{fontSize:16}}>{f.emoji}</span>
+                  <span style={{flex:1,fontWeight:checked?800:700,fontSize:13,color:checked?C.tx:C.sb}}>{f.nome}</span>
+                  {f.comValor && checked && <input value={eSel[f.id]===true?"":eSel[f.id]} onChange={e=>setSelVal(f.id, e.target.value)} placeholder="R$ 0,00" style={{width:80,padding:"6px 8px",border:`1px solid ${C.bd}`,borderRadius:6,fontFamily:"inherit",fontSize:12,outline:"none"}}/>}
+                </div>
+             })}
+           </div>
+         </div>
+
+         <div style={{marginBottom:16}}>
+           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",display:"block",marginBottom:6}}>Comprovante (Foto)</label>
+           <label style={{display:"flex",alignItems:"center",justifyContent:"center",background:eFoto?C.vdC:C.bg,color:eFoto?C.vd:C.tx,padding:12,borderRadius:8,border:`1.5px dashed ${eFoto?C.vd:C.bd}`,cursor:"pointer",fontWeight:800}}>
+             {eFoto?"✅ Foto Selecionada":"📸 Nova Foto do Cupom"}
+             <input type="file" accept="image/*" capture="environment" onChange={handleEFoto} style={{display:"none"}}/>
+           </label>
+           {eFoto && <img src={eFoto} style={{width:80,height:80,objectFit:"cover",borderRadius:8,marginTop:8,border:`1px solid ${C.bd}`}} alt="preview"/>}
+         </div>
+
+         <div style={{display:"flex",gap:8}}>
+           <button onClick={()=>setIsEditing(false)} style={{flex:1,background:C.bg,color:C.sb,border:`1px solid ${C.bd}`,borderRadius:10,padding:12,fontWeight:800,fontSize:13,cursor:"pointer"}}>Cancelar</button>
+           <button onClick={salvarEdicao} style={{flex:2,background:C.az,color:"#fff",border:"none",borderRadius:10,padding:12,fontWeight:900,fontSize:13,cursor:"pointer",boxShadow:`0 4px 12px ${C.az}44`}}>Salvar e Reenviar</button>
+         </div>
+       </div>
+     );
   }
 
   return(
@@ -973,11 +1055,10 @@ function HistItem({a, cfg, c, clients, setCl}){
         {s === "rejected" && (
            <div style={{background:C.rdC,padding:12,borderRadius:8,marginBottom:12,border:`1px solid ${C.rd}33`}}>
              <div style={{fontWeight:800,color:C.rd,marginBottom:4}}>⚠️ Atenção: Registro Recusado</div>
-             <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>O administrador recusou este registro, possivelmente pelo comprovante ilegível ou incorreto. Você pode enviar uma nova foto.</div>
-             <label style={{display:"inline-block",marginTop:8,background:C.rd,color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",boxShadow:`0 2px 6px ${C.rd}55`}}>
-               ✏️ Corrigir Comprovante
-               <input type="file" accept="image/*" capture="environment" onChange={reUpload} style={{display:"none"}}/>
-             </label>
+             <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>O administrador recusou este registro: <strong>{a.obsAdmin||"Incompatibilidade das informações."}</strong> Você pode corrigir os dados (valores, foto ou data) e reenviar.</div>
+             <button onClick={()=>setIsEditing(true)} style={{display:"inline-block",marginTop:8,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",boxShadow:`0 2px 6px ${C.rd}55`,fontFamily:"inherit"}}>
+               ✏️ Corrigir Informações
+             </button>
            </div>
         )}
 

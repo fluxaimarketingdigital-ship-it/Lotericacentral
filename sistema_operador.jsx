@@ -731,12 +731,14 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
   
   function updateStatus(newS){
     if(newS==="rejected"){
-      if(window.confirm("Recusar este registro irá EXCLUÍ-LO permanentemente do sistema (e seus prêmios). Confirma?")){
-        deleteAuth();
+      if(window.confirm("Recusar este registro? O cliente poderá alterar os dados e reenviar.")){
+        const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:"rejected", modificado:false, obsAdmin:"Incompatibilidade das informações"}:x);
+        setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+        setPr(pr.map(p=>p.authId===a.id?{...p, status:"pending"}:p));
       }
       return;
     }
-    const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS}:x);
+    const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, obsAdmin:""}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
     if(newS==="approved"){
       setPr(pr.map(p=>p.authId===a.id?{...p, status:"approved"}:p));
