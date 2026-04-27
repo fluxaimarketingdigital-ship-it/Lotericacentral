@@ -865,7 +865,10 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
               <div style={{fontSize:20}}>{px.emoji||"🎁"}</div>
               <div style={{flex:1}}>
                 <div style={{fontSize:11,fontWeight:800}}>{px.nome}</div>
-                {px.status!=="pending" && <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer",marginTop:5}}>🎫 Ver Cupom</button>}
+                <div style={{display:"flex",gap:5,marginTop:5}}>
+                  {px.status!=="pending" && <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>🎫 Ver Cupom</button>}
+                  {px.status!=="pending" && c.whats && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*\n\nSeu código: *${px.id.toUpperCase()}*\n\nApresente na Lotérica Central! 🏆`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 WhatsApp c/ Texto</a>}
+                </div>
               </div>
             </div>
          ))}
@@ -934,7 +937,8 @@ function APr({pr, cl, cfg, setPr}){
             {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6}}>PENDENTE</span>}
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {!isR && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom Digital</button>}
+            {!isR && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>}
+            {!isR && cli?.whats && <a href={`https://wa.me/55${cli.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${cli.nome?.split(" ")[0]}!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código: *${p.id.toUpperCase()}*\n\nApresente na Lotérica Central! 🏆`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",flex:1,textAlign:"center",fontFamily:"inherit"}}>📲 WhatsApp c/ Texto</a>}
             {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado</div>}
           </div>
         </div>);
@@ -946,8 +950,31 @@ function APr({pr, cl, cfg, setPr}){
 
 function OpVoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
-  const msg = `🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cli?.nome?.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código do voucher é: *${p.id.toUpperCase()}*\n\nValidade: *${fD(dVal)}*\n\nApresente este cupom no caixa da Lotérica Central para resgatar! 🏆`;
+  const msg = `🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cli?.nome?.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código: *${p.id.toUpperCase()}*\n\nValidade: *${fD(dVal)}*\n\nApresente na Lotérica Central para resgatar! 🏆`;
   
+  async function shareImg() {
+    const canvas = document.createElement("canvas");
+    canvas.width = 800; canvas.height = 1000;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#003478"; ctx.fillRect(0,0,800,1000);
+    ctx.fillStyle = "#FFD700"; ctx.font = "bold 60px sans-serif"; ctx.textAlign = "center";
+    ctx.fillText("CLIENTE PREMIADO", 400, 150);
+    ctx.fillStyle = "#ffffff"; ctx.font = "50px sans-serif";
+    ctx.fillText(cli?.nome || "Cliente", 400, 250);
+    ctx.font = "bold 120px sans-serif"; ctx.fillText(p.emoji || "🎁", 400, 450);
+    ctx.font = "bold 70px sans-serif"; ctx.fillText(p.nome, 400, 580);
+    ctx.fillStyle = "#FFD700"; ctx.font = "bold 90px monospace"; ctx.fillText(p.id.toUpperCase(), 400, 750);
+    ctx.fillStyle = "#ffffff"; ctx.font = "35px sans-serif"; ctx.fillText("Válido até: "+fD(dVal), 400, 850);
+    ctx.font = "bold 40px sans-serif"; ctx.fillText("LOTÉRICA CENTRAL", 400, 950);
+    
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], "cupom.png", { type: "image/png" });
+      if (navigator.share) {
+        try { await navigator.share({ files: [file], title: "Cupom Lotérica Central", text: msg }); } catch (e) { window.open(`https://wa.me/55${cli?.whats}?text=${encodeURIComponent(msg)}`); }
+      } else { window.open(`https://wa.me/55${cli?.whats}?text=${encodeURIComponent(msg)}`); }
+    });
+  }
+
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:25,textAlign:"center",position:"relative"}}>
@@ -974,15 +1001,12 @@ function OpVoucherCard({p, cli, cfg, onClose}){
             <div style={{fontSize:15,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
           </div>
         </div>
-        <div style={{fontSize:10,color:C.sb,background:C.bg,padding:10,borderRadius:10,marginBottom:20}}>
-          📸 Tire um <b>Print desta tela</b> para enviar como imagem, ou use o botão abaixo para enviar o texto.
-        </div>
-        <a href={`https://wa.me/55${cli?.whats}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:12,padding:14,fontWeight:900,fontSize:14,textDecoration:"none",display:"flex",alignItems:"center",gap:8,justifyContent:"center",boxShadow:"0 10px 20px rgba(37,211,102,.3)"}}>
-          📲 Enviar para o WhatsApp
-        </a>
+        <button onClick={shareImg} style={{width:"100%",background:"#25D366",color:"#fff",borderRadius:12,padding:14,fontWeight:900,fontSize:14,border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:8,justifyContent:"center",boxShadow:"0 10px 20px rgba(37,211,102,.3)",fontFamily:"inherit"}}>
+          📲 Enviar Imagem p/ WhatsApp
+        </button>
       </div>
       <div style={{background:C.bg,padding:15,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
-        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar Cupom</button>
+        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar</button>
       </div>
     </div>
   </div>);}

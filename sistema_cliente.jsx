@@ -908,33 +908,29 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
 
 /* ══════════════════════ PRÊMIOS ══════════════════════ */
-function Premios({meusPr,c,wts}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+function Premios({meusPr,c,wts,setVoucherVer}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
   <Tit em="🎁" t="Meus Prêmios" s="Todos os prêmios conquistados"/>
   {meusPr.length===0&&<Vz em="🎟️" msg="Nenhum prêmio ainda. Continue acumulando e inclua Jogos para o Relâmpago!"/>}
   {[...meusPr].reverse().map(p=>{
     const isPend = p.status === "pending";
     const isRedeemed = p.status === "redeemed";
+    const isAppr = p.status === "approved";
     return(<div key={p.id} style={{background:"#fff",borderRadius:15,padding:"14px",border:`1.5px solid ${p.tipo==="relampago"?C.ou+"44":C.vd+"44"}`,display:"flex",gap:12,alignItems:"flex-start"}}>
     <div style={{width:46,height:46,borderRadius:12,flexShrink:0,background:p.tipo==="relampago"?C.ouC:C.vdC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{p.emoji||"🎟️"}</div>
     <div style={{flex:1}}>
       <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:4}}>
         <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div>
         <span style={{background:p.tipo==="relampago"?C.ouC:C.vdC,color:p.tipo==="relampago"?C.ou2:C.vd,fontSize:9,fontWeight:800,padding:"2px 8px",borderRadius:20,whiteSpace:"nowrap"}}>
-          {isPend ? "⏳ Em Auditoria" : isRedeemed ? "✅ Retirado" : (p.tipo==="relampago"?"⚡ Relâmpago":"🎟️ Meta")}
+          {isPend ? "⏳ Auditoria" : isRedeemed ? "✅ Retirado" : (p.tipo==="relampago"?"⚡ Relâmpago":"🎟️ Meta")}
         </span>
       </div>
       <div style={{fontSize:11,color:C.sb,lineHeight:1.6}}>
-        {isRedeemed ? "Você já retirou este prêmio no balcão da Lotérica." : (isPend ? "Aguardando o administrador verificar os comprovantes desta etapa. Assim que aprovado, seu prêmio será liberado!" : p.desc)}
+        {isRedeemed ? "Você já retirou este prêmio no balcão da Lotérica." : (isPend ? "Aguardando o administrador verificar os comprovantes desta etapa." : p.desc)}
       </div>
-      <div style={{fontSize:10,color:C.sb,marginTop:5}}>📅 {fDT(p.data)} {isRedeemed && p.redeemedAt && `· Retirado em ${fDT(p.redeemedAt)}`}</div>
       
-      {p.status === "approved" && (
-        <div style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${C.bd}55`}}>
-          <div style={{fontSize:10,fontWeight:800,color:C.tx,marginBottom:6,textTransform:"uppercase"}}>Seu Voucher:</div>
-          <div style={{fontFamily:"monospace",fontWeight:900,fontSize:20,letterSpacing:4,color:C.az}}>{p.id.toUpperCase()}</div>
-          <div style={{fontSize:10,color:C.sb,marginTop:4}}>Apresente este código ao caixa para retirar.</div>
-        </div>
-      )}
+      {isAppr && <button onClick={()=>setVoucherVer(p)} style={{marginTop:10,width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:10,fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🎫 Abrir Cupom Digital</button>}
+      
+      <div style={{fontSize:10,color:C.sb,marginTop:8}}>📅 {fDT(p.data)} {isRedeemed && p.redeemedAt && `· Retirado em ${fDT(p.redeemedAt)}`}</div>
     </div>
   </div>);})}
 </div>);}
@@ -1103,27 +1099,39 @@ function HistItem({a,cfg,c,clients,setCl,setVoucherVer}){
   const corS=s==="approved"?C.vd:s==="pending"?C.ou:C.rd;
   const labelS=s==="approved"?"Aprovada":s==="pending"?"Aguardando Auditoria":"Recusada";
   
-  // Encontrar prêmio vinculado a esta visita
-  const pr = (c.premios||[]).find(p=>p.authId===a.id && p.status!=="rejected");
+  const pLink = (c.premios||[]).find(p=>p.authId===a.id && p.status!=="rejected");
 
   return(
-    <div style={{borderBottom:`1px solid ${C.bd}22`}}>
-      <div onClick={()=>setExp(!exp)} style={{padding:"12px 17px",display:"flex",alignItems:"center",gap:11,cursor:"pointer",background:exp?C.bg:"#fff"}}>
-        <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
-        <div style={{flex:1}}>
-          <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fD(a.data)} <span style={{fontWeight:400,color:C.sb}}>· {labelS}</span></div>
-          <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} {pr && <span style={{color:C.ou,fontWeight:900}}>· {pr.emoji||"🎁"} Ganhou Prêmio!</span>}</div>
+    <div style={{borderBottom:`1px solid ${C.bd}11`}}>
+      <div onClick={()=>setExp(!exp)} style={{padding:"12px 17px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:exp?C.bg:"#fff",borderLeft:`4px solid ${corS}`}}>
+        <div style={{width:34,height:34,borderRadius:10,background:`${corS}12`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0,border:`1px solid ${corS}33`}}>
+          {s==="approved"?"✅":s==="pending"?"⏳":"❌"}
         </div>
-        <div style={{fontSize:12,color:C.sb}}>{exp?"▲":"▼"}</div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{(a.opNome||"Atendimento").split(" ")[0]} · {brl(a.total)}</div>
+          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}</div>
+        </div>
+        <div style={{textAlign:"right"}}>
+           <div style={{background:corS,color:"#fff",fontSize:8,fontWeight:900,padding:"2px 8px",borderRadius:6,textTransform:"uppercase"}}>{labelS}</div>
+           <div style={{fontSize:12,color:C.sb,marginTop:3}}>{exp?"▲":"▼"}</div>
+        </div>
       </div>
-      {exp && <div style={{padding:12,background:"#fafafa",fontSize:11}}>
-        {Object.entries(a.detalhes||{}).map(([fid,val])=>{
-          const f=cfg.formulario.campos.find(x=>x.id===fid);
-          if(!f||!val)return null;
-          return <div key={fid} style={{display:"flex",justifyContent:"space-between",marginBottom:4}}><span>{f.emoji} {f.nome}</span><strong>{f.comValor?brl(val):"Sim"}</strong></div>
-        })}
-        {pr && pr.status!=="pending" && (
-          <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pr);}} style={{width:"100%",marginTop:10,background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontWeight:800,fontSize:10,cursor:"pointer"}}>🎫 Visualizar Cupom Digital</button>
+      {exp && <div style={{padding:"10px 17px 15px 63px",background:"#fafafa",fontSize:11,color:C.sb,animation:"fadeUp .2s"}}>
+        <div style={{display:"flex",flexDirection:"column",gap:4,marginBottom:10}}>
+           {Object.entries(a.detalhes||{}).map(([fid, val]) => {
+             const f = cfg.formulario.campos.find(x=>x.id===fid);
+             if(!f || !val) return null;
+             return <div key={fid} style={{display:"flex",justifyContent:"space-between",borderBottom:`1px solid ${C.bd}11`,paddingBottom:2}}>
+               <span>{f.emoji} {f.nome}</span>
+               <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
+             </div>
+           })}
+        </div>
+        {pLink && pLink.status==="approved" && (
+          <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pLink);}} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontWeight:800,fontSize:10,cursor:"pointer"}}>🎫 Visualizar Cupom Digital</button>
+        )}
+        {pLink && pLink.status==="redeemed" && (
+          <div style={{background:C.bg,padding:8,borderRadius:8,textAlign:"center",color:C.sb,fontSize:10,fontWeight:700}}>✅ Prêmio Retirado</div>
         )}
       </div>}
     </div>
