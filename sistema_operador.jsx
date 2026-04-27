@@ -263,9 +263,9 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
   </div>);
 }
 
-function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
+function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
-  const ABAS=[{id:"qr",emoji:"📱",label:"Meu Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"info",emoji:"📜",label:"Regulamento"},{id:"rank",emoji:"🏅",label:"Ranking"}];
+  const ABAS=[{id:"qr",emoji:"📱",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
   const minhas = useMemo(() => {
@@ -351,7 +351,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,cfg,setTela,setRole}){
       {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops}/>}
       {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
-      {aba==="info" &&<OpRegInfo cfg={cfg}/>}
+      {aba==="voucher"&&<OpVoucher pr={pr} setPr={setPr} cl={cl} op={op}/>}
       {aba==="rank" &&<OpRank  rank={rank} opId={op.id}/>}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={oc(idx)}/>
@@ -506,10 +506,11 @@ function OpRegInfo({cfg}){
 /* ═══════ ADMIN PANEL ═══════ */
 function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole}){
   const[aba,setAba]=useState("dash");
-  const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes"},{id:"pr",emoji:"🎁",label:"Prêmios"},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   const totPoints=useMemo(()=>{let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.valida!==false)n++;}));return n;},[cl]);
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
+  const pendsG = useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending").length||0),0),[cl]);
+  const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios"},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
@@ -704,6 +705,7 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
         <div style={{flex:1}}>
           <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
           <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS}</div>
+          {a.modificado && <div style={{fontSize:9,color:C.ou,fontWeight:800,marginTop:3}}>✏️ Alterado pelo Cliente</div>}
         </div>
         <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
       </div>
@@ -748,6 +750,8 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
                 {px.status==="pending" && (
                    <div style={{display:"flex",gap:5,marginTop:6}}>
                       <button onClick={()=>{
+                        const authsV = (c.auths||[]).filter(x=>x.valida!==false && x.status==="approved").length;
+                        if(px.tipo==="raspadinha" && authsV < cfg.meta){ alert(`❌ Você precisa aprovar ${cfg.meta} visitas deste cliente antes de liberar o prêmio!`); return; }
                         setPr(pr.map(p=>p.id===px.id?{...p, status:"approved"}:p));
                       }} style={{background:C.vd,color:"#fff",border:"none",borderRadius:5,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>Aprovar Prêmio</button>
                       
@@ -757,7 +761,7 @@ function AuthHistItem({a, c, cl, setCl, pr, setPr, cfg, opN}){
                    </div>
                 )}
               </div>
-              {c.whats && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲</a>}
+              {c.whats && px.status==="approved" && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"5px 9px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲</a>}
             </div>
          ))}
 
@@ -787,7 +791,15 @@ function ACl({cl,setCl,ops,cfg,pr,setPr}){
         <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}22`,cursor:"pointer",background:exp===c.id?C.azC:"transparent"}} onClick={()=>setExp(exp===c.id?null:c.id)}>
           <div style={{display:"flex",gap:9,alignItems:"center",marginBottom:3}}>
             <div style={{width:32,height:32,borderRadius:"50%",background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:C.az,flexShrink:0}}>{c.nome?.[0]?.toUpperCase()||"?"}</div>
-            <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx,display:"flex",gap:4,alignItems:"center"}}>{c.nome}{ganhou&&<span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>{cfg.premioMeta.emoji}</span>}{prCl.length>0&&<span style={{background:C.rxC,color:C.rx,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>⚡{prCl.length}</span>}</div><div style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta-prog}</div></div>
+            <div style={{flex:1}}>
+              <div style={{fontWeight:700,fontSize:12,color:C.tx,display:"flex",gap:4,alignItems:"center",flexWrap:"wrap"}}>
+                {c.nome}
+                {ganhou&&<span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>{cfg.premioMeta.emoji}</span>}
+                {prCl.length>0&&<span style={{background:C.rxC,color:C.rx,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>⚡{prCl.length}</span>}
+                {(c.auths?.filter(a=>a.status==="pending").length>0)&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"1px 5px",borderRadius:8}}>⏳ {c.auths?.filter(a=>a.status==="pending").length} pendente</span>}
+              </div>
+              <div style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta-prog}</div>
+            </div>
             <div style={{textAlign:"right"}}><div style={{fontWeight:900,fontSize:14,color:C.az}}>{c.auths?.length||0}</div><div style={{fontSize:9,color:C.sb}}>auth</div></div>
           </div>
           <div style={{background:C.bg,borderRadius:3,height:3,overflow:"hidden",marginLeft:41}}><div style={{height:"100%",background:`linear-gradient(90deg,${C.az},${C.ou})`,width:(prog/cfg.meta*100)+"%",borderRadius:3}}/></div>
@@ -1453,7 +1465,8 @@ function T({em,t,s}){return(<div style={{marginBottom:4}}><div style={{fontWeigh
 function V({em,msg}){return(<div style={{padding:"26px 20px",textAlign:"center",color:C.sb}}><div style={{fontSize:40,marginBottom:8,opacity:.4}}>{em}</div><div style={{fontSize:12,lineHeight:1.7}}>{msg}</div></div>);}
 function Pts(){return(<div style={{display:"flex",gap:8,justifyContent:"center",marginTop:6}}>{[0,1,2].map(i=><div key={i} style={{width:9,height:9,borderRadius:"50%",background:C.ou,animation:`dt 1.1s ${i*.22}s infinite`}}/>)}</div>);}
 function Nav({abas,aba,setAba,cor}){return(<nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:520,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 18px rgba(0,52,120,.09)",zIndex:100}}>
-  {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"9px 3px 11px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?"#f0f4fb":"#fff",borderTop:`2.5px solid ${aba===a.id?cor:"transparent"}`,transition:"all .2s"}}>
+  {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"9px 3px 11px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?"#f0f4fb":"#fff",borderTop:`2.5px solid ${aba===a.id?cor:"transparent"}`,transition:"all .2s",position:"relative"}}>
+    {a.badge>0 && <div style={{position:"absolute",top:3,right:"15%",background:C.rd,color:"#fff",fontSize:9,fontWeight:900,padding:"1px 5px",borderRadius:10}}>{a.badge}</div>}
     <div style={{fontSize:17,marginBottom:2}}>{a.emoji}</div><div style={{fontSize:9,fontWeight:aba===a.id?800:600,color:aba===a.id?cor:C.sb,lineHeight:1}}>{a.label}</div>
   </button>)}
 </nav>);}

@@ -71,9 +71,9 @@ const now  = ()=>new Date().toISOString();
 const fD   = d=>new Date(d).toLocaleDateString("pt-BR");
 const fDT  = d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 const brl  = v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-const fmtW = v=>{const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
-const fmtDN = v=>{const d=v.replace(/\D/g,"").slice(0,8);if(d.length<=2)return d;if(d.length<=4)return`${d.slice(0,2)}/${d.slice(2)}`;return`${d.slice(0,2)}/${d.slice(2,4)}/${d.slice(4)}`;};
-const limpo = v=>v.replace(/\D/g,"");
+const fmtW = v=>{if(!v)return"";const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
+const fmtDN = v=>{if(!v)return"";const d=v.replace(/\D/g,"").slice(0,8);if(d.length<=2)return d;if(d.length<=4)return`${d.slice(0,2)}/${d.slice(2)}`;return`${d.slice(0,2)}/${d.slice(2,4)}/${d.slice(4)}`;};
+const limpo = v=>v?v.replace(/\D/g,""):"";
 const hoje  = ()=>new Date().toISOString().slice(0,10);
 
 /* DB importado via firebase.js */
@@ -441,10 +441,14 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
 
   const ABAS=[{id:"ini",l:"Início",em:"🏠"},{id:"reg",l:"Registrar",em:"📱"},{id:"pr",l:"Prêmios",em:"🎁"},{id:"not",l:"Notícias",em:"📰"},{id:"ct",l:"Conta",em:"👤"}];
   const c=cliente;if(!c)return null;
-  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status === "approved");
+  const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
-  const prog=totV%cfg.meta;const raspa=Math.floor(totV/cfg.meta);const falt=cfg.meta-prog;const pct=Math.round((prog/cfg.meta)*100);
-  const meusPr=premios.filter(p=>p.clientId===c.id && p.status === "approved");const temPr=meusPr.length>0;
+  const meta = cfg.meta || 15;
+  const unredeemedMeta = (premios||[]).filter(p=>p.clientId===c.id && p.tipo==="raspadinha" && p.status!=="redeemed");
+  const isLocked = unredeemedMeta.length > 0;
+  const isPend = isLocked && unredeemedMeta.some(p=>p.status==="pending");
+  const prog=isLocked ? meta : (totV%meta);const raspa=Math.floor(totV/meta);const falt=meta-prog;const pct=Math.round((prog/meta)*100);
+  const meusPr=(premios||[]).filter(p=>p.clientId===c.id && p.status !== "rejected");const temPr=meusPr.length>0;
   const notsAll  = cfg.noticias||CFG0.noticias||[];
   const notsGeral= notsAll.filter(n=>n.tipo==="geral"&&n.ativo!==false);
   const notsVip  = notsAll.filter(n=>n.tipo==="vip"&&n.ativo!==false);
@@ -459,7 +463,12 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       <div style={{fontSize:11,color:"rgba(255,255,255,.45)"}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
       <div style={{marginTop:16,background:"rgba(255,255,255,.12)",borderRadius:20,padding:"15px 17px",border:"1px solid rgba(255,255,255,.18)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-          <div><div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:700,textTransform:"uppercase",letterSpacing:.8}}>Próximo Prêmio</div><div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>Faltam <span style={{color:C.ou,fontSize:24}}>{falt}</span> {falt===1?"visita":"visitas"}</div></div>
+          <div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:700,textTransform:"uppercase",letterSpacing:.8}}>Próximo Prêmio</div>
+            <div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>
+              {isLocked ? (isPend ? "Em Auditoria ⏳" : "Retire seu Prêmio! 🏆") : <>Faltam <span style={{color:C.ou,fontSize:24}}>{falt}</span> {falt===1?"visita":"visitas"}</>}
+            </div>
+          </div>
           <div style={{textAlign:"right"}}><div style={{fontSize:10,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.8}}>Ganhos</div><div style={{fontWeight:900,fontSize:26,color:C.ou,lineHeight:1.1}}>{cfg.premioMeta.emoji} {raspa}</div></div>
         </div>
         <div style={{background:"rgba(0,0,0,.3)",borderRadius:8,height:9,overflow:"hidden",marginBottom:6}}><div style={{height:"100%",borderRadius:8,background:`linear-gradient(90deg,${C.ou},#ffca28)`,width:`${pct}%`,transition:"width .7s"}}/></div>
@@ -475,7 +484,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       {aba==="reg"&&<FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>}
       {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts}/>}
       {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
-      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela}/>}
+      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl}/>}
     </div>
     {/* NAV */}
     <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:100}}>
@@ -639,11 +648,11 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         const isV = totalPagamentos >= minV;
         setValida(isV);
         const auth={id:uid(),data:dIso,controle,opId:operator.id,opNome:operator.nome,selecionados:sels,emojis,total,obs,nota,foto,created:now(),valida:isV,status:"pending",detalhes:sel};
-        
         const auths=[...(c.auths||[]),auth];
         // Para o prêmio de meta, consideramos as aprovadas + a nova que está entrando (pendente)
-        const totalParaMeta = auths.filter(a=>a.valida!==false && a.status!=="rejected").length;
-        const ganhou=isV && (totalParaMeta % cfg.meta === 0);
+        const totalParaMeta = auths.filter(a=>a.status!=="rejected").length;
+        const meta = cfg.meta || 15;
+        const ganhou=isV && (totalParaMeta % meta === 0);
         
         const pr=(totalJogos >= minR)?sortear(sels,cfg):null;
         const cUpd={...c,auths};
@@ -652,14 +661,14 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         if(ganhou)novPr.push({id:uid(),clientId:c.id,authId:auth.id,tipo:"raspadinha",nome:cfg.premioMeta.nome,emoji:cfg.premioMeta.emoji,desc:cfg.premioMeta.desc.replace("{meta}",cfg.meta).replace("{premioNome}",cfg.premioMeta.nome),data:now(),status:"pending"});
         if(pr)novPr.push({id:uid(),clientId:c.id,authId:auth.id,tipo:"relampago",nome:pr.nome,emoji:pr.emoji,desc:pr.desc,data:now(),status:"pending"});
         
-        // Transição de UI IMEDIATA dentro do bloco
+        // Transição de UI IMEDIATA
         setNP({total:totalParaMeta,ganhouMeta:ganhou,premioRl:pr});
         setStep("ok");
 
-        // Atualizações Globais (Aguardar sincronização)
-        await setCl(clients.map(x=>x.id===c.id?cUpd:x));
-        await setCli(cUpd);
-        await setPr(novPr);
+        // Atualizações Globais síncronas para não dar lag na top bar
+        setCl(clients.map(x=>x.id===c.id?cUpd:x));
+        setCli(cUpd);
+        setPr(novPr);
         if(pr)setRelamp({...pr,cliNome:c.nome});
       } catch (err) {
         console.error(err);
@@ -867,12 +876,32 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 function Premios({meusPr,c,wts}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
   <Tit em="🎁" t="Meus Prêmios" s="Todos os prêmios conquistados"/>
   {meusPr.length===0&&<Vz em="🎟️" msg="Nenhum prêmio ainda. Continue acumulando e inclua Jogos para o Relâmpago!"/>}
-  {[...meusPr].reverse().map(p=><div key={p.id} style={{background:"#fff",borderRadius:15,padding:"14px",border:`1.5px solid ${p.tipo==="relampago"?C.ou+"44":C.vd+"44"}`,display:"flex",gap:12,alignItems:"flex-start"}}>
+  {[...meusPr].reverse().map(p=>{
+    const isPend = p.status === "pending";
+    const isRedeemed = p.status === "redeemed";
+    return(<div key={p.id} style={{background:"#fff",borderRadius:15,padding:"14px",border:`1.5px solid ${p.tipo==="relampago"?C.ou+"44":C.vd+"44"}`,display:"flex",gap:12,alignItems:"flex-start"}}>
     <div style={{width:46,height:46,borderRadius:12,flexShrink:0,background:p.tipo==="relampago"?C.ouC:C.vdC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{p.emoji||"🎟️"}</div>
-    <div style={{flex:1}}><div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:4}}><div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div><span style={{background:p.tipo==="relampago"?C.ouC:C.vdC,color:p.tipo==="relampago"?C.ou2:C.vd,fontSize:9,fontWeight:800,padding:"2px 8px",borderRadius:20,whiteSpace:"nowrap"}}>{p.tipo==="relampago"?"⚡ Relâmpago":"🎟️ Meta"}</span></div>
-    <div style={{fontSize:11,color:C.sb,lineHeight:1.6}}>{p.desc}</div><div style={{fontSize:10,color:C.sb,marginTop:5}}>📅 {fDT(p.data)}</div>
-    <a href={`https://wa.me/${wts}?text=${encodeURIComponent(`Olá! Sou *${c.nome}* e ganhei *${p.nome}*. Gostaria de retirar!`)}`} target="_blank" rel="noreferrer" style={{display:"inline-block",marginTop:9,background:"#25D366",color:"#fff",borderRadius:9,padding:"6px 13px",fontSize:11,fontWeight:800,textDecoration:"none"}}>📲 Retirar via WhatsApp</a></div>
-  </div>)}
+    <div style={{flex:1}}>
+      <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:4}}>
+        <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div>
+        <span style={{background:p.tipo==="relampago"?C.ouC:C.vdC,color:p.tipo==="relampago"?C.ou2:C.vd,fontSize:9,fontWeight:800,padding:"2px 8px",borderRadius:20,whiteSpace:"nowrap"}}>
+          {isPend ? "⏳ Em Auditoria" : isRedeemed ? "✅ Retirado" : (p.tipo==="relampago"?"⚡ Relâmpago":"🎟️ Meta")}
+        </span>
+      </div>
+      <div style={{fontSize:11,color:C.sb,lineHeight:1.6}}>
+        {isRedeemed ? "Você já retirou este prêmio no balcão da Lotérica." : (isPend ? "Aguardando o administrador verificar os comprovantes desta etapa. Assim que aprovado, seu prêmio será liberado!" : p.desc)}
+      </div>
+      <div style={{fontSize:10,color:C.sb,marginTop:5}}>📅 {fDT(p.data)} {isRedeemed && p.redeemedAt && `· Retirado em ${fDT(p.redeemedAt)}`}</div>
+      
+      {p.status === "approved" && (
+        <div style={{marginTop:12,paddingTop:12,borderTop:`1px solid ${C.bd}55`}}>
+          <div style={{fontSize:10,fontWeight:800,color:C.tx,marginBottom:6,textTransform:"uppercase"}}>Seu Voucher:</div>
+          <div style={{fontFamily:"monospace",fontWeight:900,fontSize:20,letterSpacing:4,color:C.az}}>{p.id.toUpperCase()}</div>
+          <div style={{fontSize:10,color:C.sb,marginTop:4}}>Apresente este código ao caixa para retirar.</div>
+        </div>
+      )}
+    </div>
+  </div>);})}
 </div>);}
 
 /* ══════════════════════ NOTÍCIAS ══════════════════════ */
@@ -893,12 +922,24 @@ function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexD
 </div>);}
 
 /* ══════════════════════ CONTA ══════════════════════ */
-function HistItem({a, cfg}){
+function HistItem({a, cfg, c, clients, setCl}){
   const [exp, setExp] = useState(false);
   const s = a.status || (a.valida!==false?"approved":"rejected"); // fallback legacy
   const corS = s==="approved"?C.vd : s==="pending"?C.ou : C.rd;
   const labelS = s==="approved"?"Aprovado" : s==="pending"?"Pendente" : "Recusado";
   const d = a.detalhes || {};
+
+  function reUpload(e){
+    const f=e.target.files[0]; if(!f)return;
+    const r=new FileReader(); r.onload=async()=>{
+      const newA = {...a, foto:r.result, status:"pending", modificado:true, obsModificacao:"Comprovante reenviado pelo cliente"};
+      const newAuths = c.auths.map(ax=>ax.id===a.id?newA:ax);
+      await setCl(clients.map(x=>x.id===c.id ? {...x, auths:newAuths} : x));
+      alert("✅ Comprovante reenviado com sucesso! Aguarde a nova auditoria.");
+    };
+    r.readAsDataURL(f);
+  }
+
   return(
     <div style={{borderBottom:`1px solid ${C.bd}11`}}>
       <div onClick={()=>setExp(!exp)} style={{padding:"12px 17px",display:"flex",alignItems:"center",gap:12,cursor:"pointer",background:exp?C.bg:"#fff",borderLeft:`4px solid ${corS}`}}>
@@ -906,7 +947,7 @@ function HistItem({a, cfg}){
           {s==="approved"?"✅":s==="pending"?"⏳":"❌"}
         </div>
         <div style={{flex:1}}>
-          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{a.opNome||"Atendimento"} · {brl(a.total)}</div>
+          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{(a.opNome||"Atendimento").split(" ")[0]} · {brl(a.total)}</div>
           <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}</div>
         </div>
         <div style={{textAlign:"right"}}>
@@ -928,6 +969,18 @@ function HistItem({a, cfg}){
            {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
            <div style={{marginTop:5,fontSize:9,opacity:.7}}>Protocolo: {a.controle}</div>
         </div>
+        
+        {s === "rejected" && (
+           <div style={{background:C.rdC,padding:12,borderRadius:8,marginBottom:12,border:`1px solid ${C.rd}33`}}>
+             <div style={{fontWeight:800,color:C.rd,marginBottom:4}}>⚠️ Atenção: Registro Recusado</div>
+             <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>O administrador recusou este registro, possivelmente pelo comprovante ilegível ou incorreto. Você pode enviar uma nova foto.</div>
+             <label style={{display:"inline-block",marginTop:8,background:C.rd,color:"#fff",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",boxShadow:`0 2px 6px ${C.rd}55`}}>
+               ✏️ Corrigir Comprovante
+               <input type="file" accept="image/*" capture="environment" onChange={reUpload} style={{display:"none"}}/>
+             </label>
+           </div>
+        )}
+
         {a.foto ? (
           <div>
             <div style={{fontSize:9,fontWeight:800,marginBottom:4,color:C.az}}>ANEXO DO COMPROVANTE:</div>
@@ -941,7 +994,7 @@ function HistItem({a, cfg}){
   );
 }
 
-function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela}){
+function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl}){
   const[sub,setSub]=useState("dados");
   return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
     <Tit em="👤" t="Minha Conta"/>
@@ -957,13 +1010,14 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela}){
       </div>
       <div style={{background:"#fff",borderRadius:16,overflow:"hidden",border:`1px solid ${C.bd}`,marginTop:12}}>
         <div style={{padding:"12px 17px",fontWeight:800,fontSize:12,color:C.tx,borderBottom:`1px solid ${C.bd}22`}}>📖 Histórico Detalhado</div>
-        {[...c.auths].reverse().map(a=><HistItem key={a.id} a={a} cfg={cfg}/>)}
+        {((c.auths||[]).length===0) && <div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhuma visita registrada ainda.</div>}
+        {[...(c.auths||[])].reverse().map(a=><HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl}/>)}
       </div>
       {temPr&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:15,padding:"13px 15px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:32}}>🏆</span><div><div style={{fontWeight:900,fontSize:14,color:C.az}}>Cliente Premiado!</div><div style={{fontSize:11,color:C.az,opacity:.8,marginTop:2}}>Notícias e ofertas exclusivas ativas.</div></div></div>}
       <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"17px"}}>
         <div style={{fontWeight:800,fontSize:11,color:"rgba(255,255,255,.55)",marginBottom:12,textTransform:"uppercase",letterSpacing:1}}>🏆 Histórico</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,textAlign:"center"}}>
-          {[[tot,"Atendimentos","#fff"],[raspa,"Prêmios",C.ou],[meusPr.filter(p=>p.tipo==="relampago").length,"Relâmpagos","#c4b5fd"]].map(([v,l,cor])=>(
+          {[[tot,"Atendimentos","#fff"],[raspa,"Prêmios",C.ou],[(meusPr||[]).filter(p=>p.tipo==="relampago").length,"Relâmpagos","#c4b5fd"]].map(([v,l,cor])=>(
             <div key={l}><div style={{fontWeight:900,fontSize:24,color:cor,lineHeight:1}}>{v}</div><div style={{fontSize:9,color:"rgba(255,255,255,.5)",marginTop:2,textTransform:"uppercase",letterSpacing:.5}}>{l}</div></div>
           ))}
         </div>
