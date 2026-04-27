@@ -157,7 +157,7 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
   function entrarAdmin(){if(senha==="central2026"){setRole("admin");setTela("admin");}else setErroS("Senha incorreta.");}
   function entrarOp(){
     if(!opLogin) return;
-    if(opLogin.senha === senhaOp || !opLogin.senha) { // if no password, allow (for legacy)
+    if(opLogin.senha === senhaOp || !opLogin.senha) {
       setOpSel(opLogin);setRole("op");setTela("op");
     } else {
       setErroOp("Senha incorreta.");
@@ -171,7 +171,6 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
       <div style={{fontSize:10,color:C.ou,fontWeight:700,marginTop:5,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
     </div>
     <div style={{flex:1,padding:"20px 16px",display:"flex",flexDirection:"column",gap:11}}>
-      {/* OPERADOR */}
       <div style={{background:"#fff",borderRadius:17,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
         <div style={{padding:"13px 15px",borderBottom:showOps?`1px solid ${C.bd}`:"none",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div><div style={{fontWeight:900,fontSize:15,color:C.tx}}>👤 Sou Operador de Caixa</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>Acesse seu painel e código</div></div>
@@ -200,7 +199,6 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
           </div>
         </div>}
       </div>
-      {/* ADMIN */}
       <div style={{background:"#fff",borderRadius:17,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
         <div style={{padding:"13px 15px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div><div style={{fontWeight:900,fontSize:15,color:C.tx}}>🔒 Administrador / Lotérica</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>Dashboard completo + Configurações</div></div>
@@ -215,7 +213,6 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
           {erroS&&<div style={{fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroS}</div>}
         </div>}
       </div>
-      {/* STATS */}
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
         {[["🏅",ops.length,"Operadoras"],["👥",cl.length,"Clientes"],["✅",totalAuths,"Auths"]].map(([em,v,l])=>(
           <div key={l} style={{background:"#fff",borderRadius:12,padding:"11px 8px",textAlign:"center",border:`1px solid ${C.bd}`}}>
@@ -235,7 +232,6 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
     <div style={{fontSize:54,animation:"pop .5s",marginBottom:10}}>✅</div>
     <div style={{fontWeight:900,fontSize:22,color:"#fff",marginBottom:6}}>Cadastrada!</div>
     <div style={{fontSize:14,color:"rgba(255,255,255,.8)",marginBottom:16}}><strong style={{color:C.ou}}>{nova.nome}</strong> registrada com sucesso.</div>
-    {/* Código 4 dígitos em destaque */}
     <div style={{background:"rgba(255,255,255,.12)",border:"1.5px solid rgba(255,255,255,.25)",borderRadius:18,padding:"18px 20px",marginBottom:22,display:"inline-block",minWidth:220}}>
       <div style={{fontSize:10,fontWeight:800,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:2,marginBottom:8}}>Código da Operadora</div>
       <div style={{fontFamily:"monospace",fontWeight:900,fontSize:48,color:C.ou,letterSpacing:12,lineHeight:1}}>{nova.id}</div>
@@ -272,7 +268,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
-  const ABAS=[{id:"qr",emoji:"📱",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
+  const ABAS=[{id:"qr",emoji:"📱",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"},{id:"reg",emoji:"📋",label:"Regras"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = ops.findIndex(o => o.id === op?.id);
   const lastReset = cfg.lastReset || "2000-01-01";
@@ -306,7 +302,6 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   function mudarS(){if(altS.n.length<4){setMsgS("❌ Mínimo 4 caracteres.");return;}if(altS.n!==altS.c){setMsgS("❌ Senhas não conferem.");return;}if(!isDefault && String(altS.a)!==String(op.senha)){setMsgS("❌ Senha atual incorreta.");return;}setOps(ops.map(o=>o.id===op.id?{...o,senha:altS.n}:o));setMsgS("✅ Senha alterada!");setTimeout(()=>{setShowAlt(false);setMsgS("");setAltS({a:"",n:"",c:""});},2000);}
 
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
-    {/* Forçar troca de senha se for 1234 */}
     {isDefault && <div style={{position:"fixed",inset:0,background:"rgba(0,52,120,.95)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:"#fff",borderRadius:24,padding:24,width:"100%",maxWidth:400,textAlign:"center",animation:"pop .4s"}}>
         <div style={{fontSize:44,marginBottom:15}}>🔒</div>
@@ -320,8 +315,6 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
         </div>
       </div>
     </div>}
-
-    {/* Modal de troca voluntária */}
     {showAlt && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.6)",zIndex:999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
       <div style={{background:"#fff",borderRadius:22,padding:22,width:"100%",maxWidth:400,animation:"up .3s"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
@@ -360,7 +353,8 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
       {aba==="voucher"&&<OpVoucher pr={pr} setPr={setPr} cl={cl} op={op}/>}
-      {aba==="rank" &&<OpRank  rank={rank} opId={op.id}/>}
+      {aba==="rank" && <OpRank rank={rank} op={op} pos={pos}/>}
+      {aba==="reg"  && <OpRegulamento cfg={cfg}/>}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={oc(idx)}/>
   </div>);
@@ -573,6 +567,42 @@ function OpVoucher({pr, setPr, cl, op}){
         )}
       </div>
     )}
+  </div>);
+}
+
+function OpRank({rank,op,pos}){
+  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
+    <T em="🏅" t="Ranking de Operadores" s="Competição mensal"/>
+    <div style={{background:C.az,borderRadius:18,padding:22,textAlign:"center",color:"#fff",boxShadow:`0 8px 25px ${C.az}44`,marginBottom:10,animation:"pop .5s"}}>
+      <div style={{fontSize:11,textTransform:"uppercase",fontWeight:800,letterSpacing:2,opacity:.7,marginBottom:6}}>Sua Posição</div>
+      <div style={{fontSize:52,fontWeight:900,lineHeight:1}}>#{pos}</div>
+      <div style={{fontSize:12,fontWeight:700,marginTop:10,background:"rgba(255,255,255,.15)",padding:"5px 12px",borderRadius:20,display:"inline-block"}}>Você está no top {Math.round((pos/rank.length)*100)}%</div>
+    </div>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      {rank.map((r,i)=><div key={r.op.id} style={{background:r.op.id===op.id?C.azC:"#fff",borderRadius:13,padding:"13px 15px",display:"flex",alignItems:"center",gap:12,border:`1.5px solid ${r.op.id===op.id?C.az:C.bd+"66"}`,animation:`up .4s ${i*0.05}s both`}}>
+        <div style={{width:28,height:28,borderRadius:8,background:i===0?C.ou:i===1?"#cbd5e1":i===2?"#d97706":C.bg,color:i<3?"#fff":C.sb,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>{i+1}</div>
+        <div style={{flex:1}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div></div>
+        <div style={{textAlign:"right"}}><div style={{fontWeight:900,fontSize:18,color:C.az}}>{r.t}</div><div style={{fontSize:9,color:C.sb,fontWeight:700,textTransform:"uppercase"}}>Pontos</div></div>
+      </div>)}
+    </div>
+  </div>);
+}
+
+function OpRegulamento({cfg}){
+  const rTxt = (cfg.regulamento||DCFG.regulamento)
+    .replace(/{meta}/g, cfg.meta||15)
+    .replace(/{premioNome}/g, cfg.premioMeta?.nome||"Prêmio")
+    .replace(/{dataInicio}/g, fD(cfg.dataInicio||"2026-04-01"))
+    .replace(/{dataFim}/g, fD(cfg.dataFim||"2026-12-31"));
+
+  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
+    <T em="📋" t="Regulamento da Promoção" s="Regras e vigência"/>
+    <div style={{background:"#fff",borderRadius:16,padding:22,border:`1px solid ${C.bd}`,lineHeight:1.8,fontSize:13,whiteSpace:"pre-wrap",color:C.tx,boxShadow:`0 4px 15px rgba(0,0,0,.03)`}}>
+      {rTxt}
+    </div>
+    <div style={{background:C.azC,borderRadius:12,padding:15,border:`1px solid ${C.az}22`,fontSize:11,color:C.az,lineHeight:1.6}}>
+      ⚠️ <strong>Atenção Operador:</strong> Este regulamento é definido pelo administrador. Em caso de dúvidas sobre pontuação ou prêmios, consulte o gerente.
+    </div>
   </div>);
 }
 
