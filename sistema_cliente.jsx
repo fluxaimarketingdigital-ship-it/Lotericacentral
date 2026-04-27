@@ -468,9 +468,9 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       <div style={{zIndex:1,position:"relative"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
           <div style={{fontSize:10,fontWeight:800,color:C.ou,letterSpacing:2,textTransform:"uppercase"}}>{NOME}</div>
-          {diasFaltam > 0 && diasFaltam <= 2 && (
+          {diasFaltam >= 0 && diasFaltam <= 2 && !encerrada && (
             <div style={{background:C.ou,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20,animation:"dt 1s infinite"}}>
-              ⚠️ CAMPANHA ENCERRA EM {diasFaltam} DIA{diasFaltam>1?"S":""}!
+              ⚠️ CAMPANHA ENCERRA {diasFaltam===0?"HOJE":`EM ${diasFaltam} DIA${diasFaltam>1?"S":""}`}!
             </div>
           )}
           {encerrada && (
@@ -512,7 +512,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       ) : <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>)}
       {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts}/>}
       {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
-      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl}/>}
+      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim}/>}
     </div>
     {/* NAV */}
     <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:100}}>
@@ -1103,7 +1103,7 @@ function HistItem({a, cfg, c, clients, setCl}){
   );
 }
 
-function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl}){
+function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerrada,dFim}){
   const[sub,setSub]=useState("dados");
   return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
     <Tit em="👤" t="Minha Conta"/>
