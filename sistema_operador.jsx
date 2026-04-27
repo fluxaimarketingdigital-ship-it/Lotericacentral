@@ -950,7 +950,7 @@ function APr({pr, cl, cfg, setPr}){
 
 function OpVoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
-  const msg = `🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cli?.nome?.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código: *${p.id.toUpperCase()}*\n\nValidade: *${fD(dVal)}*\n\nApresente na Lotérica Central para resgatar! 🏆`;
+  const msg = `🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cli?.nome?.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código: *${p.id.toUpperCase()}*\n\nValidade de retirada do prêmio: *${fD(dVal)}*\n\nApresente na Lotérica Central para resgatar! 🏆`;
   
   async function shareImg() {
     const canvas = document.createElement("canvas");
@@ -964,7 +964,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     ctx.font = "bold 120px sans-serif"; ctx.fillText(p.emoji || "🎁", 400, 450);
     ctx.font = "bold 70px sans-serif"; ctx.fillText(p.nome, 400, 580);
     ctx.fillStyle = "#FFD700"; ctx.font = "bold 90px monospace"; ctx.fillText(p.id.toUpperCase(), 400, 750);
-    ctx.fillStyle = "#ffffff"; ctx.font = "35px sans-serif"; ctx.fillText("Válido até: "+fD(dVal), 400, 850);
+    ctx.fillStyle = "#ffffff"; ctx.font = "35px sans-serif"; ctx.fillText("Validade de Retirada do Prêmio: "+fD(dVal), 400, 850);
     ctx.font = "bold 40px sans-serif"; ctx.fillText("LOTÉRICA CENTRAL", 400, 950);
     
     canvas.toBlob(async (blob) => {
@@ -997,7 +997,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
             <div style={{fontSize:18,fontWeight:900,color:C.tx,fontFamily:"monospace",letterSpacing:1}}>{p.id.toUpperCase()}</div>
           </div>
           <div style={{flex:1,background:C.rdC,borderRadius:12,padding:10,border:`1px solid ${C.rd}33`}}>
-            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Válido Até</div>
+            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Validade de Retirada do Prêmio</div>
             <div style={{fontSize:15,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
           </div>
         </div>
@@ -1133,7 +1133,7 @@ function CfgMeta({cfg,setCfg}){
         </div>
       </div>
       <div style={{flex:1}}>
-        <label style={L}>📅 Validade (Dias)</label>
+        <label style={L}>📅 Validade de retirada do prêmio (Dias)</label>
         <div style={{marginTop:7}}>
           <input type="number" value={valDias} onChange={e=>setValDias(e.target.value)} style={{width:"100%",padding:"10px",border:`2px solid ${C.rd}`,borderRadius:11,fontSize:18,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.tx}}/>
         </div>

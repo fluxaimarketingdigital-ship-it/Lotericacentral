@@ -1218,7 +1218,7 @@ function PremioOvl({relamp,setRelamp,cli,wts}){
 /* ══════════════════════ MICRO ══════════════════════ */
 function VoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
-  const msg = `🎉 *MEU CUPOM DE RETIRADA*\n\nGanhei: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\nVálido até: *${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
+  const msg = `🎉 *MEU CUPOM DE RETIRADA*\n\nGanhei: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\nValidade de retirada do prêmio: *${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:25,textAlign:"center",position:"relative"}}>
@@ -1241,7 +1241,7 @@ function VoucherCard({p, cli, cfg, onClose}){
             <div style={{fontSize:18,fontWeight:900,color:C.tx,fontFamily:"monospace",letterSpacing:1}}>{p.id.toUpperCase()}</div>
           </div>
           <div style={{flex:1,background:C.rdC,borderRadius:12,padding:10,border:`1px solid ${C.rd}33`}}>
-            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Válido Até</div>
+            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Validade de Retirada do Prêmio</div>
             <div style={{fontSize:15,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
           </div>
         </div>
