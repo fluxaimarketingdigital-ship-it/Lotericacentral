@@ -822,12 +822,30 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
 
 function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer}){
   const [expA, setExpA] = useState(false);
-  const s = a.status || (a.valida?"approved":"rejected");
+  const [edit, setEdit] = useState(false);
+  const [fEdit, setFEdit] = useState(a.detalhes||{});
+  
+  const s = a.status || (a.valida!==false?"approved":"rejected");
   const updateStatus = (newS) => {
-    if(newS==="rejected" && !window.confirm("Recusar este registro?")) return;
+    if(newS==="rejected" && !window.confirm("Recusar esta autenticação?")) return;
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, obsAdmin:newS==="rejected"?"Recusado":""}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
-    setPr(pr.map(p=>p.authId===a.id?{...p, status:newS==="approved"?"approved":"pending"}:p));
+    if(newS==="rejected"){
+      setPr(pr.map(p=>p.authId===a.id&&p.status==="pending"?{...p,status:"rejected"}:p));
+    }
+  };
+  const excluirAuth = () => {
+    if(!window.confirm("Tem certeza que deseja EXCLUIR esta autenticação?")) return;
+    setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
+    setPr(pr.filter(p=>p.authId!==a.id));
+  };
+  const updPrize = (pid, newS) => {
+    if(newS==="rejected" && !window.confirm("Recusar este prêmio?")) return;
+    if(newS==="rejected") {
+      setPr(pr.filter(p=>p.id!==pid));
+    } else {
+      setPr(pr.map(p=>p.id===pid?{...p, status:newS}:p));
+    }
   };
   function handleUpload(e){
     const f=e.target.files[0]; if(!f)return;
@@ -839,6 +857,21 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     };
     r.readAsDataURL(f);
   }
+  function salvarEdicao() {
+    let t = 0; const sels=[];
+    cfg.formulario.campos.forEach(campo=>{
+      const v = fEdit[campo.id];
+      if(v) {
+        if(campo.comValor) t+=parseFloat(v);
+        sels.push(campo.nome);
+      }
+    });
+    const newAuths = c.auths.map(x=>x.id===a.id?{...x, detalhes:fEdit, total:t, selecionados:sels}:x);
+    setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+    setEdit(false);
+    alert("✅ Valores atualizados!");
+  }
+
   return(
     <div style={{background:"#fff",borderRadius:10,border:`1px solid ${expA?C.az:C.bd+"66"}`,overflow:"hidden"}}>
       <div onClick={()=>setExpA(!expA)} style={{padding:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:expA?C.azC:"#fff"}}>
@@ -850,32 +883,73 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
         <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
       </div>
       {expA && <div style={{padding:12,borderTop:`1px solid ${C.bd}33`,background:"#fafafa"}}>
-         <div style={{fontSize:11,display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
-            {Object.entries(a.detalhes||{}).map(([fid, val]) => {
-              const f = cfg.formulario.campos.find(x=>x.id===fid);
-              if(!f || !val) return null;
-              return <div key={fid} style={{display:"flex",justifyContent:"space-between",borderBottom:`1px solid ${C.bd}11`,paddingBottom:2}}>
-                <span>{f.emoji} {f.nome}</span>
-                <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
-              </div>
-            })}
-         </div>
-         {a.foto ? <img src={a.foto} style={{width:"100%",borderRadius:8,marginBottom:12,cursor:"pointer"}} onClick={()=>window.open(a.foto)} alt="comprovante"/> : <div style={{marginBottom:12,padding:12,border:`1px dashed ${C.bd}`,textAlign:"center",fontSize:10,color:C.sb}}>⚠️ Sem comprovante</div>}
+         {edit ? (
+           <div style={{marginBottom:12,padding:10,background:"#fff",borderRadius:8,border:`1px solid ${C.bd}`}}>
+             <div style={{fontWeight:800,fontSize:11,marginBottom:8}}>✏️ Editar Valores e Serviços</div>
+             {cfg.formulario.campos.map(f => (
+               <div key={f.id} style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
+                 <label style={{fontSize:11,color:C.sb}}>{f.emoji} {f.nome}</label>
+                 {f.comValor ? (
+                   <input type="number" value={fEdit[f.id]||""} onChange={e=>setFEdit({...fEdit, [f.id]:e.target.value})} style={{width:80,padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bd}`,fontSize:11}} placeholder="R$..." />
+                 ) : (
+                   <input type="checkbox" checked={!!fEdit[f.id]} onChange={e=>setFEdit({...fEdit, [f.id]:e.target.checked})} />
+                 )}
+               </div>
+             ))}
+             <div style={{display:"flex",gap:6,marginTop:10}}>
+               <button onClick={salvarEdicao} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:6,padding:6,fontSize:10,fontWeight:800,cursor:"pointer"}}>Salvar</button>
+               <button onClick={()=>setEdit(false)} style={{flex:1,background:C.bg,color:C.sb,border:`1px solid ${C.bd}`,borderRadius:6,padding:6,fontSize:10,fontWeight:800,cursor:"pointer"}}>Cancelar</button>
+             </div>
+           </div>
+         ) : (
+           <div style={{fontSize:11,display:"flex",flexDirection:"column",gap:4,marginBottom:12}}>
+              {Object.entries(a.detalhes||{}).map(([fid, val]) => {
+                const f = cfg.formulario.campos.find(x=>x.id===fid);
+                if(!f || !val) return null;
+                return <div key={fid} style={{display:"flex",justifyContent:"space-between",borderBottom:`1px solid ${C.bd}11`,paddingBottom:2}}>
+                  <span>{f.emoji} {f.nome}</span>
+                  <strong style={{color:C.tx}}>{f.comValor?brl(val):"Sim"}</strong>
+                </div>
+              })}
+              <button onClick={()=>setEdit(true)} style={{alignSelf:"flex-start",background:"none",border:"none",color:C.az,fontSize:10,fontWeight:800,cursor:"pointer",marginTop:4,padding:0}}>✏️ Editar valores</button>
+           </div>
+         )}
+         
+         {a.foto ? (
+           <img src={a.foto} style={{width:"100%",borderRadius:8,marginBottom:12,cursor:"pointer"}} onClick={()=>window.open(a.foto)} alt="comprovante"/>
+         ) : (
+           <div style={{marginBottom:12,padding:12,border:`1px dashed ${C.bd}`,textAlign:"center",borderRadius:8}}>
+             <div style={{fontSize:10,color:C.sb,marginBottom:6}}>⚠️ Sem comprovante</div>
+             <label style={{background:C.bg,color:C.tx,border:`1px solid ${C.bd}`,borderRadius:6,padding:"4px 8px",fontSize:10,fontWeight:700,cursor:"pointer"}}>
+               📎 Anexar Comprovante
+               <input type="file" accept="image/*" onChange={handleUpload} style={{display:"none"}} />
+             </label>
+           </div>
+         )}
+         
          {pr.filter(px=>px.authId===a.id).map(px=>(
             <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:C.vdC,borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
               <div style={{fontSize:20}}>{px.emoji||"🎁"}</div>
               <div style={{flex:1}}>
                 <div style={{fontSize:11,fontWeight:800}}>{px.nome}</div>
-                <div style={{display:"flex",gap:5,marginTop:5}}>
-                  {px.status!=="pending" && <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>🎫 Ver Cupom</button>}
-                  {px.status!=="pending" && c.whats && <a href={`https://wa.me/55${c.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${c.nome?.split(" ")[0]}!\n\nVocê ganhou: *${px.nome} ${px.emoji||""}*\n\nSeu código: *${px.id.toUpperCase()}*\n\nApresente na Lotérica Central! 🏆`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:700,textDecoration:"none"}}>📲 WhatsApp c/ Texto</a>}
-                </div>
+                {px.status==="pending" ? (
+                  <div style={{display:"flex",gap:5,marginTop:5}}>
+                    <button onClick={()=>updPrize(px.id,"approved")} style={{background:C.vd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Prêmio</button>
+                    <button onClick={()=>updPrize(px.id,"rejected")} style={{background:C.rd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>❌ Recusar</button>
+                  </div>
+                ) : (
+                  <div style={{display:"flex",gap:5,marginTop:5}}>
+                    <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>🎫 Ver Cupom</button>
+                  </div>
+                )}
               </div>
             </div>
          ))}
-         <div style={{display:"flex",gap:6}}>
-            {s==="pending" && <button onClick={()=>updateStatus("approved")} style={{flex:1,background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>Aprovar</button>}
-            {s==="pending" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>Recusar</button>}
+         
+         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            {s!=="approved" && <button onClick={()=>updateStatus("approved")} style={{flex:1,minWidth:"30%",background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Autenticação</button>}
+            {s!=="rejected" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,minWidth:"30%",background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>❌ Recusar Autenticação</button>}
+            <button onClick={excluirAuth} style={{flex:1,minWidth:"30%",background:"#374151",color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>🗑️ Excluir Autenticação</button>
          </div>
       </div>}
     </div>
@@ -939,7 +1013,6 @@ function APr({pr, cl, cfg, setPr}){
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
             {!isR && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>}
-            {!isR && cli?.whats && <a href={`https://wa.me/55${cli.whats}?text=${encodeURIComponent(`🎉 *CUPOM DE RETIRADA*\n\nParabéns, ${cli.nome?.split(" ")[0]}!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código: *${p.id.toUpperCase()}*\n\nApresente na Lotérica Central! 🏆`)}`} target="_blank" rel="noreferrer" style={{background:"#25D366",color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textDecoration:"none",flex:1,textAlign:"center",fontFamily:"inherit"}}>📲 WhatsApp c/ Texto</a>}
             {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado</div>}
           </div>
         </div>);
