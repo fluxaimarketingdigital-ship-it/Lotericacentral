@@ -1032,7 +1032,22 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     try {
       const el = document.getElementById("cupom-certificado");
       if(!el) return;
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
+      
+      // Pequeno delay para garantir que tudo foi renderizado
+      await new Promise(r => setTimeout(r, 100));
+      
+      const canvas = await html2canvas(el, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: "#ffffff",
+        width: 360,
+        windowWidth: 360,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0
+      });
+      
       canvas.toBlob(async (blob) => {
         const file = new File([blob], "cupom_premiado.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -1046,7 +1061,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
           fallbackDownload(blob);
         }
         setGerando(false);
-      });
+      }, "image/png");
     } catch(e) {
       console.error(e);
       setGerando(false);
@@ -1068,7 +1083,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
 
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
-      <div id="cupom-certificado" style={{background:"#fff"}}>
+      <div id="cupom-certificado" style={{background:"#fff", width: "360px", fontFamily: "'Nunito', sans-serif"}}>
         <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:25,textAlign:"center",position:"relative"}}>
           <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.1}}/>
           <div style={{background:"#fff",width:80,height:80,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 8px 20px rgba(0,0,0,.2)"}}>
@@ -1084,7 +1099,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
             <div style={{fontSize:36,marginBottom:6}}>{p.emoji||cfg.premioMeta.emoji}</div>
             <div style={{fontSize:18,fontWeight:900,color:C.az}}>{p.nome}</div>
           </div>
-          <div style={{display:"flex",gap:10,marginBottom:20}}>
+          <div style={{display:"flex",gap:10,paddingBottom:20}}>
             <div style={{flex:1,background:C.ouC,borderRadius:12,padding:10,border:`1px solid ${C.ou}33`}}>
               <div style={{fontSize:9,fontWeight:800,color:C.ou2,textTransform:"uppercase"}}>Código Voucher</div>
               <div style={{fontSize:18,fontWeight:900,color:C.tx,fontFamily:"monospace",letterSpacing:1}}>{p.id.toUpperCase()}</div>
