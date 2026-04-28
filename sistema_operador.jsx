@@ -585,7 +585,8 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
   const pendsG = useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending").length||0),0),[cl]);
-  const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios"},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
+  const pendsP = useMemo(()=>pr.filter(p=>p.status==="pending").length, [pr]);
+  const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
@@ -967,7 +968,12 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
       if(!q) return true;
       const matchNome = c.nome?.toLowerCase().includes(q);
       const matchWhats = c.whats?.includes(q);
-      const matchID = c.auths?.some(a => a.id.toLowerCase().includes(q));
+      const matchID = c.auths?.some(a => {
+        const idMatch = a.id.toLowerCase().includes(q);
+        const detailsMatch = Object.values(a.detalhes || {}).some(v => String(v).toLowerCase().includes(q));
+        const numControleMatch = a.numControle?.toLowerCase().includes(q) || a.controle?.toLowerCase().includes(q);
+        return idMatch || detailsMatch || numControleMatch;
+      });
       return matchNome || matchWhats || matchID;
     }).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));
   },[cl,bus]);
