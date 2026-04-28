@@ -969,14 +969,17 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
       const matchNome = c.nome?.toLowerCase().includes(q);
       const matchWhats = c.whats?.includes(q);
       const matchID = c.auths?.some(a => {
-        const idMatch = a.id.toLowerCase().includes(q);
-        const detailsMatch = Object.values(a.detalhes || {}).some(v => String(v).toLowerCase().includes(q));
-        const numControleMatch = a.numControle?.toLowerCase().includes(q) || a.controle?.toLowerCase().includes(q);
-        return idMatch || detailsMatch || numControleMatch;
+        const numMatch = (a.numControle || a.controle || "")?.toLowerCase().includes(q);
+        const detailsMatch = Object.entries(a.detalhes || {}).some(([fid, val]) => {
+           const campo = cfg.formulario.campos.find(f => f.id === fid);
+           const isControleField = campo?.nome?.toLowerCase().includes("controle") || campo?.nome?.toLowerCase().includes("registro");
+           return isControleField && String(val).toLowerCase().includes(q);
+        });
+        return numMatch || detailsMatch;
       });
       return matchNome || matchWhats || matchID;
     }).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));
-  },[cl,bus]);
+  },[cl,bus,cfg.formulario.campos]);
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="👥" t="Todos os Clientes" s={`${cl.length} cadastrados`}/>
     <input value={bus} onChange={e=>setBus(e.target.value)} placeholder="🔍 Buscar por nome, WhatsApp ou Número de Controle…" style={{...I}}/>
