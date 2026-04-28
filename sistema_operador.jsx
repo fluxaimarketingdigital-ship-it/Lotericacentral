@@ -960,9 +960,20 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
   const[exp,setExp]=useState(null);
   const[voucherVer,setVoucherVer]=useState(null);
   const opN=id=>ops.find(o=>o.id===id)?.nome||"—";
-  const lista=useMemo(()=>{const q=bus.toLowerCase().trim();return cl.filter(c=>!q||c.nome?.toLowerCase().includes(q)||c.whats?.includes(q)).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));},[cl,bus]);
+  
+  const lista=useMemo(()=>{
+    const q=bus.toLowerCase().trim();
+    return cl.filter(c=>{
+      if(!q) return true;
+      const matchNome = c.nome?.toLowerCase().includes(q);
+      const matchWhats = c.whats?.includes(q);
+      const matchID = c.auths?.some(a => a.id.toLowerCase().includes(q));
+      return matchNome || matchWhats || matchID;
+    }).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));
+  },[cl,bus]);
+
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="👥" t="Todos os Clientes" s={`${cl.length} cadastrados`}/>
-    <input value={bus} onChange={e=>setBus(e.target.value)} placeholder="🔍 Buscar por nome ou WhatsApp…" style={{...I}}/>
+    <input value={bus} onChange={e=>setBus(e.target.value)} placeholder="🔍 Buscar por nome, WhatsApp ou Número de Controle…" style={{...I}}/>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="👥" msg="Nenhum cliente encontrado."/>}
       {lista.map(c=>(<div key={c.id} style={{borderBottom:`1px solid ${C.bd}22`}}>
@@ -1033,33 +1044,35 @@ function OpVoucherCard({p, cli, cfg, onClose}){
       const el = document.getElementById("cupom-certificado");
       if(!el) return;
       
-      // Pequeno delay para garantir que tudo foi renderizado
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 400));
       
       const canvas = await html2canvas(el, { 
-        scale: 3, // Aumentar escala para melhor qualidade
+        scale: 2, 
         useCORS: true, 
         backgroundColor: "#ffffff",
-        width: 360,
-        windowWidth: 360,
+        width: 600,
+        height: 600,
+        windowWidth: 1000, // Dar espaço extra para o clone renderizar
+        windowHeight: 1000,
         onclone: (clonedDoc) => {
           const clonedEl = clonedDoc.getElementById("cupom-certificado");
           if (clonedEl) {
-            clonedEl.style.width = "360px";
+            clonedEl.style.width = "600px";
+            clonedEl.style.height = "600px";
             clonedEl.style.display = "block";
+            clonedEl.style.position = "relative";
+            clonedEl.style.margin = "0";
+            clonedEl.style.padding = "0";
           }
         }
       });
       
       canvas.toBlob(async (blob) => {
-        const file = new File([blob], "cupom_premiado.png", { type: "image/png" });
+        const file = new File([blob], "cupom.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try { 
             await navigator.share({ files: [file], title: "Cupom Lotérica Central", text: msg }); 
-          } catch (e) { 
-            console.error("Erro no share:", e);
-            fallbackDownload(blob);
-          }
+          } catch (e) { fallbackDownload(blob); }
         } else { 
           fallbackDownload(blob);
         }
@@ -1076,7 +1089,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "cupom_loterica.png";
+    a.download = "cupom.png";
     a.click();
     URL.revokeObjectURL(url);
     setTimeout(() => {
@@ -1086,33 +1099,33 @@ function OpVoucherCard({p, cli, cfg, onClose}){
 
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
-      <div id="cupom-certificado" style={{background:"#fff", width: "360px", minWidth: "360px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block"}}>
-        <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"25px 0",position:"relative", display: "block"}}>
-          <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-          <div style={{background:"#fff",width:80,height:80,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 8px 20px rgba(0,0,0,0.2)"}}>
-            <div style={{fontWeight:900,fontSize:10,color:C.az,textAlign:"center",lineHeight:1.2}}>LOTÉRICA<br/>CENTRAL</div>
+      <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", minWidth: "600px", minHeight: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
+        <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"45px 0",position:"relative", display: "block"}}>
+          <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
+          <div style={{background:"#fff",width:120,height:120,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:10,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
+            <div style={{fontWeight:900,fontSize:14,color:C.az,textAlign:"center",lineHeight:1.2}}>LOTÉRICA<br/>CENTRAL</div>
           </div>
-          <div style={{color:C.ou,fontSize:10,fontWeight:800,letterSpacing:2,textTransform:"uppercase",marginBottom:4, display: "block"}}>Certificado de Premiação</div>
-          <div style={{color:"#fff",fontSize:22,fontWeight:900, display: "block"}}>Cliente Premiado</div>
+          <div style={{color:C.ou,fontSize:14,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:8, display: "block"}}>Certificado de Premiação</div>
+          <div style={{color:"#fff",fontSize:32,fontWeight:900, display: "block"}}>Cliente Premiado</div>
         </div>
-        <div style={{padding:"25px 22px 10px",textAlign:"center", display: "block"}}>
-          <div style={{fontSize:18,fontWeight:900,color:C.tx,marginBottom:20, display: "block"}}>{cli?.nome}</div>
-          <div style={{background:C.bg,borderRadius:18,padding:18,marginBottom:20,border:`1px solid ${C.bd}`, display: "block"}}>
-            <div style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",marginBottom:4, display: "block"}}>Você ganhou</div>
-            <div style={{fontSize:36,marginBottom:6, display: "block"}}>{p.emoji||cfg.premioMeta.emoji}</div>
-            <div style={{fontSize:18,fontWeight:900,color:C.az, display: "block"}}>{p.nome}</div>
+        <div style={{padding:"40px 40px 10px",textAlign:"center", display: "block"}}>
+          <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30, display: "block"}}>{cli?.nome}</div>
+          <div style={{background:C.bg,borderRadius:24,padding:25,marginBottom:30,border:`1px solid ${C.bd}`, display: "block"}}>
+            <div style={{fontSize:14,fontWeight:800,color:C.sb,textTransform:"uppercase",marginBottom:8, display: "block"}}>Você ganhou</div>
+            <div style={{fontSize:54,marginBottom:10, display: "block"}}>{p.emoji||cfg.premioMeta.emoji}</div>
+            <div style={{fontSize:26,fontWeight:900,color:C.az, display: "block"}}>{p.nome}</div>
           </div>
           <div style={{paddingBottom:20, display: "block", textAlign: "center"}}>
-            <div style={{display:"inline-block", width:"47%", verticalAlign:"top", marginRight:"4%"}}>
-              <div style={{background:C.ouC,borderRadius:12,padding:"10px 5px",border:`1px solid ${C.ou}33`, textAlign: "center"}}>
-                <div style={{fontSize:8,fontWeight:800,color:C.ou2,textTransform:"uppercase", marginBottom: 2}}>Voucher</div>
-                <div style={{fontSize:16,fontWeight:900,color:C.tx,fontFamily:"monospace"}}>{p.id.toUpperCase()}</div>
+            <div style={{display:"inline-block", width:"46%", verticalAlign:"top", marginRight:"4%"}}>
+              <div style={{background:C.ouC,borderRadius:16,padding:"15px 10px",border:`1px solid ${C.ou}33`, textAlign: "center"}}>
+                <div style={{fontSize:11,fontWeight:800,color:C.ou2,textTransform:"uppercase", marginBottom: 4}}>Voucher</div>
+                <div style={{fontSize:22,fontWeight:900,color:C.tx,fontFamily:"monospace"}}>{p.id.toUpperCase()}</div>
               </div>
             </div>
-            <div style={{display:"inline-block", width:"47%", verticalAlign:"top"}}>
-              <div style={{background:C.rdC,borderRadius:12,padding:"10px 5px",border:`1px solid ${C.rd}33`, textAlign: "center"}}>
-                <div style={{fontSize:8,fontWeight:800,color:C.rd,textTransform:"uppercase", marginBottom: 2}}>Validade</div>
-                <div style={{fontSize:14,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
+            <div style={{display:"inline-block", width:"46%", verticalAlign:"top"}}>
+              <div style={{background:C.rdC,borderRadius:16,padding:"15px 10px",border:`1px solid ${C.rd}33`, textAlign: "center"}}>
+                <div style={{fontSize:11,fontWeight:800,color:C.rd,textTransform:"uppercase", marginBottom: 4}}>Validade</div>
+                <div style={{fontSize:18,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
               </div>
             </div>
           </div>
@@ -1127,7 +1140,8 @@ function OpVoucherCard({p, cli, cfg, onClose}){
         <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar</button>
       </div>
     </div>
-  </div>);}
+  </div>);
+}
 
 function ACfg({cfg,setCfg,ops,setOps,cl,pr}){
   const[sub,setSub]=useState("meta");
