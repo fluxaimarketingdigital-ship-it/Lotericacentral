@@ -1231,3 +1231,9 @@ function VoucherCard({p, cli, cfg, onClose}){
       </div>
     </div>
   </div>);}
+
+/* ══════════════════════ MICRO COMPONENTES ══════════════════════ */
+function Tit({em,t,s}){return(<div style={{marginBottom:4}}><div style={{fontWeight:900,fontSize:19,color:C.tx}}>{em} {t}</div>{s&&<div style={{fontSize:11,color:C.sb,marginTop:2}}>{s}</div>}</div>);}
+function Vz({em,msg}){return(<div style={{padding:"26px 20px",textAlign:"center",color:C.sb}}><div style={{fontSize:40,marginBottom:8,opacity:.4}}>{em}</div><div style={{fontSize:12,lineHeight:1.7}}>{msg}</div></div>);}
+function Alerta({msg}){return(<div style={{background:C.rdC,color:C.rd,padding:12,borderRadius:11,fontSize:12,fontWeight:700,textAlign:"center",border:`1px solid ${C.rd}33`}}>{msg}</div>);}
+function Cp({label,value,onChange,placeholder,type="text",sub,ativo}){return(<div style={{marginBottom:12}}><label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{width:"100%",padding:12,marginTop:5,borderRadius:11,border:`2px solid ${ativo?C.az:C.bd}`,background:ativo?C.azC:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",color:C.tx}}/>{sub&&<div style={{fontSize:10,color:C.sb,marginTop:4}}>{sub}</div>}</div>);}
