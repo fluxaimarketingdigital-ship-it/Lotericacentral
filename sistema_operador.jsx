@@ -1101,7 +1101,7 @@ function APr({pr, cl, cfg, setPr}){
 
 function OpVoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
-  const msg = `🎉 *MEU CUPOM DE RETIRADA*\n\nGanhei: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\nValidade de retirada do prêmio: *${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
+  const msg = `🎟️ *MEU CUPOM DIGITAL DE RETIRADA*\n\nPrêmio: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\n⚠️ *Retire até: ${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
   const [gerando, setGerando] = useState(false);
   const [copiado, setCopiado] = useState(false);
 

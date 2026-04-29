@@ -1365,7 +1365,7 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
 
 /* ══════════════════════ OVERLAY RELÂMPAGO ══════════════════════ */
 function PremioOvl({relamp,setRelamp,cli,wts}){
-  const msg=`🎉 *${relamp.nome}*\nOlá, ${cli?.nome?.split(" ")[0]}!\n\n${relamp.desc}`;
+  const msg=`🌟 *NOVO PRÊMIO RELÂMPAGO!* ⚡\n\nOlá! Acabei de ganhar: *${relamp.nome} ${relamp.emoji||""}*\n\nEstou aguardando a auditoria para receber meu Cupom Digital de retirada. 🎟️🏆\n\nLotérica Central — Cliente Premiado!`;
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.8)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:999,padding:20,backdropFilter:"blur(8px)"}}>
     {["⭐","✨","🎉","⚡","🌟","🎊"].map((e,i)=><div key={i} style={{position:"absolute",fontSize:22,top:`${12+i*13}%`,left:`${6+i*16}%`,animation:`pop ${.3+i*.15}s ease both`,opacity:.7}}>{e}</div>)}
     <div style={{background:"#fff",borderRadius:26,padding:"28px 22px",textAlign:"center",maxWidth:340,width:"100%",animation:"priz .5s ease",boxShadow:"0 24px 70px rgba(0,0,0,.45)"}}>
@@ -1381,7 +1381,7 @@ function PremioOvl({relamp,setRelamp,cli,wts}){
 /* ══════════════════════ MICRO ══════════════════════ */
 function VoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
-  const msg = `🎉 *MEU CUPOM DE RETIRADA*\n\nGanhei: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\nValidade de retirada do prêmio: *${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
+  const msg = `🎟️ *MEU CUPOM DIGITAL DE RETIRADA*\n\nPrêmio: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\n⚠️ *Retire até: ${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
   const [gerando, setGerando] = useState(false);
   const [copiado, setCopiado] = useState(false);
 
