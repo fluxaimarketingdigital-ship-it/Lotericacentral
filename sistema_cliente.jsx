@@ -875,10 +875,6 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       </div>
       {gM&&<div style={{width:"100%",background:`linear-gradient(135deg,${C.vd},#059669)`,borderRadius:18,padding:"18px",textAlign:"center",animation:"pop .5s"}}><div style={{fontSize:48,marginBottom:6}}>{cfg.premioMeta.emoji}</div><div style={{fontWeight:900,fontSize:20,color:"#fff",marginBottom:6}}>Parabéns! Prêmio Conquistado!</div><div style={{fontSize:12,color:"rgba(255,255,255,.85)",lineHeight:1.7}}>Aguardando auditoria. Assim que aprovado, você receberá o voucher de resgate via WhatsApp!</div></div>}
       {pRl&&<div style={{width:"100%",background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:18,padding:"16px",textAlign:"center"}}><div style={{fontSize:40,marginBottom:6}}>{pRl.emoji}</div><div style={{fontWeight:800,fontSize:11,textTransform:"uppercase",letterSpacing:2,color:"rgba(255,255,255,.7)",marginBottom:5}}>⚡ Prêmio Relâmpago!</div><div style={{fontWeight:900,fontSize:18,color:"#fff",marginBottom:6}}>{pRl.nome}</div><div style={{fontSize:12,color:"rgba(255,255,255,.8)",lineHeight:1.6}}>Aguardando auditoria. Assim que aprovado, você receberá o voucher via WhatsApp!</div></div>}
-      <a href={`https://wa.me/${cfg.wts||CFG0.wts}?text=${encodeURIComponent(`Olá! Sou *${c.nome}* e registrei minha visita na ${NOME}.${gM?` 🎉 ${cfg.premioMeta.emoji} ${cfg.premioMeta.nome}!`:""}${pRl?` ⚡ ${pRl.nome}!`:""}`)}`} target="_blank" rel="noreferrer"
-        style={{display:"block",width:"100%",background:"#25D366",color:"#fff",borderRadius:14,padding:"14px",fontWeight:800,fontSize:15,textDecoration:"none",textAlign:"center",boxShadow:"0 4px 16px rgba(37,211,102,.4)"}}>
-        📲 Avisar a Lotérica via WhatsApp
-      </a>
       <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:14,padding:14,fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>Ver meu progresso</button>
     </div>);}
 
@@ -1354,7 +1350,7 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
       <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"17px"}}>
         <div style={{fontWeight:800,fontSize:11,color:"rgba(255,255,255,.55)",marginBottom:12,textTransform:"uppercase",letterSpacing:1}}>🏆 Histórico</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,textAlign:"center"}}>
-          {[[tot,"Atendimentos","#fff"],[raspa,"Prêmios",C.ou],[(meusPr||[]).filter(p=>p.tipo==="relampago").length,"Relâmpagos","#c4b5fd"]].map(([v,l,cor])=>(
+          {[[tot,"Registros","#fff"],[raspa,"Prêmios",C.ou],[(meusPr||[]).filter(p=>p.tipo==="relampago").length,"Relâmpagos","#c4b5fd"]].map(([v,l,cor])=>(
             <div key={l}><div style={{fontWeight:900,fontSize:24,color:cor,lineHeight:1}}>{v}</div><div style={{fontSize:9,color:"rgba(255,255,255,.5)",marginTop:2,textTransform:"uppercase",letterSpacing:.5}}>{l}</div></div>
           ))}
         </div>
@@ -1384,7 +1380,6 @@ function PremioOvl({relamp,setRelamp,cli,wts}){
       <div style={{fontWeight:800,fontSize:11,textTransform:"uppercase",letterSpacing:2,color:C.rx,marginBottom:8}}>⚡ Prêmio Relâmpago!</div>
       <div style={{fontWeight:900,fontSize:21,color:C.tx,lineHeight:1.2,marginBottom:10}}>{relamp.nome}</div>
       <div style={{fontSize:13,color:C.sb,lineHeight:1.7,marginBottom:22}}>{relamp.desc}</div>
-      <a href={`https://wa.me/${wts}?text=${encodeURIComponent(msg)}`} target="_blank" rel="noreferrer" onClick={()=>setRelamp(null)} style={{display:"block",background:"#25D366",color:"#fff",borderRadius:13,padding:"13px 20px",fontWeight:800,fontSize:14,textDecoration:"none",marginBottom:10,boxShadow:"0 4px 14px rgba(37,211,102,.4)"}}>📲 Avisar a Lotérica pelo WhatsApp</a>
       <button onClick={()=>setRelamp(null)} style={{background:C.bg,color:C.sb,border:"none",borderRadius:11,padding:"11px 20px",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar</button>
     </div>
   </div>);}
