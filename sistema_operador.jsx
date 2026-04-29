@@ -113,8 +113,11 @@ const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRa
 /* ═══════ APP ROOT ═══════ */
 export default function App(){
   const[tela,setTela]=useState("splash");
-  const[role,setRole]=useState(null);
-  const[opSel,setOpSel]=useState(null);
+  const[role,setRole]=useState(()=>localStorage.getItem("lc_op_role"));
+  const[opSel,setOpSel]=useState(()=>{
+     const saved = localStorage.getItem("lc_op_sel");
+     try { return saved ? JSON.parse(saved) : null; } catch(e) { return null; }
+  });
   const[ops,setOps_]=useState([]);
   const[cl,setCl_]=useState([]);
   const[pr,setPr_]=useState([]);
@@ -137,6 +140,17 @@ export default function App(){
     DB.listen?.("lc-op-prizes", val => { if(Array.isArray(val)) setOpPrizes_(val); });
     DB.listen?.("lc-cfg", val => { if(val) setCfg_(prev => ({...DCFG,...prev,...val})); });
   })();},[]);
+
+  useEffect(()=>{
+    if(role) localStorage.setItem("lc_op_role", role);
+    else localStorage.removeItem("lc_op_role");
+  },[role]);
+
+  useEffect(()=>{
+    if(opSel) localStorage.setItem("lc_op_sel", JSON.stringify(opSel));
+    else localStorage.removeItem("lc_op_sel");
+  },[opSel]);
+
   const ctx={tela,setTela,role,setRole,opSel,setOpSel,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes};
   return(<><style>{CSS}</style>
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:520,margin:"0 auto",fontSize:13,color:C.tx}}>
@@ -1056,15 +1070,18 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="👥" msg="Nenhum cliente encontrado."/>}
       {lista.map(c=>(<div key={c.id} style={{borderBottom:`1px solid ${C.bd}22`}}>
-        <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{padding:12,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:exp===c.id?C.bg:"#fff"}}>
-          <div style={{width:34,height:34,borderRadius:10,background:C.azC,color:C.az,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>{c.nome?.charAt(0)}</div>
-          <div style={{flex:1}}>
-            <div style={{fontWeight:800,fontSize:12,color:C.tx,display:"flex",alignItems:"center",gap:6}}>
-              {c.nome} 
-              {c.auths?.some(a=>a.status==="pending") && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
-              {c.auths?.some(a=>a.status==="rejected" && !a.modificado) && <span style={{background:C.rdC,color:C.rd,fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900,border:`1px solid ${C.rd}44`}}>❌ AGUARDANDO CLIENTE</span>}
+        <div style={{padding:12,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:exp===c.id?C.bg:"#fff"}}>
+          <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{width:34,height:34,borderRadius:10,background:C.azC,color:C.az,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>{c.nome?.charAt(0)}</div>
+          <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{flex:1}}>
+            <div style={{fontWeight:800,fontSize:12,color:C.tx,display:"flex",alignItems:"center",gap:6,justifyContent:"space-between"}}>
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <span>{c.nome}</span>
+                {c.auths?.some(a=>a.status==="pending") && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
+                {c.auths?.some(a=>a.status==="rejected" && !a.modificado) && <span style={{background:C.rdC,color:C.rd,fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900,border:`1px solid ${C.rd}44`}}>❌ AGUARDANDO CLIENTE</span>}
+              </div>
+              <div onClick={(e)=>{e.stopPropagation(); if(window.confirm(`Excluir o cliente ${c.nome} permanentemente?`)) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
             </div>
-            <div style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
+            <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
         </div>
         {exp===c.id&&<div style={{padding:"12px 13px",background:"#fcfdfe",display:"flex",flexDirection:"column",gap:10}}>

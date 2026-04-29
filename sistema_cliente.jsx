@@ -484,9 +484,6 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <div style={{zIndex:1,position:"relative"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{width:80, height:24, background:"#fff", borderRadius:6, padding:"2px 6px", display:"flex", alignItems:"center", justifyContent:"center"}}>
-            <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
-          </div>
           {diasFaltam >= 0 && diasFaltam <= 2 && !encerrada && (
             <div style={{background:C.ou,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20,animation:"dt 1s infinite"}}>
               ⚠️ CAMPANHA ENCERRA {diasFaltam===0?"HOJE":`EM ${diasFaltam} DIA${diasFaltam>1?"S":""}`}!
@@ -497,6 +494,10 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
               🚫 CAMPANHA ENCERRADA
             </div>
           )}
+          {!encerrada && diasFaltam > 2 && <div/>}
+          <div style={{width:80, height:24, background:"#fff", borderRadius:6, padding:"2px 6px", display:"flex", alignItems:"center", justifyContent:"center"}}>
+            <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+          </div>
         </div>
         <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:22}}>{c.nome?.split(" ")[0]}!</span> 👋 <span style={{fontSize:9,opacity:.5}}>v1.3</span></div>
         <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:2}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>

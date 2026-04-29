@@ -40,13 +40,13 @@ function AppMenu() {
 const PASSWORD = 'central2026';
 
 function AccessGate({ children }) {
-  const [auth, setAuth] = React.useState(sessionStorage.getItem('access_granted') === 'true');
+  const [auth, setAuth] = React.useState(localStorage.getItem('access_granted') === 'true');
   const [pass, setPass] = React.useState('');
   const [error, setError] = React.useState('');
 
   const handleLogin = () => {
     if (pass === PASSWORD) {
-      sessionStorage.setItem('access_granted', 'true');
+      localStorage.setItem('access_granted', 'true');
       setAuth(true);
     } else {
       setError('Acesso negado. Senha incorreta.');
