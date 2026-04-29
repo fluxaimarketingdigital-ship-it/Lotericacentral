@@ -288,8 +288,9 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
     return all.sort((a, b) => new Date(b.data) - new Date(a.data));
   }, [cl, op]);
 
-  const hoje_ = useMemo(() => minhas.filter(a => a.data?.slice(0, 10) === hoje() && a.valida !== false), [minhas]);
-  const meusCl = cl.filter(c => (c.auths || []).some(a => a.opId === op.id));
+  const minhasV = useMemo(()=>minhas.filter(a=>a.status!=="rejected"), [minhas]);
+  const hoje_ = useMemo(() => minhasV.filter(a => a.data?.slice(0, 10) === hoje() && a.valida !== false), [minhasV]);
+  const meusCl = cl.filter(c => (c.auths || []).some(a => a.opId === op.id && a.status!=="rejected"));
   const rank = useMemo(() => {
     const list = ops.map((o, i) => {
       let t = 0;
@@ -349,7 +350,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>{op.nome} <span style={{fontSize:9,opacity:.5,fontWeight:400}}>v1.3</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)",marginTop:1}}>Operador de Caixa · {fD(op.cadastro)}</div>
       <div style={{display:"flex",gap:7,marginTop:13}}>
-        {[["✅",minhas.length,"Total"],["📅",hoje_.length,"Hoje"],["👥",meusCl.length,"Clientes"],[`${pos}º`,"","Ranking"]].map(([v,,l],ki)=>(
+        {[["✅",minhasV.length,"Total"],["📅",hoje_.length,"Hoje"],["👥",meusCl.length,"Clientes"],[`${pos}º`,"","Ranking"]].map(([v,,l],ki)=>(
           <div key={l+ki} style={{flex:1,background:"rgba(255,255,255,.12)",borderRadius:9,padding:"7px 4px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
             <div style={{fontWeight:900,fontSize:16,color:"#fff",lineHeight:1}}>{v}</div>
             <div style={{fontSize:8,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:.4,marginTop:2}}>{l}</div>
@@ -593,7 +594,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
   const encerrada = new Date() > new Date((cfg.dataFim||"2100-01-01") + "T23:59:59");
   const pendsG = useMemo(()=> {
     if(encerrada) return 0;
-    return cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending" || (a.status==="rejected" && !a.modificado)).length||0),0);
+    return cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending").length||0),0);
   },[cl, encerrada]);
   const pendsP = useMemo(()=> {
     if(encerrada) return 0;
@@ -636,7 +637,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
 
 function ADash({ops,cl,pr,cfg,setAba,setBus,encerrada}){
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
-  const totP=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.valida!==false).length||0),0),[cl]);
+  const totP=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.valida!==false && a.status!=="rejected").length||0),0),[cl]);
   const prontos=useMemo(() => {
     if(encerrada) return [];
     return cl.filter(c => 
