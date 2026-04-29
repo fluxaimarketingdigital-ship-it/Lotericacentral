@@ -132,7 +132,11 @@ export default function App(){
     try{const[o,c,p,f,opp]=await Promise.all([DB.load("lc-ops"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg"),DB.load("lc-op-prizes")]);
       if(Array.isArray(o))setOps_(o);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);
       if(f)setCfg_({...DCFG,...f,relampagos:f.relampagos||DCFG.relampagos,premioMeta:f.premioMeta||DCFG.premioMeta,noticias:f.noticias||DCFG.noticias,formulario:{...DCFG.formulario,...(f.formulario||{}),cats:f.formulario?.cats||DCFG.formulario.cats,campos:f.formulario?.campos||DCFG.formulario.campos}});}catch(_){}
-    setTimeout(()=>setTela("home"),1400);
+    setTimeout(()=>{
+      if(role === "admin") setTela("admin");
+      else if(role === "op" && opSel) setTela("op");
+      else setTela("home");
+    },1400);
 
     DB.listen?.("lc-ops", val => { if(Array.isArray(val)) setOps_(val); });
     DB.listen?.("lc-cl", val => { if(Array.isArray(val)) setCl_(val); });
@@ -207,15 +211,15 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
             <div style={{flex:1}}><div style={{fontWeight:800,fontSize:13,color:C.tx}}>{o.nome}</div><div style={{fontSize:10,color:C.sb}}>{fD(o.cadastro)}</div></div>
             <span style={{fontSize:16,color:C.sb}}>→</span>
           </div>)}
-          {opLogin && <div style={{padding:"11px 15px",background:C.azC,borderTop:`1px solid ${C.bd}`}}>
+          {opLogin && <form onSubmit={e=>{e.preventDefault(); entrarOp();}} style={{padding:"11px 15px",background:C.azC,borderTop:`1px solid ${C.bd}`}}>
             <div style={{fontSize:11,fontWeight:800,color:C.az,marginBottom:8}}>SENHA DE {opLogin.nome.toUpperCase()}</div>
             <div style={{display:"flex",gap:7,position:"relative"}}>
-              <input value={senhaOp} onChange={e=>setSenhaOp(e.target.value)} onKeyDown={e=>e.key==="Enter"&&entrarOp()} type={vis.op?"text":"password"} placeholder="Senha..." autoFocus style={{flex:1,...I,paddingRight:42}}/>
-              <button onClick={()=>setVis({...vis,op:!vis.op})} style={{position:"absolute",right:105,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.op?"Ocultar":"Ver"}</button>
-              <button onClick={entrarOp} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>ENTRAR</button>
+              <input value={senhaOp} onChange={e=>setSenhaOp(e.target.value)} type={vis.op?"text":"password"} placeholder="Senha..." autoFocus style={{flex:1,...I,paddingRight:42}}/>
+              <button type="button" onClick={()=>setVis({...vis,op:!vis.op})} style={{position:"absolute",right:105,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.op?"Ocultar":"Ver"}</button>
+              <button type="submit" style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>ENTRAR</button>
             </div>
             {erroOp && <div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroOp}</div>}
-          </div>}
+          </form>}
           <div onClick={()=>setTela("opreg")} style={{padding:"11px 15px",display:"flex",alignItems:"center",gap:10,cursor:"pointer",color:C.az,fontWeight:800,fontSize:12,borderTop:`1px solid ${C.bd}`}}>
             <span style={{fontSize:17}}>➕</span> Cadastrar Nova Operadora
           </div>
@@ -226,14 +230,14 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
           <div><div style={{fontWeight:900,fontSize:15,color:C.tx}}>🔒 Administrador / Lotérica</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>Dashboard completo + Configurações</div></div>
           <button onClick={()=>setShowS(!showS)} style={{background:"#374151",color:"#fff",border:"none",borderRadius:9,padding:"8px 13px",fontWeight:800,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>{showS?"Fechar":"Entrar →"}</button>
         </div>
-        {showS&&<div style={{padding:"11px 15px",borderTop:`1px solid ${C.bd}`}}>
+        {showS&&<form onSubmit={e=>{e.preventDefault(); entrarAdmin();}} style={{padding:"11px 15px",borderTop:`1px solid ${C.bd}`}}>
           <div style={{display:"flex",gap:7,marginBottom:erroS?7:0,position:"relative"}}>
-            <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} onKeyDown={e=>e.key==="Enter"&&entrarAdmin()} type={vis.adm?"text":"password"} placeholder="Senha admin…" style={{flex:1,...I,paddingRight:42}}/>
-            <button onClick={()=>setVis({...vis,adm:!vis.adm})} style={{position:"absolute",right:65,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.adm?"Ocultar":"Ver"}</button>
-            <button onClick={entrarAdmin} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
+            <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} type={vis.adm?"text":"password"} placeholder="Senha admin…" style={{flex:1,...I,paddingRight:42}}/>
+            <button type="button" onClick={()=>setVis({...vis,adm:!vis.adm})} style={{position:"absolute",right:65,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.adm?"Ocultar":"Ver"}</button>
+            <button type="submit" style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
           </div>
           {erroS&&<div style={{fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroS}</div>}
-        </div>}
+        </form>}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
         {[["🏅",ops.length,"Operadoras"],["👥",cl.length,"Clientes"],["✅",totalAuths,"Auths"]].map(([em,v,l])=>(
