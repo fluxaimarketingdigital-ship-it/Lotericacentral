@@ -285,6 +285,9 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
         if (a.opId === op?.id) all.push({ ...a, cn: c.nome, cid: c.id });
       });
     });
+    return all.sort((a, b) => new Date(b.data) - new Date(a.data));
+  }, [cl, op]);
+
   const minhasV = useMemo(() => minhas.filter(a => {
     const s = a.status || (a.valida !== false ? "approved" : "rejected");
     return s === "approved" || (s === "pending" && a.valida !== false);
