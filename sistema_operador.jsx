@@ -1098,77 +1098,42 @@ function APr({pr, cl, cfg, setPr}){
 
 function OpVoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
-  const msg = `🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cli?.nome?.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código: *${p.id.toUpperCase()}*\n\nValidade de retirada do prêmio: *${fD(dVal)}*\n\nApresente na Lotérica Central para resgatar! 🏆`;
+  const msg = `🎉 *MEU CUPOM DE RETIRADA*\n\nGanhei: *${p.nome} ${p.emoji||""}*\nCódigo: *${p.id.toUpperCase()}*\nValidade de retirada do prêmio: *${fD(dVal)}*\n\nLotérica Central — Cliente Premiado! 🏆`;
   const [gerando, setGerando] = useState(false);
   const [copiado, setCopiado] = useState(false);
+
+  async function shareImg() {
+    setGerando(true);
+    try {
+      const el = document.getElementById("cupom-certificado");
+      if(!el) return;
+      await new Promise(r => setTimeout(r, 400));
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff", width: 600, height: 600 });
+      canvas.toBlob(async (blob) => {
+        const file = new File([blob], "cupom.png", { type: "image/png" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try { await navigator.share({ files: [file], title: "Cupom Lotérica Central", text: msg }); }
+          catch (e) { fallbackDownload(blob); }
+        } else { fallbackDownload(blob); }
+        setGerando(false);
+      }, "image/png");
+    } catch(e) { console.error(e); setGerando(false); alert("Erro ao gerar imagem."); }
+  }
+
+  function fallbackDownload(blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "cupom.png"; a.click(); URL.revokeObjectURL(url);
+    setTimeout(() => { window.open(`https://wa.me/55${cli?.whats||""}?text=${encodeURIComponent(msg)}`); }, 1000);
+  }
 
   function copy() {
     navigator.clipboard.writeText(p.id.toUpperCase());
     setCopiado(true);
     setTimeout(() => setCopiado(false), 2000);
   }
-  
-  async function shareImg() {
-    setGerando(true);
-    try {
-      const el = document.getElementById("cupom-certificado");
-      if(!el) return;
-      
-      await new Promise(r => setTimeout(r, 400));
-      
-      const canvas = await html2canvas(el, { 
-        scale: 2, 
-        useCORS: true, 
-        backgroundColor: "#ffffff",
-        width: 600,
-        height: 600,
-        windowWidth: 1000, // Dar espaço extra para o clone renderizar
-        windowHeight: 1000,
-        onclone: (clonedDoc) => {
-          const clonedEl = clonedDoc.getElementById("cupom-certificado");
-          if (clonedEl) {
-            clonedEl.style.width = "600px";
-            clonedEl.style.height = "600px";
-            clonedEl.style.display = "block";
-            clonedEl.style.position = "relative";
-            clonedEl.style.margin = "0";
-            clonedEl.style.padding = "0";
-          }
-        }
-      });
-      
-      canvas.toBlob(async (blob) => {
-        const file = new File([blob], "cupom.png", { type: "image/png" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try { 
-            await navigator.share({ files: [file], title: "Cupom Lotérica Central", text: msg }); 
-          } catch (e) { fallbackDownload(blob); }
-        } else { 
-          fallbackDownload(blob);
-        }
-        setGerando(false);
-      }, "image/png");
-    } catch(e) {
-      console.error(e);
-      setGerando(false);
-      alert("Erro ao gerar a imagem do cupom.");
-    }
-  }
-
-  function fallbackDownload(blob) {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "cupom.png";
-    a.click();
-    URL.revokeObjectURL(url);
-    setTimeout(() => {
-       window.open(`https://wa.me/55${cli?.whats||""}?text=${encodeURIComponent(msg)}`);
-    }, 1000);
-  }
 
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
-    {/* ELEMENTO PARA CAPTURA (ESCONDIDO) */}
+    {/* CAPTURA (ESCONDIDO) */}
     <div style={{position:"fixed", left: "-9999px", top: 0}}>
       <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
         <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"35px 25px",position:"relative", display: "flex", alignItems:"center", gap:25, justifyContent:"center"}}>
@@ -1184,80 +1149,74 @@ function OpVoucherCard({p, cli, cfg, onClose}){
         <div style={{padding:"40px 40px 10px",textAlign:"center", display: "block"}}>
           <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30, display: "block"}}>{cli?.nome}</div>
           <div style={{background:C.bg,borderRadius:24,padding:25,marginBottom:30,border:`1px solid ${C.bd}`, display: "block"}}>
-            <div style={{fontSize:14,fontWeight:800,color:C.sb,textTransform:"uppercase",marginBottom:8, display: "block"}}>Você ganhou</div>
+            <div style={{fontSize:14,fontWeight:800,color:C.sb,textTransform:"uppercase",marginBottom:8}}>Você ganhou</div>
             <div style={{fontSize:54,marginBottom:10, display: "block"}}>{p.emoji||cfg.premioMeta.emoji}</div>
             <div style={{fontSize:26,fontWeight:900,color:C.az, display: "block"}}>{p.nome}</div>
           </div>
-          <div style={{paddingBottom:20, display: "block", textAlign: "center"}}>
-            {p.status === "redeemed" && (
-              <div style={{background:C.vdC, color:C.vd, padding:15, borderRadius:16, marginBottom:20, border:`1.5px solid ${C.vd}44`}}>
-                <div style={{fontWeight:900, fontSize:12, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
-                <div style={{fontSize:11, marginTop:4}}>Operador: <b>{p.opNomeRetirada || p.opRedeemed || "Lotérica Central"}</b></div>
-                <div style={{fontSize:11}}>Data: <b>{fDT(p.dataRetirada || p.redeemedAt || p.data)}</b></div>
-              </div>
-            )}
-            <div style={{display:"inline-block", width:"46%", verticalAlign:"top", marginRight:"4%"}}>
-              <div style={{background:C.ouC,borderRadius:16,padding:"15px 10px",border:`1px solid ${C.ou}33`, textAlign: "center"}}>
+          <div style={{display:"flex", gap:15, justifyContent:"center"}}>
+             <div style={{background:C.ouC,borderRadius:16,padding:"15px 20px",border:`1px solid ${C.ou}33`, textAlign: "center", flex:1}}>
                 <div style={{fontSize:11,fontWeight:800,color:C.ou2,textTransform:"uppercase", marginBottom: 4}}>Voucher</div>
                 <div style={{fontSize:22,fontWeight:900,color:C.tx,fontFamily:"monospace"}}>{p.id.toUpperCase()}</div>
-              </div>
-            </div>
-            <div style={{display:"inline-block", width:"46%", verticalAlign:"top"}}>
-              <div style={{background:C.rdC,borderRadius:16,padding:"15px 10px",border:`1px solid ${C.rd}33`, textAlign: "center"}}>
+             </div>
+             <div style={{background:C.rdC,borderRadius:16,padding:"15px 20px",border:`1px solid ${C.rd}33`, textAlign: "center", flex:1}}>
                 <div style={{fontSize:11,fontWeight:800,color:C.rd,textTransform:"uppercase", marginBottom: 4}}>Validade</div>
                 <div style={{fontSize:18,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
-              </div>
-            </div>
+             </div>
           </div>
         </div>
       </div>
     </div>
 
-    {/* PREVIEW PARA O USUÁRIO */}
+    {/* PREVIEW */}
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
-      <div style={{width:"100%", height: 360, overflow: "hidden", position: "relative", background: "#f0f2f5"}}>
-         <div style={{transform: "scale(0.6)", transformOrigin: "top left", width: 600, height: 600}}>
-            <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 15px",position:"relative", display: "flex", alignItems:"center", gap:15, justifyContent:"center"}}>
-              <div style={{background:"#fff",width:80,height:80,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",padding:4,boxShadow:"0 8px 20px rgba(0,0,0,.2)",flexShrink:0}}>
-                <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
-              </div>
-              <div style={{textAlign:"left"}}>
-                <div style={{color:C.ou,fontSize:9,fontWeight:800,letterSpacing:2,textTransform:"uppercase"}}>Certificado</div>
-                <div style={{color:"#fff",fontSize:20,fontWeight:900,lineHeight:1.1,marginBottom:6}}>Cupom Digital</div>
-                <div onClick={copy} style={{background:C.ou,color:C.az,display:"inline-block",padding:"5px 14px",borderRadius:20,fontSize:13,fontWeight:900,letterSpacing:1,boxShadow:"0 4px 10px rgba(0,0,0,0.2)",cursor:"pointer"}}>
-                  VOUCHER: {p.id.toUpperCase()} {copiado ? "✅" : "📋"}
-                </div>
-              </div>
-            </div>
-            <div style={{padding:"40px 40px 10px",textAlign:"center"}}>
-              <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
-              {p.status === "redeemed" && (
-                <div style={{background:C.vdC, color:C.vd, padding:15, borderRadius:16, marginBottom:20, border:`1.5px solid ${C.vd}44`}}>
-                  <div style={{fontWeight:900, fontSize:12, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
-                  <div style={{fontSize:11, marginTop:4}}>Operador: <b>{p.opNomeRetirada || p.opRedeemed || "Lotérica Central"}</b></div>
-                  <div style={{fontSize:11}}>Data: <b>{fDT(p.dataRetirada || p.redeemedAt || p.data)}</b></div>
-                </div>
-              )}
-              <div style={{background:C.bg,borderRadius:24,padding:25,marginBottom:20,border:`1px solid ${C.bd}`}}>
-                <div style={{fontSize:14,fontWeight:800,color:C.sb,textTransform:"uppercase",marginBottom:8}}>Você ganhou</div>
-                <div style={{fontSize:54,marginBottom:10}}>{p.emoji||cfg.premioMeta.emoji}</div>
-                <div style={{fontSize:26,fontWeight:900,color:C.az}}>{p.nome}</div>
-              </div>
-            </div>
-         </div>
-         <div style={{position:"absolute", bottom: 0, left: 0, width: "100%", background: "linear-gradient(to top, #fff, transparent)", height: 40}} />
+      <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 15px",position:"relative", display: "flex", alignItems:"center", gap:15, justifyContent:"center"}}>
+        <div style={{background:"#fff",width:80,height:80,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",padding:4,boxShadow:"0 8px 20px rgba(0,0,0,.2)",flexShrink:0}}>
+          <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+        </div>
+        <div style={{textAlign:"left"}}>
+          <div style={{color:C.ou,fontSize:9,fontWeight:800,letterSpacing:2,textTransform:"uppercase"}}>Certificado</div>
+          <div style={{color:"#fff",fontSize:20,fontWeight:900,lineHeight:1.1,marginBottom:6}}>Cupom Digital</div>
+          <div onClick={copy} style={{background:C.ou,color:C.az,display:"inline-block",padding:"5px 14px",borderRadius:20,fontSize:13,fontWeight:900,letterSpacing:1,boxShadow:"0 4px 10px rgba(0,0,0,0.2)",cursor:"pointer",transition:"transform .2s"}} onMouseEnter={e=>e.currentTarget.style.transform="scale(1.05)"} onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+            VOUCHER: {p.id.toUpperCase()} {copiado ? "✅" : "📋"}
+          </div>
+        </div>
       </div>
-      <div style={{padding:"0 22px 22px"}}>
-        <button onClick={shareImg} disabled={gerando} style={{width:"100%",background:"#25D366",color:"#fff",borderRadius:12,padding:14,fontWeight:900,fontSize:14,border:"none",cursor:gerando?"wait":"pointer",display:"flex",alignItems:"center",gap:8,justifyContent:"center",boxShadow:"0 10px 20px rgba(37,211,102,.3)",fontFamily:"inherit",opacity:gerando?0.7:1}}>
-          {gerando ? "⏳ Gerando Imagem..." : "📲 Enviar Imagem p/ WhatsApp"}
+
+      <div style={{padding:"22px 20px",textAlign:"center"}}>
+        <div style={{fontSize:18,fontWeight:900,color:C.tx,marginBottom:15}}>{cli?.nome}</div>
+        
+        {p.status === "redeemed" && (
+          <div style={{background:C.vdC, color:C.vd, padding:12, borderRadius:12, marginBottom:15, border:`1px solid ${C.vd}33`}}>
+            <div style={{fontWeight:900, fontSize:11, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
+          </div>
+        )}
+
+        <div style={{background:C.bg,borderRadius:18,padding:15,marginBottom:15,border:`1px solid ${C.bd}`}}>
+          <div style={{fontSize:32,marginBottom:4}}>{p.emoji||cfg.premioMeta.emoji}</div>
+          <div style={{fontSize:18,fontWeight:900,color:C.az}}>{p.nome}</div>
+        </div>
+
+        <div style={{display:"flex",gap:10,marginBottom:20}}>
+          <div onClick={copy} style={{flex:1,background:C.ouC,borderRadius:12,padding:8,border:`1px solid ${C.ou}33`,cursor:"pointer"}}>
+            <div style={{fontSize:9,fontWeight:800,color:C.ou2,textTransform:"uppercase"}}>Código</div>
+            <div style={{fontSize:16,fontWeight:900,color:C.tx,fontFamily:"monospace"}}>{p.id.toUpperCase()} {copiado&&"✅"}</div>
+          </div>
+          <div style={{flex:1,background:C.rdC,borderRadius:12,padding:8,border:`1px solid ${C.rd}33`}}>
+            <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Validade</div>
+            <div style={{fontSize:14,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
+          </div>
+        </div>
+
+        <button onClick={shareImg} disabled={gerando} style={{width:"100%",background:"#25D366",color:"#fff",borderRadius:14,padding:14,fontWeight:900,fontSize:15,border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:10,justifyContent:"center",boxShadow:"0 8px 20px rgba(37,211,102,.3)"}}>
+          {gerando ? <Sp label="Gerando Cupom..."/> : <><span style={{fontSize:20}}>📲</span> Compartilhar no WhatsApp</>}
         </button>
       </div>
-      <div style={{background:C.bg,padding:15,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
-        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar</button>
+
+      <div style={{background:C.bg,padding:12,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
+        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar Cupom</button>
       </div>
     </div>
-  </div>);
-}
+  </div>);}
 
 function ACfg({cfg,setCfg,ops,setOps,cl,pr}){
   const[sub,setSub]=useState("meta");

@@ -1345,7 +1345,6 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
         </pre>
       </div>
     </div>}
-    {voucherVer && <VoucherCard p={voucherVer} cli={c} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);}
 
 /* ══════════════════════ OVERLAY RELÂMPAGO ══════════════════════ */
@@ -1456,8 +1455,6 @@ function VoucherCard({p, cli, cfg, onClose}){
         {p.status === "redeemed" && (
           <div style={{background:C.vdC, color:C.vd, padding:12, borderRadius:12, marginBottom:15, border:`1px solid ${C.vd}33`}}>
             <div style={{fontWeight:900, fontSize:11, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
-            <div style={{fontSize:10, marginTop:4}}>Operador: <b>{p.opNomeRetirada || "Lotérica Central"}</b></div>
-            <div style={{fontSize:10}}>Data: <b>{fDT(p.dataRetirada)}</b></div>
           </div>
         )}
 
