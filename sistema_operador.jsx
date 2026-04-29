@@ -914,7 +914,9 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
         </div>
         <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
       </div>
+      {a.modificado && !expA && <div style={{background:C.ou, color:"#fff", fontSize:8, fontWeight:900, textAlign:"center", padding:"2px 0", textTransform:"uppercase"}}>🔄 Corrigido pelo Cliente</div>}
       {expA && <div style={{padding:12,borderTop:`1px solid ${C.bd}33`,background:"#fafafa"}}>
+         {a.modificado && <div style={{background:C.ouC, color:C.ou2, padding:"6px 10px", borderRadius:8, fontSize:9, fontWeight:800, marginBottom:10, border:`1px solid ${C.ou}22`}}>🔄 Corrigido pelo Cliente</div>}
          {edit ? (
            <div style={{marginBottom:12,padding:10,background:"#fff",borderRadius:8,border:`1px solid ${C.bd}`}}>
              <div style={{fontWeight:800,fontSize:11,marginBottom:8}}>✏️ Editar Valores e Serviços</div>
