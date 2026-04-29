@@ -595,7 +595,18 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
     if(encerrada) return 0;
     return cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending" || (a.status==="rejected" && !a.modificado)).length||0),0);
   },[cl, encerrada]);
-  const pendsP = useMemo(()=>pr.filter(p=>p.status==="pending").length, [pr]);
+  const pendsP = useMemo(()=> {
+    if(encerrada) return 0;
+    const hj = new Date();
+    return pr.filter(p => {
+      if(p.status === "redeemed") return false;
+      const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000);
+      const expirado = new Date(dVal) < hj;
+      if(expirado) return false;
+      // Alertar se pendente ou se aprovado mas ainda não retirado
+      return p.status === "pending" || p.status === "approved";
+    }).length;
+  }, [pr, cfg, encerrada]);
   const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
@@ -627,10 +638,11 @@ function ADash({ops,cl,pr,cfg,setAba,setBus}){
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const totP=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.valida!==false).length||0),0),[cl]);
   const prontos=useMemo(() => {
+    if(encerrada) return [];
     return cl.filter(c => 
       pr.some(p => p.clientId === c.id && p.tipo === "raspadinha" && p.status === "pending")
     );
-  }, [cl, pr]);
+  }, [cl, pr, encerrada]);
   const perto=cl.filter(c=>{
     const vs=c.auths?.filter(a=>a.valida!==false)||[];
     const p=vs.length%cfg.meta;
@@ -649,7 +661,7 @@ function ADash({ops,cl,pr,cfg,setAba,setBus}){
   }).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl,lastReset]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
-    {pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
+    {!encerrada && pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
        <div style={{background:C.rx,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rx}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s",marginBottom:11}}>
          <span style={{fontSize:24}}>⚡</span>
          <div style={{flex:1}}>
@@ -1121,8 +1133,9 @@ function OpVoucherCard({p, cli, cfg, onClose}){
   }
 
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
-    <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
-      <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", minWidth: "600px", minHeight: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
+    {/* ELEMENTO PARA CAPTURA (ESCONDIDO) */}
+    <div style={{position:"fixed", left: "-9999px", top: 0}}>
+      <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
         <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"45px 0",position:"relative", display: "block"}}>
           <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
           <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:15,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
@@ -1153,6 +1166,31 @@ function OpVoucherCard({p, cli, cfg, onClose}){
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    {/* PREVIEW PARA O USUÁRIO */}
+    <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
+      <div style={{width:"100%", height: 360, overflow: "hidden", position: "relative", background: "#f0f2f5"}}>
+         <div style={{transform: "scale(0.6)", transformOrigin: "top left", width: 600, height: 600}}>
+            <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"45px 0",position:"relative", textAlign: "center"}}>
+              <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
+              <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:15,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
+                <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+              </div>
+              <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:8}}>Certificado de Premiação</div>
+              <div style={{color:"#fff",fontSize:32,fontWeight:900}}>Cliente Premiado</div>
+            </div>
+            <div style={{padding:"40px 40px 10px",textAlign:"center"}}>
+              <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30}}>{cli?.nome}</div>
+              <div style={{background:C.bg,borderRadius:24,padding:25,marginBottom:30,border:`1px solid ${C.bd}`}}>
+                <div style={{fontSize:14,fontWeight:800,color:C.sb,textTransform:"uppercase",marginBottom:8}}>Você ganhou</div>
+                <div style={{fontSize:54,marginBottom:10}}>{p.emoji||cfg.premioMeta.emoji}</div>
+                <div style={{fontSize:26,fontWeight:900,color:C.az}}>{p.nome}</div>
+              </div>
+            </div>
+         </div>
+         <div style={{position:"absolute", bottom: 0, left: 0, width: "100%", background: "linear-gradient(to top, #fff, transparent)", height: 40}} />
       </div>
       <div style={{padding:"0 22px 22px"}}>
         <button onClick={shareImg} disabled={gerando} style={{width:"100%",background:"#25D366",color:"#fff",borderRadius:12,padding:14,fontWeight:900,fontSize:14,border:"none",cursor:gerando?"wait":"pointer",display:"flex",alignItems:"center",gap:8,justifyContent:"center",boxShadow:"0 10px 20px rgba(37,211,102,.3)",fontFamily:"inherit",opacity:gerando?0.7:1}}>
