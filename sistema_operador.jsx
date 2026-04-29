@@ -832,7 +832,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, obsAdmin:newS==="rejected"?"Recusado":""}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
     if(newS==="rejected"){
-      setPr(pr.map(p=>p.authId===a.id&&p.status==="pending"?{...p,status:"rejected"}:p));
+      setPr(pr.map(p=>p.authId===a.id && p.status !== "redeemed" ? {...p,status:"rejected"}:p));
     }
   };
   const excluirAuth = () => {
@@ -843,7 +843,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
   const updPrize = (pid, newS) => {
     if(newS==="rejected" && !window.confirm("Recusar este prêmio?")) return;
     if(newS==="rejected") {
-      setPr(pr.filter(p=>p.id!==pid));
+      setPr(pr.map(p=>p.id===pid?{...p, status:"rejected"}:p));
     } else {
       setPr(pr.map(p=>p.id===pid?{...p, status:newS}:p));
     }
@@ -879,7 +879,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
         <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
         <div style={{flex:1}}>
           <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
-          <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS}</div>
+          <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS} · <span style={{fontWeight:800,color:C.az}}>#{a.controle}</span></div>
         </div>
         <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
       </div>
@@ -968,10 +968,10 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
       if(!q) return true;
       const matchNome = c.nome?.toLowerCase().includes(q);
       const matchWhats = c.whats?.includes(q);
-      const matchID = c.auths?.some(a => {
-        const numMatch = (a.numControle || a.controle || "")?.toLowerCase().includes(q);
+      const matchID = (c.auths||[]).some(a => {
+        const numMatch = String(a.numControle || a.controle || "").toLowerCase().includes(q);
         const detailsMatch = Object.entries(a.detalhes || {}).some(([fid, val]) => {
-           const campo = cfg.formulario.campos.find(f => f.id === fid);
+           const campo = (cfg.formulario?.campos||[]).find(f => f.id === fid);
            const isControleField = campo?.nome?.toLowerCase().includes("controle") || campo?.nome?.toLowerCase().includes("registro");
            return isControleField && String(val).toLowerCase().includes(q);
         });

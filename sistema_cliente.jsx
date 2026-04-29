@@ -542,13 +542,13 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     {pendsR.length > 0 && (
-      <div style={{background:C.rdC, border:`1px solid ${C.rd}44`, borderRadius:16, padding:14, display:"flex", gap:12, alignItems:"center", animation:"pop .4s"}}>
-        <div style={{fontSize:24}}>⚠️</div>
+      <div style={{background:C.rdC, border:`2px solid ${C.rd}`, borderRadius:18, padding:16, display:"flex", gap:14, alignItems:"center", animation:"pop .4s", marginBottom:12, boxShadow:`0 4px 15px ${C.rd}22`}}>
+        <div style={{fontSize:32, animation:"pulse 1s infinite"}}>⚠️</div>
         <div style={{flex:1}}>
-          <div style={{fontWeight:900,fontSize:13,color:C.rd}}>Registros Recusados</div>
-          <div style={{fontSize:11,color:C.rd,opacity:.8,marginTop:2}}>Você tem {pendsR.length} visita{pendsR.length>1?"s":""} com erro. Verifique seu histórico para corrigir.</div>
+          <div style={{fontWeight:900,fontSize:14,color:C.rd}}>Registros Recusados pela Gerência</div>
+          <div style={{fontSize:11,color:C.rd,opacity:.8,marginTop:4, fontWeight:700}}>Você possui {pendsR.length} registro{pendsR.length>1?"s":""} com divergências. Verifique seu histórico para corrigir agora.</div>
         </div>
-        <button onClick={()=>setAba("ct")} style={{background:C.rd, color:"#fff", border:"none", borderRadius:8, padding:"6px 12px", fontSize:10, fontWeight:800, cursor:"pointer", fontFamily:"inherit"}}>Verificar</button>
+        <button onClick={()=>setAba("ct")} style={{background:C.rd, color:"#fff", border:"none", borderRadius:10, padding:"8px 14px", fontSize:11, fontWeight:900, cursor:"pointer", fontFamily:"inherit", boxShadow:`0 2px 8px ${C.rd}44`}}>Corrigir</button>
       </div>
     )}
 
@@ -981,7 +981,7 @@ function HistItem({a, cfg, c, clients, setCl, setVoucherVer}){
   function handleEFoto(e){
     const f=e.target.files[0]; if(!f)return;
     const r=new FileReader(); r.onload=()=>setEFoto(r.result);
-    r.readAsDataURL(f);
+r.readAsDataURL(f);
   }
 
   function toggleSel(id){ setESel(p=>{const n={...p}; if(n[id]!==undefined) delete n[id]; else n[id]=true; return n;}); }
@@ -1025,8 +1025,8 @@ function HistItem({a, cfg, c, clients, setCl, setVoucherVer}){
          <div style={{fontWeight:900,fontSize:14,color:C.az,marginBottom:12}}>✏️ Corrigir Informações</div>
          
          <div style={{marginBottom:10}}>
-           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Protocolo / Controle (Não editável)</label>
-           <div style={{background:C.bg,padding:"10px 12px",borderRadius:8,color:C.sb,fontWeight:800,fontFamily:"monospace"}}>{a.controle}</div>
+           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Controle / Registro (Não editável)</label>
+           <div style={{background:C.bg,padding:"10px 12px",borderRadius:8,color:C.az,fontWeight:900,fontFamily:"monospace", border:`1px solid ${C.bd}`}}>#{a.controle}</div>
          </div>
 
          <div style={{marginBottom:12}}>
@@ -1074,7 +1074,7 @@ function HistItem({a, cfg, c, clients, setCl, setVoucherVer}){
         </div>
         <div style={{flex:1}}>
           <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{(a.opNome||"Atendimento").split(" ")[0]} · {brl(a.total)}</div>
-          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}</div>
+          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)} · <span style={{fontWeight:800,color:C.az}}>#{a.controle}</span></div>
         </div>
         <div style={{textAlign:"right"}}>
            <div style={{background:corS,color:"#fff",fontSize:8,fontWeight:900,padding:"2px 8px",borderRadius:6,textTransform:"uppercase",boxShadow:`0 2px 5px ${corS}44`}}>{labelS}</div>
@@ -1093,7 +1093,7 @@ function HistItem({a, cfg, c, clients, setCl, setVoucherVer}){
              </div>
            })}
            {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
-           <div style={{marginTop:5,fontSize:9,opacity:.7}}>Protocolo: {a.controle}</div>
+           <div style={{marginTop:5,fontSize:9,opacity:.7, fontWeight:800}}>Controle / Registro: {a.controle}</div>
         </div>
         
         {s === "rejected" && (
