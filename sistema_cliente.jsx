@@ -1094,7 +1094,7 @@ function Premios({meusPr,c,wts,setVoucherVer}){return(<div style={{display:"flex
         </span>
       </div>
       <div style={{fontSize:11,color:C.sb,lineHeight:1.6}}>
-        {isRedeemed ? "Você já retirou este prêmio no balcão da Lotérica." : (isPend ? "Aguardando o administrador verificar os comprovantes desta etapa." : p.desc)}
+        {isRedeemed ? "Você já retirou este prêmio no balcão da Lotérica." : (isPend ? "Aguardando o administrador verificar os comprovantes desta etapa." : (isAppr ? "✅ Auditoria concluída! Seu prêmio está liberado. Abra o cupom abaixo e apresente no balcão." : p.desc))}
       </div>
       
       {isAppr && <button onClick={()=>setVoucherVer(p)} style={{marginTop:10,width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:10,fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🎫 Abrir Cupom Digital</button>}
