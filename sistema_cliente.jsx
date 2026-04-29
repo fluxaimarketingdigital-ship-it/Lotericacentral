@@ -507,7 +507,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         </div>
       </div>
       {/* GLOBAL REJECTION ALERT */}
-      {c.auths?.some(a=>(a.status==="rejected" || (premios||[]).some(p=>p.authId===a.id && p.status==="rejected")) && !a.modificado) && aba !== "ct" && (
+      {c.auths?.some(a=>(a.status==="rejected" || (premios||[]).some(p=>p.authId===a.id && p.status==="rejected")) && !a.modificado && a.status!=="not_counted") && aba !== "ct" && (
         <div onClick={()=>setAba("ct")} style={{marginTop:16, background:C.rdC, border:`2px solid ${C.rd}`, borderRadius:16, padding:"12px 14px", display:"flex", gap:10, alignItems:"center", animation:"pop .4s", cursor:"pointer"}}>
           <div style={{fontSize:24}}>⚠️</div>
           <div style={{flex:1}}>
@@ -1269,7 +1269,7 @@ r.readAsDataURL(f);
            <div style={{marginTop:5,fontSize:9,opacity:.7, fontWeight:800}}>Controle / Registro: {a.controle}</div>
         </div>
         
-        {(s === "rejected" || hasRejP) && (
+        {(s === "rejected" || (hasRejP && s!=="not_counted")) && (
            <div style={{background:C.rdC,padding:12,borderRadius:8,marginBottom:12,border:`1px solid ${C.rd}33`}}>
              <div style={{fontWeight:800,color:C.rd,marginBottom:4}}>⚠️ Atenção: {hasRejP && s==="not_counted" ? "Prêmio Recusado" : "Registro Recusado"}</div>
              <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>
