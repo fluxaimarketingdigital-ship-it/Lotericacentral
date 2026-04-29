@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { DB } from "./firebase.js";
+import logoLoterica from "./logo_loterica.png";
 import html2canvas from "html2canvas";
 
 /* ═══════ CONFIG PADRÃO ═══════ */
@@ -147,7 +148,7 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
   <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",background:C.ou,opacity:.07}}/>
   <div style={{textAlign:"center",zIndex:1}}>
     <div style={{background:"#fff", width:110, height:110, borderRadius:24, margin:"0 auto 16px", display:"flex", alignItems:"center", justifySelf:"center", padding:12, boxShadow:`0 10px 25px rgba(0,0,0,.15)`, animation:"pop .6s"}}>
-      <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+      <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
     </div>
     <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
   </div>
@@ -171,7 +172,7 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:"0 0 30px 30px",padding:"44px 22px 40px",textAlign:"center",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-50,right:-50,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <div style={{background:"#fff", width:90, height:90, borderRadius:20, margin:"0 auto 12px", display:"flex", alignItems:"center", justifySelf:"center", padding:10, boxShadow:`0 8px 20px rgba(0,0,0,.2)`, animation:"pop .5s"}}>
-        <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+        <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
       </div>
       <div style={{fontSize:10,color:C.ou,fontWeight:700,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
     </div>
@@ -1125,7 +1126,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
         <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"45px 0",position:"relative", display: "block"}}>
           <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
           <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:15,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
-            <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+            <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
           </div>
           <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:8, display: "block"}}>Certificado de Premiação</div>
           <div style={{color:"#fff",fontSize:32,fontWeight:900, display: "block"}}>Cliente Premiado</div>
