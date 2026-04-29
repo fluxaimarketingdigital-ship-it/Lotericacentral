@@ -907,7 +907,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
   return(
     <div style={{background:"#fff",borderRadius:10,border:`1px solid ${expA?C.az:C.bd+"66"}`,overflow:"hidden"}}>
       <div onClick={()=>setExpA(!expA)} style={{padding:10,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:expA?C.azC:"#fff"}}>
-        <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":"❌"}</div>
+        <div style={{width:24,height:24,borderRadius:6,background:`${corS}15`,color:corS,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,flexShrink:0}}>{s==="approved"?"✅":s==="pending"?"⏳":s==="not_counted"?"📜":"❌"}</div>
         <div style={{flex:1}}>
           <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
           <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS} · <span style={{fontWeight:800,color:C.az}}>#{a.controle}</span></div>
@@ -979,8 +979,8 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
          ))}
          
          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {s!=="approved" && <button onClick={()=>updateStatus("approved")} style={{flex:1,minWidth:"30%",background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Autenticação</button>}
-            {s!=="rejected" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,minWidth:"30%",background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>❌ Recusar Autenticação</button>}
+            {s!=="not_counted" && s!=="approved" && <button onClick={()=>updateStatus("approved")} style={{flex:1,minWidth:"30%",background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Autenticação</button>}
+            {s!=="not_counted" && s!=="rejected" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,minWidth:"30%",background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>❌ Recusar Autenticação</button>}
             <button onClick={excluirAuth} style={{flex:1,minWidth:"30%",background:"#374151",color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>🗑️ Excluir Autenticação</button>
          </div>
       </div>}
@@ -1034,9 +1034,9 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
           </div>
           <div style={{display:"flex",flexDirection:"column",gap:7}}>
             {c.auths?.slice().reverse().map(a=>{
-               const s = a.status || (a.valida===false?"rejected":"approved");
-               const corS = s==="approved"?C.vd:s==="pending"?C.ou:C.rd;
-               const labelS = s==="approved"?"Aprovada":s==="pending"?"Aguardando Auditoria":"Recusada";
+               const s = a.status || (a.valida===false?"not_counted":"approved");
+               const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
+               const labelS = s==="approved"?"Aprovada" : s==="pending"?"Aguardando Auditoria" : s==="not_counted"?"Histórico" : "Recusada";
                return <AAud key={a.id} a={a} c={c} corS={corS} labelS={labelS} opN={opN} brl={brl} fDT={fDT} cfg={cfg} setCl={setCl} cl={cl} pr={pr} setPr={setPr} setVoucherVer={setVoucherVer}/>;
             })}
           </div>
