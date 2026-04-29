@@ -11,12 +11,12 @@ const CFG0 = {
   meta: 15,
   minVisita: 300,
   minRelampago: 60,
-  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
+  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} registros e ganhou {premioNome}! Retire no balcão." },
   relampagos: [
     {id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje."},
     {id:"r2",ativo:true, emoji:"🏷️",nome:"Cupom de Desconto",prob:15, desc:"10% de desconto na próxima Raspadinha. Válido 7 dias!"},
     {id:"r3",ativo:true, emoji:"🎁",nome:"Brinde Surpresa",  prob:10, desc:"Um brinde especial esperando por você no balcão!"},
-    {id:"r4",ativo:true, emoji:"⚡",nome:"Dobro de Pontos",  prob:12, desc:"Esta visita vale 2 autenticações!"},
+    {id:"r4",ativo:true, emoji:"⚡",nome:"Dobro de Pontos",  prob:12, desc:"Este registro vale 2 autenticações!"},
     {id:"r5",ativo:false,emoji:"🌟",nome:"Sorteio do Mês",   prob:5,  desc:"Você entrou no Sorteio do Mês! Resultado dia 01."},
   ],
   regulamento:`REGULAMENTO — CLIENTE FIDELIZADO PREMIADO
@@ -29,14 +29,14 @@ Clientes atendidos na lotérica que realizem cadastro pelo App Fidelidade e vali
 • Escaneie o QR Code da Promoção (painel da lotérica).
 • Leia o regulamento e faça seu cadastro.
 • A cada atendimento, peça ao operador o código dinâmico do caixa.
-• Informe o código do operador para registrar sua visita.
+• Informe o código do operador para registrar seu registro.
 
 3. PRÊMIO PRINCIPAL
-• A cada {meta} visitas autenticadas: 1 {premioNome}.
+• A cada {meta} registros autenticados: 1 {premioNome}.
 • Retirada na lotérica em até 30 dias após notificação via WhatsApp.
 
 4. PRÊMIO RELÂMPAGO
-• Ao incluir Jogos na visita, o cliente concorre a prêmios surpresa automáticos.
+• Ao incluir Jogos no registro, o cliente concorre a prêmios surpresa automáticos.
 
 5. PRÊMIO OPERADORAS
 • Todo dia 05: as 2 operadoras com mais autenticações no mês ganham prêmio especial.
@@ -221,11 +221,11 @@ function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
         </div>
         <div style={{fontWeight:700,fontSize:12,color:C.ou,letterSpacing:3,textTransform:"uppercase",marginBottom:22}}>Cliente Fidelizado Premiado</div>
         <div style={{fontSize:14,color:"rgba(255,255,255,.8)",lineHeight:1.8,maxWidth:340,marginBottom:32}}>
-          Acumule visitas, ganhe <strong style={{color:C.ou}}>Super Prêmio</strong> e concorra a <strong style={{color:C.ou}}>Prêmios Relâmpago</strong> toda vez que visitar a nossa Lotérica!
+          Acumule registros, ganhe <strong style={{color:C.ou}}>Super Prêmio</strong> e concorra a <strong style={{color:C.ou}}>Prêmios Relâmpago</strong> toda vez que realizar um registro em nossa Lotérica!
         </div>
         {/* chips */}
         <div style={{display:"flex",gap:9,flexWrap:"wrap",justifyContent:"center",marginBottom:36}}>
-          {[["🎟️",`Prêmio a cada ${cfg.meta} visitas`],["⚡","Prêmios Relâmpago"],["📱","App 100% digital"]].map(([em,t])=>(
+          {[["🎟️",`Prêmio a cada ${cfg.meta} registros`],["⚡","Prêmios Relâmpago"],["📱","App 100% digital"]].map(([em,t])=>(
             <div key={t} style={{background:"rgba(255,255,255,.12)",borderRadius:24,padding:"6px 14px",fontSize:11,fontWeight:700,color:"#fff",display:"flex",gap:6,alignItems:"center",border:"1px solid rgba(255,255,255,.18)"}}>
               <span>{em}</span><span style={{color:"rgba(255,255,255,.85)"}}>{t}</span>
             </div>
@@ -522,7 +522,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
           <div>
             <div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:700,textTransform:"uppercase",letterSpacing:.8}}>Próximo Prêmio</div>
             <div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>
-              {isLocked ? (isPend ? "Em Auditoria ⏳" : "Retire seu Prêmio! 🏆") : <>Faltam <span style={{color:C.ou,fontSize:24}}>{falt}</span> {falt===1?"visita":"visitas"}</>}
+              {isLocked ? (isPend ? "Em Auditoria ⏳" : "Retire seu Prêmio! 🏆") : <>Faltam <span style={{color:C.ou,fontSize:24}}>{falt}</span> {falt===1?"registro":"registros"}</>}
             </div>
           </div>
           <div style={{textAlign:"right"}}><div style={{fontSize:10,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.8}}>Ganhos</div><div style={{fontWeight:900,fontSize:26,color:C.ou,lineHeight:1.1}}>{cfg.premioMeta.emoji} {raspa}</div></div>
@@ -541,7 +541,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         <div style={{padding:30,textAlign:"center",animation:"up .4s"}}>
           <div style={{fontSize:60,marginBottom:15}}>⌛</div>
           <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:8}}>Campanha Encerrada</div>
-          <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Esta campanha chegou ao fim em {fD(dFim)}. Aguarde a nova campanha para registrar suas visitas e pontuar novamente!</div>
+          <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Esta campanha chegou ao fim em {fD(dFim)}. Aguarde a nova campanha para realizar seus registros e pontuar novamente!</div>
           <button onClick={()=>setAba("ini")} style={{marginTop:20,background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Voltar ao Início</button>
         </div>
       ) : <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>)}
@@ -582,16 +582,16 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
       <div style={{background:C.ou,color:C.az,fontWeight:900,fontSize:12,width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{nBadge}</div>
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-      {[["🎯","Total Visitas",tot,C.az],[cfg.premioMeta.emoji,"Prêmios",raspa,C.ou2],["⚡","Relâmpagos",meusPr.filter(p=>p.tipo==="relampago").length,C.rx],["✅","Pontos Válidos",totV,C.vd]].map(([em,t,v,cor])=>(
+      {[["🎯","Total Registros",tot,C.az],[cfg.premioMeta.emoji,"Prêmios",raspa,C.ou2],["⚡","Relâmpagos",meusPr.filter(p=>p.tipo==="relampago").length,C.rx],["✅","Pontos Válidos",totV,C.vd]].map(([em,t,v,cor])=>(
         <div key={t} style={{background:"#fff",borderRadius:14,padding:"12px",border:`1px solid ${C.bd}`}}><div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:26,color:cor,lineHeight:1}}>{v}</div><div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div></div>
       ))}
     </div>
     {tot>0&&<div style={{background:"#fff",borderRadius:14,overflow:"hidden",border:`1.5px solid ${C.bd}`}}>
-      <div style={{padding:"11px 14px",borderBottom:`1.5px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Últimas Visitas</div>
+      <div style={{padding:"11px 14px",borderBottom:`1.5px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Últimos Registros</div>
       {[...c.auths].reverse().slice(0,5).map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 14px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:32,height:32,borderRadius:9,background:v?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>{v?"🏪":"⏳"}</div>
         <div style={{flex:1}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"} · <span style={{color:a.status==="pending"?C.ou:v?C.vd:C.rd}}>{a.status==="pending"?"Pendente ⏳":v?"Validada ✅":"Abaixo do Mínimo"}</span></div>
+          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Registro"} · <span style={{color:a.status==="pending"?C.ou:v?C.vd:C.rd}}>{a.status==="pending"?"Pendente ⏳":v?"Validado ✅":"Abaixo do Mínimo"}</span></div>
           <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total/1>0?` · ${brl(a.total)}`:""} · <span style={{fontWeight:800,color:C.az}}>#{a.controle}</span></div>
         </div>
         <div style={{fontWeight:900,fontSize:12,color:v?C.az:C.sb}}>{c.auths.length-i}ª</div>
@@ -1333,7 +1333,7 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
           <span>📖 Histórico Detalhado</span>
           {encerrada && <span style={{fontSize:9,background:C.rdC,color:C.rd,padding:"2px 8px",borderRadius:20,fontWeight:900}}>Campanha Encerrada</span>}
         </div>
-        {((c.auths||[]).length===0) && <div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhuma visita registrada ainda.</div>}
+        {((c.auths||[]).length===0) && <div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhum registro encontrado ainda.</div>}
         {(() => {
           const sorted = [...(c.auths||[])].sort((a,b)=>new Date(b.data)-new Date(a.data));
           const items = [];

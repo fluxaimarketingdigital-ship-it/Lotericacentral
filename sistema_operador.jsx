@@ -9,7 +9,7 @@ const DCFG = {
   meta: 15,
   minVisita: 300,
   minRelampago: 60,
-  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
+  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} registros e ganhou {premioNome}! Retire no balcão." },
   relampagos: [
     { id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:25, desc:"Raspadinha extra! Retire no caixa assim que receber aviso pelo WhatsApp." },
     { id:"r2",ativo:true, emoji:"🏷️",nome:"Bolões e Jogos", prob:25, desc:"Oferta Especial! Pela sua compra acima de R$ 60,00, você ganhou uma Raspadinha! Aguarde a conferência e receba seu cupom de retirada pelo WhatsApp." },
@@ -25,7 +25,7 @@ Lotérica Central · CNPJ 20.845.956/0001-00 · Alagoinhas-BA
 Destinado a clientes que realizarem transações na unidade. A participação é validada através do App Fidelidade mediante comprovação física (comprovante) e código do operador.
 
 2. MECÂNICA DE PONTUAÇÃO
-• Visita Premiada: Cada visita com transações (pagamentos/depósitos) de valor igual ou superior a R$ {minVisita} garante 01 (uma) autenticação.
+• Registro Premiado: Cada registro com transações (pagamentos/depósitos) de valor igual ou superior a R$ {minVisita} garante 01 (uma) autenticação.
 • Validação: O cliente deve informar o código do operador e registrar os dados do comprovante no App.
 
 3. PRÊMIO PRINCIPAL
@@ -33,7 +33,7 @@ Destinado a clientes que realizarem transações na unidade. A participação é
 • A notificação de retirada será enviada via WhatsApp.
 
 4. PRÊMIO RELÂMPAGO (SORTEIO IMEDIATO)
-• Clientes que incluírem Bolões ou Jogos no valor acima de R$ {minRelampago} em sua visita habilitam o sorteio instantâneo de prêmios surpresa.
+• Clientes que incluírem Bolões ou Jogos no valor acima de R$ {minRelampago} em seu registro habilitam o sorteio instantâneo de prêmios surpresa.
 • O sistema informará na hora se o cliente foi contemplado.
 
 5. PREMIAÇÃO DE OPERADORES
@@ -41,13 +41,13 @@ Destinado a clientes que realizarem transações na unidade. A participação é
 
 6. DISPOSIÇÕES GERAIS
 • LGPD: Dados protegidos e usados exclusivamente para o programa.
-• VIGÊNCIA: Campanha válida de {dataInicio} a {dataFim}. Visitas fora deste prazo ou registradas após 7 dias não serão validados.`,
+• VIGÊNCIA: Campanha válida de {dataInicio} a {dataFim}. Registros fora deste prazo ou registrados após 7 dias não serão validados.`,
   appUrl:"", wts:"5575999990000",
   noticias: [
     { id:"ng1", tipo:"geral",   ativo:true,  emoji:"🎰", titulo:"Mega-Sena Acumulada!",             corpo:"Prêmio estimado em R$ 120 milhões! Aposte agora na lotérica.",                                         data:"2026-04-15" },
     { id:"ng2", tipo:"geral",   ativo:true,  emoji:"🕐", titulo:"Horário de Funcionamento",          corpo:"Seg–Sex: 09h às 17h\nSábado: 09h às 13h\nDomingo e Feriados: Fechado",                                data:"2026-04-01" },
     { id:"nv1", tipo:"vip",     ativo:true,  emoji:"🌟", titulo:"Sorteio VIP — Exclusivo Premiados", corpo:"Você foi selecionado para o Sorteio VIP de Maio! Prêmio: R$ 500 em Raspadinhas. Resultado dia 31/05.", data:"" },
-    { id:"nv2", tipo:"vip",     ativo:true,  emoji:"🎁", titulo:"Bônus para clientes premiados",     corpo:"Mencione que é premiado na próxima visita e ganhe desconto em Bolões. Válido até 30/04.",              data:"" },
+    { id:"nv2", tipo:"vip",     ativo:true,  emoji:"🎁", titulo:"Bônus para clientes premiados",     corpo:"Mencione que é premiado no próximo registro e ganhe desconto em Bolões. Válido até 30/04.",              data:"" },
   ],
   formulario: {
     cats: [
@@ -279,7 +279,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
         <button onClick={()=>setV(!v)} style={{position:"absolute",right:10,top:"59%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{v?"Ocultar":"Ver"}</button>
       </div>
       {erro&&<div style={{marginTop:7,fontSize:12,color:C.rd,fontWeight:700}}>⚠️ {erro}</div>}
-      <div style={{marginTop:11,padding:"11px 13px",background:C.azC,borderRadius:10,fontSize:11,color:C.az,lineHeight:1.7}}>💡 Ao cadastrar, um <strong>código exclusivo</strong> é gerado. O cliente utiliza para registrar a visita no App.</div>
+      <div style={{marginTop:11,padding:"11px 13px",background:C.azC,borderRadius:10,fontSize:11,color:C.az,lineHeight:1.7}}>💡 Ao cadastrar, um <strong>código exclusivo</strong> é gerado. O cliente utiliza para registrar o registro no App.</div>
       <button onClick={cad} style={{width:"100%",marginTop:16,padding:15,borderRadius:13,border:"none",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",fontWeight:900,fontSize:16,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 16px ${C.az}44`}}>Cadastrar e Gerar Código 📱</button>
       {ops.length>0&&<div style={{marginTop:18}}><div style={{fontWeight:700,fontSize:12,color:C.tx,marginBottom:8}}>Cadastradas ({ops.length}):</div>
         {ops.map((o,i)=><div key={o.id} style={{display:"flex",alignItems:"center",gap:9,padding:"9px 11px",background:C.bg,borderRadius:10,marginBottom:6,border:`1px solid ${C.bd}`}}>
@@ -398,7 +398,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
 
 function OpQR({op,cfg,minhas,hoje_}){
   const tk = op.id; 
-  const wa=`Olá! 🏆 Sou *${op.nome}* da Lotérica Central.\nMeu código de atendimento é: *${tk}*\nUse-o para registrar sua visita no App Fidelidade!`;
+  const wa=`Olá! 🏆 Sou *${op.nome}* da Lotérica Central.\nMeu código de atendimento é: *${tk}*\nUse-o para registrar seu registro no App Fidelidade!`;
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📱" t="Meu Código Fixo" s="Informe este código ao cliente"/>
 
@@ -643,7 +643,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador</div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>Visão completa da lotérica</div>
       <div style={{display:"flex",gap:7,marginTop:13}}>
-        {[["👥",cl.length,"Clientes"],["✅",totPoints,"Pontos"],["🏪",totA,"Visitas"],["🎁",pr.length,"Prêmios"]].map(([em,v,l])=>(
+        {[["👥",cl.length,"Clientes"],["✅",totPoints,"Pontos"],["🏪",totA,"Registros"],["🎁",pr.length,"Prêmios"]].map(([em,v,l])=>(
           <div key={l} style={{flex:1,background:"rgba(255,255,255,.1)",borderRadius:9,padding:"7px 4px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
             <div style={{fontSize:13}}>{em}</div><div style={{fontWeight:900,fontSize:16,color:"#fff",lineHeight:1}}>{v}</div>
             <div style={{fontSize:8,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.4,marginTop:1}}>{l}</div>
@@ -709,7 +709,7 @@ function ADash({ops,cl,pr,cfg,setAba,setBus,encerrada}){
       </div>);})}
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-      {[["👥","Clientes",cl.length,C.az],[cfg.premioMeta.emoji,"Prêmios",pr.length,C.ou2],["✅","Pontos",totP,C.vd],["🏪","Visitas",totA,C.rx]].map(([em,t,v,cor])=>(
+      {[["👥","Clientes",cl.length,C.az],[cfg.premioMeta.emoji,"Prêmios",pr.length,C.ou2],["✅","Pontos",totP,C.vd],["🏪","Registros",totA,C.rx]].map(([em,t,v,cor])=>(
         <div key={t} style={{background:"#fff",borderRadius:12,padding:"12px",border:`1px solid ${C.bd}`}}>
           <div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:24,color:cor,lineHeight:1}}>{v}</div>
           <div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div>
@@ -1422,7 +1422,7 @@ function CfgMeta({cfg,setCfg}){
     <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:14}}>🎯 Prêmio a cada N autenticações</div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
       <div style={{flex:1}}>
-        <label style={L}>📊 Meta Visitas</label>
+        <label style={L}>📊 Meta Registros</label>
         <div style={{display:"flex",alignItems:"center",gap:8,marginTop:7}}>
           <input value={meta} onChange={e=>setMeta(e.target.value.replace(/\D/g,""))} style={{width:"100%",padding:"10px",border:`2px solid ${C.az}`,borderRadius:11,fontSize:18,fontWeight:900,textAlign:"center",fontFamily:"inherit",outline:"none",color:C.az}}/>
         </div>
@@ -1451,7 +1451,7 @@ function CfgMeta({cfg,setCfg}){
     <div style={{marginBottom:14}}>
       <label style={L}>💬 Mensagem para o cliente</label>
       <div style={{fontSize:10,color:C.sb,margin:"3px 0 5px"}}>Use <code style={{background:C.bg,padding:"1px 4px",borderRadius:4}}>{"{meta}"}</code> e <code style={{background:C.bg,padding:"1px 4px",borderRadius:4}}>{"{premioNome}"}</code></div>
-      <textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={3} style={{...I,resize:"vertical"}} placeholder="Você completou {meta} visitas e ganhou {premioNome}!"/>
+      <textarea value={desc} onChange={e=>setDesc(e.target.value)} rows={3} style={{...I,resize:"vertical"}} placeholder="Você completou {meta} registros e ganhou {premioNome}!"/>
     </div>
     <div style={{background:C.vdC,borderRadius:11,padding:"12px 13px",marginBottom:14,border:`1px solid ${C.vd}44`}}>
       <div style={{fontWeight:800,fontSize:11,color:C.vd,marginBottom:7}}>👀 Preview:</div>
@@ -1479,7 +1479,7 @@ function CfgRl({cfg,setCfg}){
     </div>
     <div style={{background:totP>50?C.rdC:C.azC,borderRadius:11,padding:"10px 13px",border:`1px solid ${totP>50?C.rd+"44":C.bd}`,fontSize:11,color:totP>50?C.rd:C.az,fontWeight:700}}>
       {totP>50?"⚠️":"📊"} Probabilidade total (ativos): <strong>{totP.toFixed(1)}%</strong>
-      {totP<=50&&<span style={{fontWeight:400,color:C.sb}}> — chance a cada visita com Jogo.</span>}
+      {totP<=50&&<span style={{fontWeight:400,color:C.sb}}> — chance a cada registro com Jogo.</span>}
     </div>
     {lista.map((r)=><div key={r.id} style={{background:"#fff",borderRadius:13,border:`1px solid ${r.ativo?C.rx+"44":C.bd}`,overflow:"hidden"}}>
       <div style={{padding:"11px 13px",display:"flex",gap:10,alignItems:"center",cursor:"pointer",borderBottom:editId===r.id?`1px solid ${C.bd}`:"none"}} onClick={()=>setEditId(editId===r.id?null:r.id)}>
@@ -1548,9 +1548,9 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
     </div>
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
-        {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Visitas","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
+        {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Registros","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
         ["🎁","Prêmios",`${pr.length} registros`,()=>csv([["ID","Cliente","Tipo","Nome","Data"],...pr.map(p=>[p.id,cl.find(c=>c.id===p.clientId)?.nome||"",p.tipo,p.nome,fDT(p.data)])],`premios_${hoje()}.csv`)],
-        ["✅","Autenticações","Todas as visitas",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
+        ["✅","Autenticações","Todos os registros",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
       ].map(([ic,t,s,fn])=><div key={t} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 12px",background:C.bg,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:7}}><span style={{fontSize:22}}>{ic}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{t}</div><div style={{fontSize:10,color:C.sb}}>{s}</div></div><button onClick={fn} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>⬇️ CSV</button></div>)}
     </div>
   </div>);
