@@ -584,7 +584,11 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
   },[cl]);
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const hjA=useMemo(()=>{const h=hoje();let n=0;cl.forEach(c=>(c.auths||[]).forEach(a=>{if(a.data?.slice(0,10)===h)n++;}));return n;},[cl]);
-  const pendsG = useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending").length||0),0),[cl]);
+  const encerrada = new Date() > new Date((cfg.dataFim||"2100-01-01") + "T23:59:59");
+  const pendsG = useMemo(()=> {
+    if(encerrada) return 0;
+    return cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending" || (a.status==="rejected" && !a.modificado)).length||0),0);
+  },[cl, encerrada]);
   const pendsP = useMemo(()=>pr.filter(p=>p.status==="pending").length, [pr]);
   const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
@@ -894,7 +898,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
                    <input type="number" value={fEdit[f.id]||""} onChange={e=>setFEdit({...fEdit, [f.id]:e.target.value})} style={{width:80,padding:"4px 8px",borderRadius:6,border:`1px solid ${C.bd}`,fontSize:11}} placeholder="R$..." />
                  ) : (
                    <input type="checkbox" checked={!!fEdit[f.id]} onChange={e=>setFEdit({...fEdit, [f.id]:e.target.checked})} />
-                 )}
+                  )}
                </div>
              ))}
              <div style={{display:"flex",gap:6,marginTop:10}}>
@@ -942,9 +946,9 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
                   <div style={{display:"flex",gap:5,marginTop:5}}>
                     <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>🎫 Ver Cupom</button>
                   </div>
-                )}
-              </div>
-            </div>
+                 ) : null}
+               </div>
+             </div>
          ))}
          
          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
@@ -970,7 +974,10 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
       const matchWhats = c.whats?.includes(q);
       const matchID = (c.auths||[]).some(a => {
         const cVal = String(a.controle || a.numControle || a.nsu || "").toLowerCase();
-        const dVal = Object.entries(a.detalhes || {}).map(([k,v])=>String(v).toLowerCase()).join(" ");
+        const dVal = Object.entries(a.detalhes || {}).map(([k,v])=>{
+          const f = cfg.formulario.campos.find(x=>x.id===k);
+          return (f?f.nome.toLowerCase():"") + " " + String(v).toLowerCase();
+        }).join(" ");
         return cVal.includes(q) || dVal.includes(q);
       });
       return matchNome || matchWhats || matchID;
@@ -985,7 +992,11 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
         <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{padding:12,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:exp===c.id?C.bg:"#fff"}}>
           <div style={{width:34,height:34,borderRadius:10,background:C.azC,color:C.az,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>{c.nome?.charAt(0)}</div>
           <div style={{flex:1}}>
-            <div style={{fontWeight:800,fontSize:12,color:C.tx,display:"flex",alignItems:"center",gap:6}}>{c.nome} {c.auths?.filter(a=>a.status==="pending").length>0&&<span style={{background:C.ouC,color:C.ou2,fontSize:8,padding:"1px 4px",borderRadius:5}}>⏳ {c.auths.filter(a=>a.status==="pending").length} pendente</span>}</div>
+            <div style={{fontWeight:800,fontSize:12,color:C.tx,display:"flex",alignItems:"center",gap:6}}>
+              {c.nome} 
+              {c.auths?.some(a=>a.status==="pending") && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
+              {c.auths?.some(a=>a.status==="rejected" && !a.modificado) && <span style={{background:C.rdC,color:C.rd,fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900,border:`1px solid ${C.rd}44`}}>❌ AGUARDANDO CLIENTE</span>}
+            </div>
             <div style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
         </div>

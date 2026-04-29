@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Tesseract from "tesseract.js";
 import { DB } from "./firebase.js";
 
@@ -489,6 +489,17 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
           <span style={{color:"#fff",fontWeight:800}}>{fD(dIni)} — {fD(dFim)}</span>
         </div>
       </div>
+      {/* GLOBAL REJECTION ALERT */}
+      {c.auths?.some(a=>a.status==="rejected" && !a.modificado) && aba !== "ct" && (
+        <div onClick={()=>setAba("ct")} style={{marginTop:16, background:C.rdC, border:`2px solid ${C.rd}`, borderRadius:16, padding:"12px 14px", display:"flex", gap:10, alignItems:"center", animation:"pop .4s", cursor:"pointer"}}>
+          <div style={{fontSize:24}}>⚠️</div>
+          <div style={{flex:1}}>
+            <div style={{fontWeight:900,fontSize:13,color:C.rd}}>Registros Recusados</div>
+            <div style={{fontSize:10,color:C.rd,opacity:.8,fontWeight:700}}>Toque aqui para corrigir pendências.</div>
+          </div>
+          <span style={{fontSize:18,color:C.rd}}>→</span>
+        </div>
+      )}
       <div style={{marginTop:16,background:"rgba(255,255,255,.12)",borderRadius:20,padding:"15px 17px",border:"1px solid rgba(255,255,255,.18)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
           <div>
@@ -519,7 +530,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       ) : <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>)}
       {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts}/>}
       {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
-      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni}/>}
+      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr}/>}
     </div>
     {/* NAV */}
     <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:100}}>
@@ -552,9 +563,9 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
       </div>
     )}
 
-    <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.ou}44`}}>
-      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8}}>Já foi atendido?</div><div style={{fontSize:18,fontWeight:900}}>📝 Registrar Nova Visita</div></div>
-      <span style={{fontSize:38}}>✨</span>
+    <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.az}44`}}>
+      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:C.ou}}>Comprovante em mãos?</div><div style={{fontSize:18,fontWeight:900}}>📷 Escanear Comprovante</div></div>
+      <span style={{fontSize:38}}>📄</span>
     </button>
     {temPr&&nBadge>0&&<div onClick={()=>setAba("not")} style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:16,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
       <div style={{width:40,height:40,borderRadius:12,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🌟</div>
@@ -571,8 +582,8 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
       {[...c.auths].reverse().slice(0,5).map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 14px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:32,height:32,borderRadius:9,background:v?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>{v?"🏪":"⏳"}</div>
         <div style={{flex:1}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"} · <span style={{color:a.status==="pending"?C.ou:v?C.vd:C.sb}}>{a.status==="pending"?"Pendente ⏳":v?"Validada ✅":"Abaixo do Mínimo"}</span></div>
-          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total/1>0?` · ${brl(a.total)}`:""}</div>
+          <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Visita"} · <span style={{color:a.status==="pending"?C.ou:v?C.vd:C.rd}}>{a.status==="pending"?"Pendente ⏳":v?"Validada ✅":"Abaixo do Mínimo"}</span></div>
+          <div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total/1>0?` · ${brl(a.total)}`:""} · <span style={{fontWeight:800,color:C.az}}>#{a.controle}</span></div>
         </div>
         <div style={{fontWeight:900,fontSize:12,color:v?C.az:C.sb}}>{c.auths.length-i}ª</div>
       </div>);})}
@@ -580,7 +591,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
   </div>);}
 
 function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,setAba,setCli}){
-  const[step,  setStep]    = useState(opQR?"form":"start");
+  const[step,  setStep]    = useState(opQR?"form":"qr");
   const[controle,setControle] = useState("");
   const[dataRec,setDataRec] = useState(hoje());
   const[foto,  setFoto]    = useState(null);
@@ -592,6 +603,96 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   const[valida,setValida]  = useState(false);
   const[novoProg,setNP]   = useState(null);
   const[sub, setSub]      = useState(false);
+
+  // OCR States
+  const [camAtiva, setCamAtiva] = useState(false);
+  const [scanProg, setScanProg] = useState(0);
+  const [validando, setValidando] = useState(false);
+  const [errQR, setErrQR] = useState("");
+  const fileInputRef = useRef(null);
+
+  function processImage(file) {
+    setCamAtiva(true);
+    setValidando(true);
+    setScanProg(0);
+    const url = URL.createObjectURL(file);
+    
+    Tesseract.recognize(
+      url,
+      'por',
+      { logger: m => { if(m.status === 'recognizing text') setScanProg(m.progress); } }
+    ).then(({ data: { text } }) => {
+      setValidando(false);
+      setCamAtiva(false);
+      
+      const txt = text.toUpperCase();
+      console.log("✅ TEXTO OCR COMPLETO:\n", txt);
+      
+      // 1. Extrair TOTAL
+      let totalAchado = 0;
+      const matchTotal = txt.match(/TOTAL\s*(?:DOS ITENS|RECEBIDO|PAGO)?[\s:\.]*R\$?[\s]*([0-9\.,]+)/);
+      if(matchTotal) {
+          totalAchado = parseFloat(matchTotal[1].replace('.','').replace(',','.'));
+      } else {
+          const matchesValor = [...txt.matchAll(/(?:VALOR|R\$|RS).*?([0-9]+[.,][0-9]{2})/ig)];
+          matchesValor.forEach(m => {
+              totalAchado += parseFloat(m[1].replace('.','').replace(',','.'));
+          });
+      }
+
+      if (totalAchado < 300) {
+          setErrQR(`Rejeitado. O cupom atingiu apenas R$ ${totalAchado.toFixed(2).replace('.',',')} (Mínimo R$ 300,00)`);
+          return;
+      }
+
+      // 2. Extrair CONTROLE
+      let matchControle = txt.match(/(?:CONTROLE|TERM|REGISTRO|NSU)[:\s\.-]*([0-9]{5,10})/);
+      let controleDet = matchControle ? matchControle[1] : "";
+      
+      if(controleDet) {
+        const jaUsou = clients.some(cc=>cc.auths?.some(a=>a.controle===controleDet || a.opId===controleDet));
+        if(jaUsou){
+          setErrQR("Comprovante "+controleDet+" duplicado! Já registrado.");
+          return;
+        }
+        setControle(controleDet);
+      }
+
+      // 3. Auto-preenchimento por blocos
+      let newSel = {};
+      const blocos = txt.split(/JOGO\/?SERVI[CÇS]O|SERVI[CÇS]O|JOGO/i);
+      if(blocos.length > 1) {
+         blocos.slice(1).forEach(b => {
+             const matchVal = b.match(/(?:VALOR|R\$|RS).*?([0-9]+[.,][0-9]{2})/i);
+             let val = "";
+             if(matchVal) val = matchVal[1].replace('.','').replace(',','.');
+             
+             if(b.includes("SANEAMENTO") || b.includes("PGTO") || b.includes("BOLETO") || b.includes("CONVENIO")) {
+                newSel["boleto"] = val || true;
+             }
+             else if(b.includes("DEPOSITO") || b.includes("DEPÓSITO")) newSel["deposito"] = val || true;
+             else if(b.includes("SAQUE")) newSel["saque"] = val || true;
+             else if(b.includes("PIX")) newSel["pix"] = val || true;
+             else if(b.includes("LOTOF") || b.includes("LOTO")) newSel["lotofacil"] = val || true;
+             else if(b.includes("MEGA")) newSel["megasena"] = val || true;
+             else if(b.includes("QUINA")) newSel["quina"] = val || true;
+             else if(b.includes("BOLÃO") || b.includes("BOLAO")) newSel["bolao"] = val || true;
+         });
+      } else {
+         if(txt.includes("SANEAMENTO") || txt.includes("PGTO") || txt.includes("BOLETO")) newSel["boleto"] = totalAchado > 0 ? totalAchado.toFixed(2) : true;
+         if(txt.includes("LOTOF") || txt.includes("LOTO")) newSel["lotofacil"] = true;
+      }
+      
+      setSel(newSel); 
+      setStep("form");
+      setFoto(url);
+    }).catch(err => {
+      console.error(err);
+      setValidando(false);
+      setCamAtiva(false);
+      setErrQR("Falha na leitura da imagem. Tente a digitação manual.");
+    });
+  }
 
 
   const form    = cfg.formulario||CFG0.formulario;
@@ -764,6 +865,44 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:14,padding:14,fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>Ver meu progresso</button>
     </div>);}
 
+  if(step==="qr"||step==="cam")return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
+    <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"22px 20px 24px",borderRadius:18,position:"relative",overflow:"hidden",color:"#fff"}}>
+      <div style={{position:"absolute",top:-40,right:-40,width:150,height:150,borderRadius:"50%",background:C.ou,opacity:.08}}/>
+      <div style={{fontWeight:900,fontSize:20}}>📷 Escanear Comprovante</div>
+      <div style={{fontSize:11,opacity:.7,marginTop:3}}>A IA fará a leitura automática dos dados</div>
+    </div>
+    
+    <input type="file" accept="image/*" ref={fileInputRef} onChange={e=>{ if(e.target.files[0]) processImage(e.target.files[0]); }} style={{display:"none"}} />
+    
+    {!camAtiva&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:18,padding:"28px 18px",textAlign:"center",position:"relative",overflow:"hidden"}}>
+      <div style={{position:"absolute",top:-30,right:-30,width:110,height:110,borderRadius:"50%",background:C.ou,opacity:.08}}/>
+      <div style={{fontSize:56,marginBottom:15}}>📄</div>
+      <div style={{fontWeight:900,fontSize:18,color:C.az,marginBottom:14}}>Anexar Comprovante</div>
+      <div style={{fontSize:13,color:C.az,opacity:.8,lineHeight:1.6,marginBottom:20}}>Tire uma foto nítida do cupom fiscal da Lotérica ou anexe o arquivo para preenchimento.</div>
+      <button onClick={()=>{ fileInputRef.current.click(); }} style={{width:"100%",padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:16,cursor:"pointer",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",boxShadow:`0 4px 18px ${C.az}44`}}>
+        📸 Tirar Foto / Anexar Arquivo
+      </button>
+    </div>}
+    
+    {camAtiva&&<div style={{background:"#000",borderRadius:18,height:220,position:"relative",overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:50,height:50,borderRadius:"50%",border:`4px solid ${C.ou}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
+      <div style={{color:"#fff",fontWeight:800,marginTop:12}}>Inteligência Artificial processando...</div>
+      <div style={{color:C.ou,fontSize:11,marginTop:6}}>Efetuando OCR: {Math.round(scanProg*100)}% concluído</div>
+    </div>}
+
+    <div style={{background:"#fff",borderRadius:14,padding:"16px",border:`1.5px dashed ${C.bd}`}}>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:8}}>⌨️ Comprovante apagado? Digite manualmente</div>
+      <div style={{display:"flex",gap:7}}>
+        <button onClick={()=>{ setStep("form"); setSel({}); }} 
+          style={{flex:1,background:C.bg,color:C.az,border:"none",borderRadius:10,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
+          Ir para Preenchimento Manual →
+        </button>
+      </div>
+      {errQR&&<div style={{marginTop:10,padding:10,background:C.rdC,borderRadius:10,fontSize:11,color:C.rd,fontWeight:700,border:`1px solid ${C.rd}44`}}>⚠️ {errQR}</div>}
+    </div>
+    <button onClick={()=>setAba("ini")} style={{background:"#fff",color:C.sb,border:`1.5px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Voltar ao Início</button>
+  </div>);
+
   if(step==="start" || step==="form"){
     return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
       
@@ -924,7 +1063,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 function Premios({meusPr,c,wts,setVoucherVer}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
   <Tit em="🎁" t="Meus Prêmios" s="Todos os prêmios conquistados"/>
   {meusPr.length===0&&<Vz em="🎟️" msg="Nenhum prêmio ainda. Continue acumulando e inclua Jogos para o Relâmpago!"/>}
-  {[...meusPr].reverse().map(p=>{
+  {[...meusPr].filter(p=>p.status!=="rejected").reverse().map(p=>{
     const isPend = p.status === "pending";
     const isRedeemed = p.status === "redeemed";
     const isAppr = p.status === "approved";
@@ -966,7 +1105,7 @@ function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexD
 </div>);}
 
 /* ══════════════════════ CONTA ══════════════════════ */
-function HistItem({a, cfg, c, clients, setCl, setVoucherVer}){
+function HistItem({a, cfg, c, clients, setCl, setVoucherVer, premios, setPr}){
   const [exp, setExp] = useState(false);
   const s = a.status || (a.valida!==false?"approved":"rejected"); // fallback legacy
   const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
@@ -1013,6 +1152,12 @@ r.readAsDataURL(f);
     const newA = {...a, data: dIso, detalhes: eSel, selecionados: sels, total: total, valida: isV, foto: eFoto, status: "pending", modificado: true, obsModificacao: "Corrigido pelo cliente"};
     const newAuths = c.auths.map(ax=>ax.id===a.id?newA:ax);
     await setCl(clients.map(x=>x.id===c.id ? {...x, auths:newAuths} : x));
+
+    // Resetar prêmios associados para pendente se existirem
+    if(premios && setPr){
+       setPr(premios.map(p=>p.authId===a.id && p.status==="rejected" ? {...p, status:"pending"}:p));
+    }
+
     setIsEditing(false);
     alert("✅ Alterações enviadas com sucesso! O registro passará por uma nova auditoria.");
   }
@@ -1099,10 +1244,17 @@ r.readAsDataURL(f);
         {s === "rejected" && (
            <div style={{background:C.rdC,padding:12,borderRadius:8,marginBottom:12,border:`1px solid ${C.rd}33`}}>
              <div style={{fontWeight:800,color:C.rd,marginBottom:4}}>⚠️ Atenção: Registro Recusado</div>
-             <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>O administrador recusou este registro: <strong>{a.obsAdmin||"Incompatibilidade das informações."}</strong> Você pode corrigir os dados (valores, foto ou data) e reenviar.</div>
-             <button onClick={()=>setIsEditing(true)} style={{display:"inline-block",marginTop:8,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",boxShadow:`0 2px 6px ${C.rd}55`,fontFamily:"inherit"}}>
-               ✏️ Corrigir Informações
-             </button>
+             <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>
+               {a.data > (cfg.dataFim || "2100-01-01") 
+                 ? <span>Esta visita foi registrada após o encerramento da campanha e <strong>não pôde ser validada</strong>. O prazo foi excedido.</span>
+                 : <span>O administrador recusou este registro: <strong>{a.obsAdmin||"Incompatibilidade das informações."}</strong> Você pode corrigir os dados (valores, foto ou data) e reenviar.</span>
+               }
+             </div>
+             {a.data <= (cfg.dataFim || "2100-01-01") && (
+               <button onClick={()=>setIsEditing(true)} style={{display:"inline-block",marginTop:8,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",boxShadow:`0 2px 6px ${C.rd}55`,fontFamily:"inherit"}}>
+                 ✏️ Corrigir Informações
+               </button>
+             )}
            </div>
         )}
 
@@ -1125,7 +1277,7 @@ r.readAsDataURL(f);
   );
 }
 
-function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerrada,dFim,dIni}){
+function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerrada,dFim,dIni,premios,setPr}){
   const[sub,setSub]=useState("dados");
   const[voucherVer,setVoucherVer]=useState(null);
   return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
@@ -1157,7 +1309,7 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
               </div>);
               dividerAdded = true;
             }
-            items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer}/>);
+            items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer} premios={premios} setPr={setPr}/>);
           });
           return items;
         })()}
