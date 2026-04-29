@@ -1168,6 +1168,8 @@ r.readAsDataURL(f);
     },0);
     const total = totalP + totalJ;
     const isV = totalP >= (cfg.minVisita||300);
+    const emojis = sels.map(id=>campos.find(f=>f.id===id)?.emoji||"");
+    const newStatus = isV ? "pending" : "not_counted";
     
     const agora = new Date();
     const h = String(agora.getHours()).padStart(2, '0');
@@ -1175,7 +1177,7 @@ r.readAsDataURL(f);
     const s = String(agora.getSeconds()).padStart(2, '0');
     const dIso = `${eData}T${h}:${m}:${s}`;
 
-    const newA = {...a, data: dIso, detalhes: eSel, selecionados: sels, total: total, valida: isV, foto: eFoto, status: "pending", modificado: true, obsModificacao: "Corrigido pelo cliente"};
+    const newA = {...a, data: dIso, detalhes: eSel, selecionados: sels, emojis: emojis, total: total, valida: isV, foto: eFoto, status: newStatus, modificado: true, obsModificacao: "Corrigido pelo cliente"};
     const newAuths = c.auths.map(ax=>ax.id===a.id?newA:ax);
     await setCl(clients.map(x=>x.id===c.id ? {...x, auths:newAuths} : x));
 
