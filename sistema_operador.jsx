@@ -340,7 +340,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
           <button onClick={()=>setShowAlt(true)} style={{...BV,background:C.ou,color:C.az}}>🔒 Mudar Senha</button>
         </div>
       </div>
-      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>{op.nome} <span style={{fontSize:9,opacity:.5,fontWeight:400}}>v1.2</span></div>
+      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>{op.nome} <span style={{fontSize:9,opacity:.5,fontWeight:400}}>v1.3</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)",marginTop:1}}>Operador de Caixa · {fD(op.cadastro)}</div>
       <div style={{display:"flex",gap:7,marginTop:13}}>
         {[["✅",minhas.length,"Total"],["📅",hoje_.length,"Hoje"],["👥",meusCl.length,"Clientes"],[`${pos}º`,"","Ranking"]].map(([v,,l],ki)=>(
@@ -969,13 +969,9 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
       const matchNome = c.nome?.toLowerCase().includes(q);
       const matchWhats = c.whats?.includes(q);
       const matchID = (c.auths||[]).some(a => {
-        const numMatch = String(a.numControle || a.controle || "").toLowerCase().includes(q);
-        const detailsMatch = Object.entries(a.detalhes || {}).some(([fid, val]) => {
-           const campo = (cfg.formulario?.campos||[]).find(f => f.id === fid);
-           const isControleField = campo?.nome?.toLowerCase().includes("controle") || campo?.nome?.toLowerCase().includes("registro");
-           return isControleField && String(val).toLowerCase().includes(q);
-        });
-        return numMatch || detailsMatch;
+        const cVal = String(a.controle || a.numControle || a.nsu || "").toLowerCase();
+        const dVal = Object.entries(a.detalhes || {}).map(([k,v])=>String(v).toLowerCase()).join(" ");
+        return cVal.includes(q) || dVal.includes(q);
       });
       return matchNome || matchWhats || matchID;
     }).sort((a,b)=>(b.auths?.length||0)-(a.auths?.length||0));
