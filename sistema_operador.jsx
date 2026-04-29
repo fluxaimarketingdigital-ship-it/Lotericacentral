@@ -1055,19 +1055,39 @@ function APr({pr, cl, cfg, setPr}){
         const cli=cl.find(c=>c.id===p.clientId);
         const isP = p.status==="pending";
         const isR = p.status==="redeemed";
-        return(<div key={p.id} style={{padding:"12px 13px",borderBottom:i<pr.length-1?`1px solid ${C.bd}22`:"none",display:"flex",flexDirection:"column",gap:10}}>
-          <div style={{display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:40,height:40,borderRadius:10,background:p.tipo==="relampago"?(isP?C.ouC:C.rxC):(isP?C.ouC:C.vdC),display:"flex",alignItems:"center",justifyContent:"center",fontSize:22}}>{p.emoji||cfg.premioMeta.emoji}</div>
+        return(<div key={p.id} style={{background:"#fff",borderRadius:16,padding:"15px",marginBottom:10,border:`1.5px solid ${isR?C.vd+"33":C.bd}`,boxShadow:"0 4px 12px rgba(0,0,0,.03)"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
+            <div style={{width:48,height:48,borderRadius:12,background:p.tipo==="relampago"?(isP?C.ouC:C.rxC):(isP?C.ouC:C.vdC),display:"flex",alignItems:"center",justifyContent:"center",fontSize:26}}>{p.emoji||cfg.premioMeta.emoji}</div>
             <div style={{flex:1}}>
-              <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div>
-              <div style={{fontSize:10,color:C.sb}}><strong style={{color:C.az}}>{cli?.nome}</strong></div>
+              <div style={{fontWeight:800,fontSize:14,color:C.tx}}>{p.nome}</div>
+              <div style={{fontSize:11,color:C.sb}}>Cliente: <b style={{color:C.az}}>{cli?.nome}</b></div>
             </div>
-            {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6}}>PENDENTE</span>}
-            {p.status==="rejected" && <span style={{background:C.rdC,color:C.rd,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6}}>RECUSADO</span>}
+            <div style={{textAlign:"right"}}>
+              {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20}}>PENDENTE</span>}
+              {isR && <span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20}}>RETIRADO</span>}
+              {p.status==="approved" && <span style={{background:C.azC,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20}}>LIBERADO</span>}
+            </div>
           </div>
-          <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {p.status==="approved" && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>}
-            {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado</div>}
+
+          {isR && (
+            <div style={{background:C.bg, borderRadius:12, padding:10, marginBottom:10, border:`1px solid ${C.bd}66`}}>
+              <div style={{fontSize:10, color:C.sb, fontWeight:800, textTransform:"uppercase", marginBottom:4}}>Dados da Retirada</div>
+              <div style={{fontSize:11, color:C.tx}}>Operador: <b>{p.opNomeRetirada || p.opRedeemed || "Administrador"}</b></div>
+              <div style={{fontSize:11, color:C.tx}}>Data: <b>{fDT(p.dataRetirada || p.redeemedAt || p.data)}</b></div>
+            </div>
+          )}
+
+          <div style={{display:"flex",gap:8}}>
+            {p.status==="approved" && (
+              <>
+                <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>
+                <button onClick={()=>{
+                  if(!window.confirm("Dar baixa manual neste prêmio como Administrador?")) return;
+                  setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:"Administrador", opIdRetirada:"admin"}:x));
+                }} style={{background:C.vd,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1.2,fontFamily:"inherit"}}>✅ Dar Baixa Manual</button>
+              </>
+            )}
+            {isP && <div style={{fontSize:10,color:C.sb,fontStyle:"italic",textAlign:"center",width:"100%"}}>Aguardando aprovação no Dashboard</div>}
           </div>
         </div>);
       })}
@@ -1210,8 +1230,15 @@ function OpVoucherCard({p, cli, cfg, onClose}){
               </div>
             </div>
             <div style={{padding:"40px 40px 10px",textAlign:"center"}}>
-              <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30}}>{cli?.nome}</div>
-              <div style={{background:C.bg,borderRadius:24,padding:25,marginBottom:30,border:`1px solid ${C.bd}`}}>
+              <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
+              {p.status === "redeemed" && (
+                <div style={{background:C.vdC, color:C.vd, padding:15, borderRadius:16, marginBottom:20, border:`1.5px solid ${C.vd}44`}}>
+                  <div style={{fontWeight:900, fontSize:12, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
+                  <div style={{fontSize:11, marginTop:4}}>Operador: <b>{p.opNomeRetirada || p.opRedeemed || "Lotérica Central"}</b></div>
+                  <div style={{fontSize:11}}>Data: <b>{fDT(p.dataRetirada || p.redeemedAt || p.data)}</b></div>
+                </div>
+              )}
+              <div style={{background:C.bg,borderRadius:24,padding:25,marginBottom:20,border:`1px solid ${C.bd}`}}>
                 <div style={{fontSize:14,fontWeight:800,color:C.sb,textTransform:"uppercase",marginBottom:8}}>Você ganhou</div>
                 <div style={{fontSize:54,marginBottom:10}}>{p.emoji||cfg.premioMeta.emoji}</div>
                 <div style={{fontSize:26,fontWeight:900,color:C.az}}>{p.nome}</div>
