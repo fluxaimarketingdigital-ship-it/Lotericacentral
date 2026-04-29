@@ -471,7 +471,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
   const isLocked = unredeemedMeta.length > 0;
   const isPend = isLocked && unredeemedMeta.some(p=>p.status==="pending");
   const prog=isLocked ? meta : (totV%meta);const raspa=Math.floor(totV/meta);const falt=meta-prog;const pct=Math.round((prog/meta)*100);
-  const meusPr=(premios||[]).filter(p=>p.clientId===c.id && p.status !== "rejected");const temPr=meusPr.length>0;
+  const meusPr=(premios||[]).filter(p=>p.clientId===c.id && p.status !== "rejected" && p.status !== "not_counted");const temPr=meusPr.length>0;
   const notsAll  = cfg.noticias||CFG0.noticias||[];
   const notsGeral= notsAll.filter(n=>n.tipo==="geral"&&n.ativo!==false);
   const notsVip  = notsAll.filter(n=>n.tipo==="vip"&&n.ativo!==false);
@@ -495,8 +495,8 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
             </div>
           )}
           {!encerrada && diasFaltam > 2 && <div/>}
-          <div style={{width:80, height:24, background:"#fff", borderRadius:6, padding:"2px 6px", display:"flex", alignItems:"center", justifyContent:"center"}}>
-            <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+          <div style={{width:90, height:30, background:"#fff", borderRadius:8, padding:"4px 8px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
+            <img src={logoLoterica} style={{maxWidth:"100%", maxHeight:"100%", objectFit:"contain"}} alt="Logo"/>
           </div>
         </div>
         <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:22}}>{c.nome?.split(" ")[0]}!</span> 👋 <span style={{fontSize:9,opacity:.5}}>v1.3</span></div>
@@ -570,16 +570,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
   const pendsR = (c.auths||[]).filter(a => a.status === "rejected" || (premios||[]).some(p=>p.authId===a.id && p.status==="rejected"));
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
-    {pendsR.length > 0 && (
-      <div style={{background:C.rdC, border:`2px solid ${C.rd}`, borderRadius:18, padding:16, display:"flex", gap:14, alignItems:"center", animation:"pop .4s", marginBottom:12, boxShadow:`0 4px 15px ${C.rd}22`}}>
-        <div style={{fontSize:32, animation:"pulse 1s infinite"}}>⚠️</div>
-        <div style={{flex:1}}>
-          <div style={{fontWeight:900,fontSize:14,color:C.rd}}>Registros Recusados pela Gerência</div>
-          <div style={{fontSize:11,color:C.rd,opacity:.8,marginTop:4, fontWeight:700}}>Você possui pendências em seu histórico (visitas ou prêmios recusados). Toque para corrigir e reenviar.</div>
-        </div>
-        <button onClick={()=>setAba("ct")} style={{background:C.rd, color:"#fff", border:"none", borderRadius:10, padding:"8px 14px", fontSize:11, fontWeight:900, cursor:"pointer", fontFamily:"inherit", boxShadow:`0 2px 8px ${C.rd}44`}}>Corrigir</button>
-      </div>
-    )}
+    <div style={{height:4}}/>
 
     <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.az}44`}}>
       <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:C.ou}}>Comprovante em mãos?</div><div style={{fontSize:18,fontWeight:900}}>📷 Escanear Comprovante</div></div>

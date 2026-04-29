@@ -935,7 +935,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     const temPrRl = pr.some(px=>px.authId===a.id && px.tipo==="relampago");
     
     setPr(pr.map(p=>{
-      if(p.authId===a.id && p.status==="rejected"){
+      if(p.authId===a.id && (p.status==="rejected" || p.status==="not_counted")){
         const qualifies = (p.tipo === "relampago" && totalJ >= minR) || (p.tipo === "raspadinha" && totalP >= minV);
         return {...p, status: qualifies ? "pending" : "not_counted"};
       }
