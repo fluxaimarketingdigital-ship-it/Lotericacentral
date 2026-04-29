@@ -78,7 +78,7 @@ function Hero(){
         Programa digital de fidelidade com identificação em tempo real, formulário dinâmico configurável, avaliação do atendimento e prêmios automáticos.
       </p>
       <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .7s .3s ease both",opacity:0,animationFillMode:"forwards"}}>
-        {[["🎟️","Prêmio a cada 15 registros"],["⚡","Prêmio Relâmpago"],["⭐","Avaliação 1–10"],["📱","2 apps digitais"]].map(([em,txt])=>(
+        {[["🎟️","Prêmio a cada 15 visitas"],["⚡","Prêmio Relâmpago"],["⭐","Avaliação 1–10"],["📱","2 apps digitais"]].map(([em,txt])=>(
           <div key={txt} style={{display:"flex",gap:7,alignItems:"center",background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.12)",borderRadius:24,padding:"7px 14px",fontSize:12,fontWeight:700}}>
             <span>{em}</span><span style={{color:P.ge}}>{txt}</span>
           </div>
@@ -123,7 +123,7 @@ function FluxoCompleto(){
     {n:"05",emoji:"🏪",titulo:"Código da Operadora",desc:"Solicite o código de identificação à operadora para liberar o formulário.",cor:P.vd,link:"Código do caixa"},
     {n:"06",emoji:"🛍️",titulo:"Preenche o Formulário",desc:"Seleciona produtos (Bancário e Jogos), informa valores e avalia o atendimento de 1 a 10.",cor:"#059669",link:"App Cliente"},
     {n:"07",emoji:"✅",titulo:"Autenticação Confirmada",desc:"Registro realizado. Selos e progresso atualizados. Sorteio relâmpago se incluiu Jogos.",cor:P.ou,link:"App Cliente"},
-    {n:"08",emoji:"🎟️",titulo:"Acumula e Ganha!",desc:"A cada 15 registros: 1 Raspadinha CAIXA garantida + notificação WhatsApp.",cor:"#db2777",link:"Prêmio automático"},
+    {n:"08",emoji:"🎟️",titulo:"Acumula e Ganha!",desc:"A cada 15 visitas: 1 Raspadinha CAIXA garantida + notificação WhatsApp.",cor:"#db2777",link:"Prêmio automático"},
   ];
   return(
     <div style={{padding:"52px 24px",background:P.navy}}>
@@ -161,7 +161,7 @@ function QRSection(){
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
           {emoji:"🎯",titulo:"Acesso à Promoção",sub:"Painel da lotérica — permanente",cor:P.ou,desc:"Acessado via link ou identificação fixa. Exposto no balcão e materiais de divulgação. Abre o regulamento e inicia o cadastro do cliente.",passos:["Cliente acessa o app","Lê o regulamento","Faz o cadastro","Começa a participar"]},
-          {emoji:"📲",titulo:"Código da Operadora de Caixa",sub:"Identificação por atendimento",cor:P.vd,desc:"Código exclusivo por operadora. Fornecido a cada atendimento no sistema. É a chave obrigatória para liberar o formulário de autenticação.",passos:["Operador informa código","Cliente digita no app","Formulário liberado","Registro realizado"]},
+          {emoji:"📲",titulo:"Código da Operadora de Caixa",sub:"Identificação por atendimento",cor:P.vd,desc:"Código exclusivo por operadora. Fornecido a cada atendimento no sistema. É a chave obrigatória para liberar o formulário de autenticação.",passos:["Operador informa código","Cliente digita no app","Formulário liberado","Visita registrada"]},
         ].map((q,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.05)",borderRadius:20,border:`1px solid ${q.cor}33`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
@@ -229,7 +229,7 @@ function AvaliacaoSection(){
       <Reveal delay={100}>
         <div style={{marginTop:28,background:"rgba(255,255,255,.04)",borderRadius:20,padding:"22px 20px",border:"1px solid rgba(255,255,255,.08)"}}>
           <div style={{textAlign:"center",marginBottom:20,fontSize:12,color:P.ci,lineHeight:1.7}}>
-            <strong style={{color:P.br}}>Obrigatória</strong> para confirmar a autenticação. O cliente avalia de <strong style={{color:P.br}}>1 (péssimo)</strong> a <strong style={{color:P.br}}>10 (excelente)</strong>. Nota salva em cada registro.
+            <strong style={{color:P.br}}>Obrigatória</strong> para confirmar a autenticação. O cliente avalia de <strong style={{color:P.br}}>1 (péssimo)</strong> a <strong style={{color:P.br}}>10 (excelente)</strong>. Nota salva em cada registro de visita.
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8,marginBottom:16}}>
             {[1,2,3,4,5,6,7,8,9,10].map(n=>{
@@ -300,7 +300,7 @@ function PremiosSection(){
                 <span style={{fontSize:32}}>⚡</span>
                 <div>
                   <div style={{fontFamily:"'Sora',sans-serif",fontWeight:900,fontSize:18,color:P.br}}>Prêmio Relâmpago</div>
-                  <div style={{fontSize:11,color:"#c4b5fd",marginTop:2}}>Sorteio automático ao incluir Jogos no registro</div>
+                  <div style={{fontSize:11,color:"#c4b5fd",marginTop:2}}>Sorteio automático ao incluir Jogos na visita</div>
                 </div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:8}}>
@@ -368,7 +368,7 @@ function NumerosSection(){
     <div style={{padding:"52px 24px",background:P.navy}}>
       <SecTit tag="Impacto" titulo="Números do Programa" icon="📊"/>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginTop:32}}>
-        {[["15","Registros para 1 prêmio","🎟️",P.vd],["5","Tipos de Relâmpago","⚡",P.rx],["2","Apps digitais","📱",P.az2],["10","Pontos de avaliação","⭐",P.ou]].map(([n,l,em,cor])=>(
+        {[["15","Visitas para 1 prêmio","🎟️",P.vd],["5","Tipos de Relâmpago","⚡",P.rx],["2","Apps digitais","📱",P.az2],["10","Pontos de avaliação","⭐",P.ou]].map(([n,l,em,cor])=>(
           <Reveal key={l}>
             <div style={{textAlign:"center",background:"rgba(255,255,255,.04)",borderRadius:18,padding:"20px 10px",border:`1px solid ${cor}25`}}>
               <div style={{fontSize:24,marginBottom:8}}>{em}</div>
@@ -385,9 +385,9 @@ function NumerosSection(){
           <div style={{display:"flex",position:"relative"}}>
             <div style={{position:"absolute",top:22,left:22,right:22,height:2,background:`linear-gradient(90deg,${P.vd},${P.ou},${P.rx},${P.az2})`,opacity:.25}}/>
             {[
-              {q:"A cada registro",em:"🏪",cor:P.az2,d:"Código → autenticação"},
+              {q:"A cada visita",em:"🏪",cor:P.az2,d:"Código → autenticação"},
               {q:"Instantâneo",em:"⚡",cor:P.rx,d:"Sorteio Relâmpago"},
-              {q:"15º registro",em:"🎟️",cor:P.vd,d:"Raspadinha!"},
+              {q:"15ª visita",em:"🎟️",cor:P.vd,d:"Raspadinha!"},
               {q:"Todo dia 05",em:"🏅",cor:P.ou,d:"Prêmio operadoras"},
             ].map((e,i)=>(
               <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8,textAlign:"center",padding:"0 4px"}}>

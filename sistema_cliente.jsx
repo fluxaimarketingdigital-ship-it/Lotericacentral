@@ -11,7 +11,7 @@ const CFG0 = {
   meta: 15,
   minVisita: 300,
   minRelampago: 60,
-  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} registros e ganhou {premioNome}! Retire no balcão." },
+  premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
   relampagos: [
     {id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje."},
     {id:"r2",ativo:true, emoji:"🏷️",nome:"Cupom de Desconto",prob:15, desc:"10% de desconto na próxima Raspadinha. Válido 7 dias!"},
@@ -29,10 +29,10 @@ Clientes atendidos na lotérica que realizem cadastro pelo App Fidelidade e vali
 • Escaneie o QR Code da Promoção (painel da lotérica).
 • Leia o regulamento e faça seu cadastro.
 • A cada atendimento, peça ao operador o código dinâmico do caixa.
-• Informe o código do operador para registrar seu registro.
+• Informe o código do operador para registrar sua visita.
 
 3. PRÊMIO PRINCIPAL
-• A cada {meta} registros autenticados: 1 {premioNome}.
+• A cada {meta} visitas autenticadas: 1 {premioNome}.
 • Retirada na lotérica em até 30 dias após notificação via WhatsApp.
 
 4. PRÊMIO RELÂMPAGO
@@ -225,7 +225,7 @@ function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
         </div>
         {/* chips */}
         <div style={{display:"flex",gap:9,flexWrap:"wrap",justifyContent:"center",marginBottom:36}}>
-          {[["🎟️",`Prêmio a cada ${cfg.meta} registros`],["⚡","Prêmios Relâmpago"],["📱","App 100% digital"]].map(([em,t])=>(
+          {[["🎟️",`Prêmio a cada ${cfg.meta} visitas`],["⚡","Prêmios Relâmpago"],["📱","App 100% digital"]].map(([em,t])=>(
             <div key={t} style={{background:"rgba(255,255,255,.12)",borderRadius:24,padding:"6px 14px",fontSize:11,fontWeight:700,color:"#fff",display:"flex",gap:6,alignItems:"center",border:"1px solid rgba(255,255,255,.18)"}}>
               <span>{em}</span><span style={{color:"rgba(255,255,255,.85)"}}>{t}</span>
             </div>
@@ -522,7 +522,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
           <div>
             <div style={{fontSize:10,color:"rgba(255,255,255,.5)",fontWeight:700,textTransform:"uppercase",letterSpacing:.8}}>Próximo Prêmio</div>
             <div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>
-              {isLocked ? (isPend ? "Em Auditoria ⏳" : "Retire seu Prêmio! 🏆") : <>Faltam <span style={{color:C.ou,fontSize:24}}>{falt}</span> {falt===1?"registro":"registros"}</>}
+              {isLocked ? (isPend ? "Em Auditoria ⏳" : "Retire seu Prêmio! 🏆") : <>Faltam <span style={{color:C.ou,fontSize:24}}>{falt}</span> {falt===1?"visita":"visitas"}</>}
             </div>
           </div>
           <div style={{textAlign:"right"}}><div style={{fontSize:10,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.8}}>Ganhos</div><div style={{fontWeight:900,fontSize:26,color:C.ou,lineHeight:1.1}}>{cfg.premioMeta.emoji} {raspa}</div></div>
@@ -541,7 +541,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         <div style={{padding:30,textAlign:"center",animation:"up .4s"}}>
           <div style={{fontSize:60,marginBottom:15}}>⌛</div>
           <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:8}}>Campanha Encerrada</div>
-          <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Esta campanha chegou ao fim em {fD(dFim)}. Aguarde a nova campanha para realizar seus registros e pontuar novamente!</div>
+          <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Esta campanha chegou ao fim em {fD(dFim)}. Aguarde a nova campanha para registrar suas visitas e pontuar novamente!</div>
           <button onClick={()=>setAba("ini")} style={{marginTop:20,background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Voltar ao Início</button>
         </div>
       ) : <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>)}
