@@ -499,7 +499,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         </div>
       </div>
       {/* GLOBAL REJECTION ALERT */}
-      {c.auths?.some(a=>a.status==="rejected" && !a.modificado) && aba !== "ct" && (
+      {c.auths?.some(a=>(a.status==="rejected" || (c.premios||[]).some(p=>p.authId===a.id && p.status==="rejected")) && !a.modificado) && aba !== "ct" && (
         <div onClick={()=>setAba("ct")} style={{marginTop:16, background:C.rdC, border:`2px solid ${C.rd}`, borderRadius:16, padding:"12px 14px", display:"flex", gap:10, alignItems:"center", animation:"pop .4s", cursor:"pointer"}}>
           <div style={{fontSize:24}}>⚠️</div>
           <div style={{flex:1}}>
@@ -559,7 +559,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
   const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const raspa=Math.floor(totV/cfg.meta);const prog=totV%cfg.meta;
-  const pendsR = (c.auths||[]).filter(a => a.status === "rejected");
+  const pendsR = (c.auths||[]).filter(a => a.status === "rejected" || (c.premios||[]).some(p=>p.authId===a.id && p.status==="rejected"));
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     {pendsR.length > 0 && (
@@ -1120,6 +1120,7 @@ function HistItem({a, cfg, c, clients, setCl, setVoucherVer, premios, setPr}){
   const s = a.status || (a.valida!==false?"approved":"rejected"); // fallback legacy
   const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
   const labelS = s==="approved"?"Aprovada" : s==="pending"?"Aguardando Auditoria" : s==="not_counted"?"Histórico" : "Recusada";
+  const hasRejP = (c.premios||[]).some(p=>p.authId===a.id && p.status==="rejected");
   const d = a.detalhes || {};
 
   const [isEditing, setIsEditing] = useState(false);
@@ -1251,9 +1252,9 @@ r.readAsDataURL(f);
            <div style={{marginTop:5,fontSize:9,opacity:.7, fontWeight:800}}>Controle / Registro: {a.controle}</div>
         </div>
         
-        {s === "rejected" && (
+        {(s === "rejected" || hasRejP) && (
            <div style={{background:C.rdC,padding:12,borderRadius:8,marginBottom:12,border:`1px solid ${C.rd}33`}}>
-             <div style={{fontWeight:800,color:C.rd,marginBottom:4}}>⚠️ Atenção: Registro Recusado</div>
+             <div style={{fontWeight:800,color:C.rd,marginBottom:4}}>⚠️ Atenção: {hasRejP && s==="not_counted" ? "Prêmio Recusado" : "Registro Recusado"}</div>
              <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>
                {a.data > (cfg.dataFim || "2100-01-01") 
                  ? <span>Esta visita foi registrada após o encerramento da campanha e <strong>não pôde ser validada</strong>. O prazo foi excedido.</span>
