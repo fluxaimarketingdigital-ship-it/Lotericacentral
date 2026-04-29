@@ -506,7 +506,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         </div>
       </div>
       {/* GLOBAL REJECTION ALERT */}
-      {c.auths?.some(a=>(a.status==="rejected" || (c.premios||[]).some(p=>p.authId===a.id && p.status==="rejected")) && !a.modificado) && aba !== "ct" && (
+      {c.auths?.some(a=>(a.status==="rejected" || (premios||[]).some(p=>p.authId===a.id && p.status==="rejected")) && !a.modificado) && aba !== "ct" && (
         <div onClick={()=>setAba("ct")} style={{marginTop:16, background:C.rdC, border:`2px solid ${C.rd}`, borderRadius:16, padding:"12px 14px", display:"flex", gap:10, alignItems:"center", animation:"pop .4s", cursor:"pointer"}}>
           <div style={{fontSize:24}}>⚠️</div>
           <div style={{flex:1}}>
@@ -535,7 +535,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
     </div>
     {/* CONTEÚDO */}
     <div style={{flex:1,padding:"14px 14px 82px"}}>
-      {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba}/>}
+      {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba} premios={premios}/>}
       {aba==="reg" && (encerrada ? (
         <div style={{padding:30,textAlign:"center",animation:"up .4s"}}>
           <div style={{fontSize:60,marginBottom:15}}>⌛</div>
@@ -562,11 +562,11 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
   </div>);}
 
 /* ══════════════════════ INÍCIO ══════════════════════ */
-function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
+function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
   const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const raspa=Math.floor(totV/cfg.meta);const prog=totV%cfg.meta;
-  const pendsR = (c.auths||[]).filter(a => a.status === "rejected" || (c.premios||[]).some(p=>p.authId===a.id && p.status==="rejected"));
+  const pendsR = (c.auths||[]).filter(a => a.status === "rejected" || (premios||[]).some(p=>p.authId===a.id && p.status==="rejected"));
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     {pendsR.length > 0 && (
@@ -1135,7 +1135,7 @@ function HistItem({a, cfg, c, clients, setCl, setVoucherVer, premios, setPr}){
   const s = a.status || (a.valida!==false?"approved":"rejected"); // fallback legacy
   const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
   const labelS = s==="approved"?"Aprovada" : s==="pending"?"Aguardando Auditoria" : s==="not_counted"?"Histórico" : "Recusada";
-  const hasRejP = (c.premios||[]).some(p=>p.authId===a.id && p.status==="rejected");
+  const hasRejP = (premios||[]).some(p=>p.authId===a.id && p.status==="rejected");
   const d = a.detalhes || {};
 
   const [isEditing, setIsEditing] = useState(false);
