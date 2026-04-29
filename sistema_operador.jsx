@@ -1086,8 +1086,8 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
             <div style={{fontWeight:800,fontSize:12,color:C.tx,display:"flex",alignItems:"center",gap:6,justifyContent:"space-between"}}>
               <div style={{display:"flex",alignItems:"center",gap:6}}>
                 <span>{c.nome}</span>
-                {c.auths?.some(a=>a.status==="pending") && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
-                {c.auths?.some(a=>a.status==="rejected" && !a.modificado) && <span style={{background:C.rdC,color:C.rd,fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900,border:`1px solid ${C.rd}44`}}>❌ AGUARDANDO CLIENTE</span>}
+                {(c.auths?.some(a=>a.status==="pending") || pr.some(p=>p.clientId===c.id && p.status==="pending")) && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
+                {(c.auths?.some(a=>a.status==="rejected" && !a.modificado) || pr.some(p=>p.clientId===c.id && p.status==="rejected")) && <span style={{background:C.rdC,color:C.rd,fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900,border:`1px solid ${C.rd}44`}}>❌ AGUARDANDO CLIENTE</span>}
               </div>
               <div onClick={(e)=>{e.stopPropagation(); if(window.confirm(`Excluir o cliente ${c.nome} permanentemente?`)) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
             </div>
