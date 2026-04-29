@@ -1143,13 +1143,14 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     {/* ELEMENTO PARA CAPTURA (ESCONDIDO) */}
     <div style={{position:"fixed", left: "-9999px", top: 0}}>
       <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
-        <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"45px 0",position:"relative", display: "block"}}>
+        <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 0",position:"relative", display: "block"}}>
           <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-          <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:15,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
+          <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",padding:6,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
             <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
           </div>
-          <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:8, display: "block"}}>Certificado de Premiação</div>
+          <div style={{color:C.ou,fontSize:14,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4, display: "block"}}>Certificado de Premiação</div>
           <div style={{color:"#fff",fontSize:32,fontWeight:900, display: "block"}}>Cliente Premiado</div>
+          <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"4px 15px",borderRadius:20,fontSize:14,fontWeight:900,marginTop:10,letterSpacing:1}}>#{p.id.toUpperCase()}</div>
         </div>
         <div style={{padding:"40px 40px 10px",textAlign:"center", display: "block"}}>
           <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30, display: "block"}}>{cli?.nome}</div>
@@ -1180,13 +1181,14 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{width:"100%", height: 360, overflow: "hidden", position: "relative", background: "#f0f2f5"}}>
          <div style={{transform: "scale(0.6)", transformOrigin: "top left", width: 600, height: 600}}>
-            <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"45px 0",position:"relative", textAlign: "center"}}>
+            <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 0",position:"relative", textAlign: "center"}}>
               <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-              <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:15,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
+              <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",padding:6,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
                 <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
               </div>
-              <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:8}}>Certificado de Premiação</div>
+              <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
               <div style={{color:"#fff",fontSize:32,fontWeight:900}}>Cliente Premiado</div>
+              <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"4px 15px",borderRadius:20,fontSize:14,fontWeight:900,marginTop:10,letterSpacing:1}}>#{p.id.toUpperCase()}</div>
             </div>
             <div style={{padding:"40px 40px 10px",textAlign:"center"}}>
               <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30}}>{cli?.nome}</div>

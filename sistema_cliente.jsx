@@ -1372,7 +1372,7 @@ function VoucherCard({p, cli, cfg, onClose}){
         </div>
         <div style={{color:C.ou,fontSize:9,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
         <div style={{color:"#fff",fontSize:22,fontWeight:900,lineHeight:1}}>Cupom Digital</div>
-        <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"2px 10px",borderRadius:20,fontSize:10,fontWeight:900,marginTop:8,letterSpacing:1}}>#{p.id.toUpperCase()}</div>
+        <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"4px 14px",borderRadius:20,fontSize:12,fontWeight:900,marginTop:8,letterSpacing:1.5,boxShadow:"0 4px 10px rgba(0,0,0,0.2)"}}>#{p.id.toUpperCase()}</div>
       </div>
       <div style={{padding:"25px 22px",textAlign:"center"}}>
         <div style={{fontSize:18,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
