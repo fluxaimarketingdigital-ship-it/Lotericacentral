@@ -11,11 +11,12 @@ const DCFG = {
   minRelampago: 60,
   premioMeta: { nome:"Raspadinha CAIXA", emoji:"🎟️", desc:"Você completou {meta} visitas e ganhou {premioNome}! Retire no balcão." },
   relampagos: [
-    { id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje." },
-    { id:"r2",ativo:true, emoji:"🏷️",nome:"Cupom Desconto",   prob:15, desc:"10% de desconto na próxima Raspadinha. Válido 7 dias." },
-    { id:"r3",ativo:true, emoji:"🎁",        nome:"Brinde Surpresa", prob:10, desc:"Brinde especial esperando por você no balcão." },
-    { id:"r4",ativo:true, emoji:"⚡",            nome:"Dobro de Pontos",prob:12, desc:"Esta visita vale 2 autenticações! Parabéns." },
-    { id:"r5",ativo:false,emoji:"🌟",         nome:"Sorteio do Mês", prob:5,  desc:"Você entrou no Sorteio do Mês! Resultado dia 01." },
+    { id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:25, desc:"Raspadinha extra! Retire no caixa assim que receber aviso pelo WhatsApp." },
+    { id:"r2",ativo:true, emoji:"🏷️",nome:"Bolões e Jogos", prob:25, desc:"Oferta Especial! Pela sua compra acima de R$ 60,00, você ganhou uma Raspadinha! Aguarde a conferência e receba seu cupom de retirada pelo WhatsApp." },
+    { id:"r3",ativo:true, emoji:"🎁",nome:"Compra Bolão da mega 30 anos", prob:25, desc:"Mega 30 Anos! Você ganhou um prêmio bônus! Seu registro está em auditoria. Assim que aprovado, enviaremos seu cupom digital pelo WhatsApp." },
+    { id:"r4",ativo:true, emoji:"⚡",nome:"Bolão Quina São João", prob:25, desc:"Quina de São João! Prêmio especial garantido. Aguarde a auditoria rápida e o envio do seu cupom digital via WhatsApp." },
+    { id:"r5",ativo:false,emoji:"🌟",nome:"Sorteio-do-Mês", prob:5, desc:"Sorteio do Mês! Você foi contemplado(a)! Seu prêmio passará por auditoria. Fique atento ao seu WhatsApp." },
+    { id:"r6",ativo:false,emoji:"🎁",nome:"Novo Prêmio", prob:5, desc:"Novo Prêmio! Parabéns! Seu registro foi encaminhado para auditoria. Você receberá o cupom de retirada pelo WhatsApp." },
   ],
   regulamento: `REGULAMENTO — PROGRAMA CLIENTE FIDELIZADO
 Lotérica Central · CNPJ 20.845.956/0001-00 · Alagoinhas-BA
