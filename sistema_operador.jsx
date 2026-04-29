@@ -915,16 +915,26 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, detalhes:fEdit, total:t, selecionados:idsSels, emojis:emojis, valida:isV, status:newStatus}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
 
-    // Verificar prêmio relâmpago se o admin corrigiu para um valor que qualifica
+    // Sincronizar prêmios
     const minR = cfg.minRelampago || 60;
+    const minV = cfg.minVisita || 300;
     const temPrRl = pr.some(px=>px.authId===a.id && px.tipo==="relampago");
+    
+    setPr(pr.map(p=>{
+      if(p.authId===a.id && p.status==="rejected"){
+        const qualifies = (p.tipo === "relampago" && totalJ >= minR) || (p.tipo === "raspadinha" && totalP >= minV);
+        return {...p, status: qualifies ? "pending" : "not_counted"};
+      }
+      return p;
+    }));
+
     if(totalJ >= minR && !temPrRl){
-       // Sortear prêmio simplificado
+       // Criar novo se agora qualifica e não existia
        const ativos = cfg.relampagos.filter(r=>r.ativo);
        if(ativos.length > 0){
           const sort = ativos[Math.floor(Math.random()*ativos.length)];
           const newP = {id:Math.random().toString(36).substr(2,9), clientId:c.id, authId:a.id, tipo:"relampago", nome:sort.nome, emoji:sort.emoji, desc:sort.desc, data:new Date().toISOString(), status:"pending"};
-          setPr([...pr, newP]);
+          setPr(curr => [...curr, newP]);
        }
     }
 

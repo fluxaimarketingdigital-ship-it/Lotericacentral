@@ -1185,10 +1185,10 @@ r.readAsDataURL(f);
     if(premios && setPr){
        const minV = cfg.minVisita || 300;
        const minR = cfg.minRelampago || 60;
-       setPr(premios.map(p=>{
+        setPr(premios.map(p=>{
           if(p.authId===a.id && p.status==="rejected"){
              const qualifies = (p.tipo === "relampago" && totalJ >= minR) || (p.tipo === "raspadinha" && totalP >= minV);
-             if(qualifies) return {...p, status:"pending"};
+             return {...p, status: qualifies ? "pending" : "not_counted"};
           }
           return p;
        }));
