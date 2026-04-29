@@ -181,8 +181,9 @@ function Splash(){return(
   <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},${C.az2})`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
     <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",background:C.ou,opacity:.07}}/>
     <div style={{textAlign:"center",animation:"pop .5s ease",zIndex:1}}>
-      <div style={{fontSize:72,marginBottom:12,filter:"drop-shadow(0 6px 20px rgba(245,168,0,.5))"}}>🏆</div>
-      <div style={{fontWeight:900,fontSize:28,color:"#fff"}}>{NOME}</div>
+      <div style={{background:"#fff", width:120, height:120, borderRadius:26, margin:"0 auto 20px", display:"flex", alignItems:"center", justifySelf:"center", padding:14, boxShadow:`0 12px 30px rgba(0,0,0,.2)`, animation:"pop .6s"}}>
+        <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+      </div>
       <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:6,letterSpacing:3,textTransform:"uppercase"}}>Cliente Fidelizado Premiado</div>
       <div style={{display:"flex",gap:9,justifyContent:"center",marginTop:28}}>
         {[0,1,2].map(i=><div key={i} style={{width:10,height:10,borderRadius:"50%",background:C.ou,animation:`dt 1.1s ${i*.22}s infinite`}}/>)}
@@ -213,8 +214,9 @@ function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
       <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,borderRadius:"50%",background:C.ou,opacity:.08}}/>
         <div style={{position:"absolute",bottom:-40,left:-40,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.05}}/>
-        <div style={{fontSize:76,marginBottom:16,animation:"pop .6s",filter:"drop-shadow(0 8px 24px rgba(245,168,0,.5))"}}>🏆</div>
-        <div style={{fontWeight:900,fontSize:30,color:"#fff",lineHeight:1.1,marginBottom:10}}>{NOME}</div>
+        <div style={{background:"#fff", width:110, height:110, borderRadius:24, margin:"0 auto 20px", display:"flex", alignItems:"center", justifySelf:"center", padding:14, boxShadow:`0 12px 30px rgba(0,0,0,.2)`, animation:"pop .6s"}}>
+          <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+        </div>
         <div style={{fontWeight:700,fontSize:12,color:C.ou,letterSpacing:3,textTransform:"uppercase",marginBottom:22}}>Cliente Fidelizado Premiado</div>
         <div style={{fontSize:14,color:"rgba(255,255,255,.8)",lineHeight:1.8,maxWidth:340,marginBottom:32}}>
           Acumule visitas, ganhe <strong style={{color:C.ou}}>Super Prêmio</strong> e concorra a <strong style={{color:C.ou}}>Prêmios Relâmpago</strong> toda vez que visitar a nossa Lotérica!
@@ -470,7 +472,9 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <div style={{zIndex:1,position:"relative"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{fontSize:10,fontWeight:800,color:C.ou,letterSpacing:2,textTransform:"uppercase"}}>{NOME}</div>
+          <div style={{width:80, height:24, background:"#fff", borderRadius:6, padding:"2px 6px", display:"flex", alignItems:"center", justifyContent:"center"}}>
+            <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+          </div>
           {diasFaltam >= 0 && diasFaltam <= 2 && !encerrada && (
             <div style={{background:C.ou,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20,animation:"dt 1s infinite"}}>
               ⚠️ CAMPANHA ENCERRA {diasFaltam===0?"HOJE":`EM ${diasFaltam} DIA${diasFaltam>1?"S":""}`}!
@@ -1362,8 +1366,8 @@ function VoucherCard({p, cli, cfg, onClose}){
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:25,textAlign:"center",position:"relative"}}>
         <div style={{position:"absolute",top:-30,right:-30,width:120,height:120,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-        <div style={{background:"#fff",width:80,height:80,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:8,boxShadow:"0 8px 20px rgba(0,0,0,.2)"}}>
-          <div style={{fontWeight:900,fontSize:10,color:C.az,textAlign:"center"}}>LOTÉRICA<br/>CENTRAL</div>
+        <div style={{background:"#fff",width:100,height:100,borderRadius:18,margin:"0 auto 15px",display:"flex",alignItems:"center",justifyContent:"center",padding:10,boxShadow:"0 8px 20px rgba(0,0,0,.2)"}}>
+          <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
         </div>
         <div style={{color:C.ou,fontSize:10,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
         <div style={{color:"#fff",fontSize:22,fontWeight:900}}>Cupom Digital</div>

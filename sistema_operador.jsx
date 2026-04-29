@@ -145,8 +145,12 @@ export default function App(){
 
 function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},${C.az2})`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,position:"relative",overflow:"hidden"}}>
   <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",background:C.ou,opacity:.07}}/>
-  <div style={{fontSize:68,animation:"pop .5s",filter:"drop-shadow(0 6px 18px rgba(245,168,0,.5))",zIndex:1}}>🏆</div>
-  <div style={{textAlign:"center",zIndex:1}}><div style={{fontWeight:900,fontSize:26,color:"#fff"}}>Lotérica Central</div><div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:6,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div></div>
+  <div style={{textAlign:"center",zIndex:1}}>
+    <div style={{background:"#fff", width:110, height:110, borderRadius:24, margin:"0 auto 16px", display:"flex", alignItems:"center", justifySelf:"center", padding:12, boxShadow:`0 10px 25px rgba(0,0,0,.15)`, animation:"pop .6s"}}>
+      <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+    </div>
+    <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
+  </div>
 </div>);}
 
 function Home({ops,cl,setRole,setOpSel,setTela}){
@@ -166,9 +170,10 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column"}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:"0 0 30px 30px",padding:"44px 22px 40px",textAlign:"center",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-50,right:-50,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.07}}/>
-      <div style={{fontSize:52,animation:"pop .5s",marginBottom:10}}>🏆</div>
-      <div style={{fontWeight:900,fontSize:22,color:"#fff"}}>Lotérica Central</div>
-      <div style={{fontSize:10,color:C.ou,fontWeight:700,marginTop:5,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
+      <div style={{background:"#fff", width:90, height:90, borderRadius:20, margin:"0 auto 12px", display:"flex", alignItems:"center", justifySelf:"center", padding:10, boxShadow:`0 8px 20px rgba(0,0,0,.2)`, animation:"pop .5s"}}>
+        <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
+      </div>
+      <div style={{fontSize:10,color:C.ou,fontWeight:700,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
     </div>
     <div style={{flex:1,padding:"20px 16px",display:"flex",flexDirection:"column",gap:11}}>
       <div style={{background:"#fff",borderRadius:17,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
@@ -1119,10 +1124,10 @@ function OpVoucherCard({p, cli, cfg, onClose}){
       <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", minWidth: "600px", minHeight: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
         <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"45px 0",position:"relative", display: "block"}}>
           <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-          <div style={{background:"#fff",width:120,height:120,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:10,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
-            <div style={{fontWeight:900,fontSize:14,color:C.az,textAlign:"center",lineHeight:1.2}}>LOTÉRICA<br/>CENTRAL</div>
+          <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 20px",display:"flex",alignItems:"center",justifyContent:"center",padding:15,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
+            <img src="/logo_loterica.png" style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
           </div>
-          <div style={{color:C.ou,fontSize:14,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:8, display: "block"}}>Certificado de Premiação</div>
+          <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:8, display: "block"}}>Certificado de Premiação</div>
           <div style={{color:"#fff",fontSize:32,fontWeight:900, display: "block"}}>Cliente Premiado</div>
         </div>
         <div style={{padding:"40px 40px 10px",textAlign:"center", display: "block"}}>
