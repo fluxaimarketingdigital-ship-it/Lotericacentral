@@ -880,7 +880,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
   const s = a.status || (a.valida!==false?"approved":"rejected");
   const updateStatus = (newS) => {
     if(newS==="rejected" && !window.confirm("Recusar esta autenticação?")) return;
-    const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, obsAdmin:newS==="rejected"?"Recusado":""}:x);
+    const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, modificado:false, obsAdmin:newS==="rejected"?"Recusado":""}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
     if(newS==="rejected"){
       setPr(pr.map(p=>p.authId===a.id && p.status !== "redeemed" ? {...p,status:"rejected"}:p));
@@ -895,6 +895,11 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     if(newS==="rejected" && !window.confirm("Recusar este prêmio?")) return;
     if(newS==="rejected") {
       setPr(pr.map(p=>p.id===pid?{...p, status:"rejected"}:p));
+      const auth = c.auths.find(x=>x.id===a.id);
+      if(auth) {
+        const newAuths = c.auths.map(x=>x.id===a.id?{...x, modificado:false}:x);
+        setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+      }
     } else {
       setPr(pr.map(p=>p.id===pid?{...p, status:newS}:p));
     }
@@ -930,7 +935,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     const newStatus = a.status === "redeemed" ? "redeemed" : (isV ? "pending" : "not_counted");
     const emojis = idsSels.map(id=>cfg.formulario.campos.find(f=>f.id===id)?.emoji||"");
 
-    const newAuths = c.auths.map(x=>x.id===a.id?{...x, detalhes:fEdit, total:t, selecionados:idsSels, emojis:emojis, valida:isV, status:newStatus}:x);
+    const newAuths = c.auths.map(x=>x.id===a.id?{...x, detalhes:fEdit, total:t, selecionados:idsSels, emojis:emojis, valida:isV, status:newStatus, modificado:false}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
 
     // Sincronizar prêmios
