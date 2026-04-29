@@ -305,9 +305,9 @@ function Regulamento({setTela,cfg}){
 /* ══════════════════════ CADASTRO ══════════════════════ */
 function Cadastro({setCli,clients,setCl,setTela,cfg}){
   const[nome, setNome] =useState("");
-  const[wts,  setWts]  =useState("");
-  const[email,setEmail]=useState("");
-  const[nasc, setNasc] =useState("");
+  const[wts,  setWts]  =useState(()=>localStorage.getItem("lc_wts")||"");
+  const[email,setEmail]=useState(()=>localStorage.getItem("lc_email")||"");
+  const[nasc, setNasc] =useState(()=>localStorage.getItem("lc_nasc")||"");
   const[err,  setErr]  =useState("");
   const num=limpo(wts);
   const dataN=limpo(nasc);
@@ -318,6 +318,9 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
     if(dataN.length<8){setErr("Informe sua data de nascimento completa.");return;}
     if(clients.find(c=>c.whats===num)){setErr("Este WhatsApp já está cadastrado. Use a opção de login.");return;}
     const c={id:uid(),nome:nome.trim(),whats:num,nasc:dataN,email:email.trim().toLowerCase(),cadastro:now(),auths:[]};
+    localStorage.setItem("lc_wts", num);
+    localStorage.setItem("lc_nasc", dataN);
+    if(email) localStorage.setItem("lc_email", email.trim().toLowerCase());
     setCl([...clients,c]);setCli(c);setTela("painel");
   }
 
@@ -340,23 +343,23 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
           ))}
         </div>
 
-        <Cp label="👤 Nome Completo *" value={nome} onChange={v=>{setNome(v);setErr("");}} placeholder="Como quer ser chamado(a)?" ativo={!!nome}/>
+        <Cp label="👤 Nome Completo *" value={nome} onChange={v=>{setNome(v);setErr("");}} placeholder="Como quer ser chamado(a)?" ativo={!!nome} autoComplete="name"/>
         
         <div style={{display:"flex",gap:10,marginTop:12}}>
           <div style={{flex:1}}>
             <label style={LS}>📅 Nascimento *</label>
             <input value={nasc} onChange={e=>{setNasc(fmtDN(e.target.value));setErr("");}} placeholder="DD/MM/AAAA" type="tel"
-              style={{...I, border:`2px solid ${dataN.length===8?C.az:C.bd}`, background:dataN.length===8?C.azC:"#fff", fontSize:14}}/>
+              style={{...I, border:`2px solid ${dataN.length===8?C.az:C.bd}`, background:dataN.length===8?C.azC:"#fff", fontSize:14}} autoComplete="bday"/>
           </div>
           <div style={{flex:1.4}}>
             <label style={LS}>📱 WhatsApp *</label>
-            <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} placeholder="(00) 00000-0000" type="tel"
+            <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} placeholder="(00) 00000-0000" type="tel" autoComplete="tel"
               style={{...I, border:`2px solid ${num.length>=10?C.az:C.bd}`, background:num.length>=10?C.azC:"#fff", fontSize:14}}/>
           </div>
         </div>
 
         <div style={{marginTop:14}}>
-          <Cp label="📧 E-mail (opcional)" value={email} onChange={setEmail} placeholder="seu@email.com" type="email" sub="Para receber notificações exclusivas"/>
+          <Cp label="📧 E-mail (opcional)" value={email} onChange={setEmail} placeholder="seu@email.com" type="email" sub="Para receber notificações exclusivas" autoComplete="email"/>
         </div>
         {err&&<Alerta msg={err}/>}
 
@@ -376,8 +379,8 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
 
 /* ══════════════════════ LOGIN ══════════════════════ */
 function Login({setCli,clients,setTela,opQR}){
-  const[wts, setWts] =useState("");
-  const[nasc, setNasc] =useState("");
+  const[wts, setWts] =useState(()=>localStorage.getItem("lc_wts")||"");
+  const[nasc, setNasc] =useState(()=>localStorage.getItem("lc_nasc")||"");
   const[err, setErr] =useState("");
   const[load,setLoad]=useState(false);
   const num=limpo(wts);
@@ -390,7 +393,11 @@ function Login({setCli,clients,setTela,opQR}){
     setTimeout(()=>{
       const f=clients.find(c=>c.whats===num && limpo(c.nasc||"")===dataN);
       setLoad(false);
-      if(f){setCli(f);setTela("painel");}
+      if(f){
+        localStorage.setItem("lc_wts", num);
+        localStorage.setItem("lc_nasc", dataN);
+        setCli(f); setTela("painel");
+      }
       else {
         // Verificar se o whats existe mas a data tá errada ou se nada existe
         const whatsOk = clients.find(c=>c.whats===num);
@@ -417,13 +424,13 @@ function Login({setCli,clients,setTela,opQR}){
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             <div>
               <label style={LS}>📱 WhatsApp (DDD)</label>
-              <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} placeholder="(00) 00000-0000" type="tel" autoFocus
+              <input value={wts} onChange={e=>{setWts(fmtW(e.target.value));setErr("");}} placeholder="(00) 00000-0000" type="tel" autoFocus autoComplete="username"
                 onKeyDown={e=>e.key==="Enter"&&entrar()}
                 style={{width:"100%",marginTop:5,padding:"14px 16px",fontSize:17,fontWeight:700,fontFamily:"inherit",border:`2px solid ${num.length>=10?C.az:C.bd}`,borderRadius:14,outline:"none",color:C.tx,background:num.length>=10?C.azC:"#fff",transition:"all .2s"}}/>
             </div>
             <div>
               <label style={LS}>📅 Data de Nascimento</label>
-              <input value={nasc} onChange={e=>{setNasc(fmtDN(e.target.value));setErr("");}} placeholder="DD/MM/AAAA" type="tel"
+              <input value={nasc} onChange={e=>{setNasc(fmtDN(e.target.value));setErr("");}} placeholder="DD/MM/AAAA" type="tel" autoComplete="current-password"
                 onKeyDown={e=>e.key==="Enter"&&entrar()}
                 style={{width:"100%",marginTop:5,padding:"14px 16px",fontSize:17,fontWeight:700,fontFamily:"inherit",border:`2px solid ${dataN.length===8?C.az:C.bd}`,borderRadius:14,outline:"none",color:C.tx,background:dataN.length===8?C.azC:"#fff",transition:"all .2s"}}/>
             </div>
@@ -650,9 +657,17 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
           });
       }
 
-      if (totalAchado < 300) {
-          setErrQR(`Rejeitado. O cupom atingiu apenas R$ ${totalAchado.toFixed(2).replace('.',',')} (Mínimo R$ 300,00)`);
+      const minV = cfg.minVisita || 300;
+      const minR = cfg.minRelampago || 60;
+
+      if (totalAchado <= 0) {
+          setErrQR(`Não foi possível identificar o valor total no cupom. Tente uma foto mais nítida ou digite manualmente.`);
           return;
+      }
+
+      if (totalAchado < minV && totalAchado < minR) {
+          // Se for menor que ambos, avisa que será histórico
+          console.log(`⚠️ Valor R$ ${totalAchado.toFixed(2)} abaixo do mínimo da campanha (R$ ${minV.toFixed(2)}).`);
       }
 
       // 2. Extrair CONTROLE
