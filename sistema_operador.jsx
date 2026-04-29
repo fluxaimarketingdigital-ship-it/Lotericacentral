@@ -1116,9 +1116,10 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
 function APr({pr, cl, cfg, setPr}){
   const [voucherVer, setVoucherVer] = useState(null);
   const cN=id=>cl.find(c=>c.id===id)?.nome||"—";
-  return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🎁" t="Prêmios Distribuídos" s={`${pr.length} total`}/>
+  const visPr = pr.filter(p=>p.status!=="rejected" && p.status!=="not_counted");
+  return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🎁" t="Prêmios Distribuídos" s={`${visPr.length} total`}/>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
-      {[...pr].reverse().map((p,i)=>{
+      {[...visPr].reverse().map((p,i)=>{
         const cli=cl.find(c=>c.id===p.clientId);
         const isP = p.status==="pending";
         const isR = p.status==="redeemed";
