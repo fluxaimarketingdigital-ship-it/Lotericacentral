@@ -891,18 +891,44 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     r.readAsDataURL(f);
   }
   function salvarEdicao() {
-    let t = 0; const sels=[];
+    let t = 0; let totalP = 0; let totalJ = 0;
+    const sels=[]; const idsSels=[];
     cfg.formulario.campos.forEach(campo=>{
       const v = fEdit[campo.id];
       if(v) {
-        if(campo.comValor) t+=parseFloat(v);
+        const val = parseFloat(v);
+        if(campo.comValor) {
+           t += val;
+           if(campo.cat === "bc") totalP += val;
+           if(campo.cat === "jg") totalJ += val;
+        }
         sels.push(campo.nome);
+        idsSels.push(campo.id);
       }
     });
-    const newAuths = c.auths.map(x=>x.id===a.id?{...x, detalhes:fEdit, total:t, selecionados:sels}:x);
+
+    const isV = totalP >= (cfg.minVisita || 300);
+    const newStatus = isV ? (a.status === "not_counted" ? "pending" : a.status) : "not_counted";
+    const emojis = idsSels.map(id=>cfg.formulario.campos.find(f=>f.id===id)?.emoji||"");
+
+    const newAuths = c.auths.map(x=>x.id===a.id?{...x, detalhes:fEdit, total:t, selecionados:idsSels, emojis:emojis, valida:isV, status:newStatus}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
+
+    // Verificar prêmio relâmpago se o admin corrigiu para um valor que qualifica
+    const minR = cfg.minRelampago || 60;
+    const temPrRl = pr.some(px=>px.authId===a.id && px.tipo==="relampago");
+    if(totalJ >= minR && !temPrRl){
+       // Sortear prêmio simplificado
+       const ativos = cfg.relampagos.filter(r=>r.ativo);
+       if(ativos.length > 0){
+          const sort = ativos[Math.floor(Math.random()*ativos.length)];
+          const newP = {id:Math.random().toString(36).substr(2,9), clientId:c.id, authId:a.id, tipo:"relampago", nome:sort.nome, emoji:sort.emoji, desc:sort.desc, data:new Date().toISOString(), status:"pending"};
+          setPr([...pr, newP]);
+       }
+    }
+
     setEdit(false);
-    alert("✅ Valores atualizados!");
+    alert("✅ Valores e Status atualizados!");
   }
 
   return(
