@@ -857,6 +857,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
   const [expA, setExpA] = useState(false);
   const [edit, setEdit] = useState(false);
   const [fEdit, setFEdit] = useState(a.detalhes||{});
+  useEffect(()=>{ if(edit) setFEdit(a.detalhes||{}); },[edit, a.detalhes]);
   
   const s = a.status || (a.valida!==false?"approved":"rejected");
   const updateStatus = (newS) => {
