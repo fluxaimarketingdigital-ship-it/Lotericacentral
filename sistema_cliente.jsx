@@ -1132,7 +1132,7 @@ function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexD
 /* ══════════════════════ CONTA ══════════════════════ */
 function HistItem({a, cfg, c, clients, setCl, setVoucherVer, premios, setPr}){
   const [exp, setExp] = useState(false);
-  const s = a.status || (a.valida!==false?"approved":"rejected"); // fallback legacy
+  const s = a.status || (a.valida!==false?"approved":"not_counted"); // fallback legacy
   const hasRejP = (premios||[]).some(p=>p.authId===a.id && p.status==="rejected");
   const corS = s==="not_counted"?C.sb : (s==="rejected" || hasRejP)?C.rd : s==="approved"?C.vd : s==="pending"?C.ou : C.rd;
   const labelS = s==="not_counted"?"Histórico" : (s==="rejected" || hasRejP)?"Recusada" : s==="approved"?"Aprovada" : s==="pending"?"Aguardando Auditoria" : "Recusada";
