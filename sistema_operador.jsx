@@ -1080,6 +1080,13 @@ function OpVoucherCard({p, cli, cfg, onClose}){
   const dVal = p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
   const msg = `🎉 *CUPOM DE RETIRADA*\n\nParabéns, *${cli?.nome?.split(" ")[0]}*!\n\nVocê ganhou: *${p.nome} ${p.emoji||""}*\n\nSeu código: *${p.id.toUpperCase()}*\n\nValidade de retirada do prêmio: *${fD(dVal)}*\n\nApresente na Lotérica Central para resgatar! 🏆`;
   const [gerando, setGerando] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+
+  function copy() {
+    navigator.clipboard.writeText(p.id.toUpperCase());
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  }
   
   async function shareImg() {
     setGerando(true);
@@ -1144,14 +1151,15 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     {/* ELEMENTO PARA CAPTURA (ESCONDIDO) */}
     <div style={{position:"fixed", left: "-9999px", top: 0}}>
       <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
-        <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 0",position:"relative", display: "block"}}>
-          <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-          <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",padding:6,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
+        <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"35px 25px",position:"relative", display: "flex", alignItems:"center", gap:25, justifyContent:"center"}}>
+          <div style={{background:"#fff",width:130,height:130,borderRadius:24,display:"flex",alignItems:"center",justifyContent:"center",padding:6,boxShadow:"0 12px 30px rgba(0,0,0,0.2)",flexShrink:0}}>
             <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
           </div>
-          <div style={{color:C.ou,fontSize:14,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4, display: "block"}}>Certificado de Premiação</div>
-          <div style={{color:"#fff",fontSize:32,fontWeight:900, display: "block"}}>Cliente Premiado</div>
-          <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"6px 18px",borderRadius:20,fontSize:16,fontWeight:900,marginTop:10,letterSpacing:1.5,boxShadow:"0 4px 12px rgba(0,0,0,0.2)"}}>VOUCHER: {p.id.toUpperCase()}</div>
+          <div style={{textAlign:"left"}}>
+            <div style={{color:C.ou,fontSize:14,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado</div>
+            <div style={{color:"#fff",fontSize:32,fontWeight:900,lineHeight:1.1,marginBottom:10}}>Cliente<br/>Premiado</div>
+            <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"6px 18px",borderRadius:20,fontSize:16,fontWeight:900,letterSpacing:1.5}}>VOUCHER: {p.id.toUpperCase()}</div>
+          </div>
         </div>
         <div style={{padding:"40px 40px 10px",textAlign:"center", display: "block"}}>
           <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30, display: "block"}}>{cli?.nome}</div>
@@ -1189,14 +1197,17 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{width:"100%", height: 360, overflow: "hidden", position: "relative", background: "#f0f2f5"}}>
          <div style={{transform: "scale(0.6)", transformOrigin: "top left", width: 600, height: 600}}>
-            <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 0",position:"relative", textAlign: "center"}}>
-              <div style={{position:"absolute",top:-30,right:-30,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.1}}/>
-              <div style={{background:"#fff",width:130,height:130,borderRadius:24,margin:"0 auto 12px",display:"flex",alignItems:"center",justifyContent:"center",padding:6,boxShadow:"0 12px 30px rgba(0,0,0,0.2)"}}>
+            <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 15px",position:"relative", display: "flex", alignItems:"center", gap:15, justifyContent:"center"}}>
+              <div style={{background:"#fff",width:80,height:80,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",padding:4,boxShadow:"0 8px 20px rgba(0,0,0,.2)",flexShrink:0}}>
                 <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
               </div>
-              <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
-              <div style={{color:"#fff",fontSize:32,fontWeight:900}}>Cliente Premiado</div>
-              <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"6px 18px",borderRadius:20,fontSize:16,fontWeight:900,marginTop:10,letterSpacing:1.5,boxShadow:"0 4px 12px rgba(0,0,0,0.2)"}}>VOUCHER: {p.id.toUpperCase()}</div>
+              <div style={{textAlign:"left"}}>
+                <div style={{color:C.ou,fontSize:9,fontWeight:800,letterSpacing:2,textTransform:"uppercase"}}>Certificado</div>
+                <div style={{color:"#fff",fontSize:20,fontWeight:900,lineHeight:1.1,marginBottom:6}}>Cupom Digital</div>
+                <div onClick={copy} style={{background:C.ou,color:C.az,display:"inline-block",padding:"5px 14px",borderRadius:20,fontSize:13,fontWeight:900,letterSpacing:1,boxShadow:"0 4px 10px rgba(0,0,0,0.2)",cursor:"pointer"}}>
+                  VOUCHER: {p.id.toUpperCase()} {copiado ? "✅" : "📋"}
+                </div>
+              </div>
             </div>
             <div style={{padding:"40px 40px 10px",textAlign:"center"}}>
               <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30}}>{cli?.nome}</div>
