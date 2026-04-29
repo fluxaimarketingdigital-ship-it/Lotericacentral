@@ -1181,9 +1181,17 @@ r.readAsDataURL(f);
     const newAuths = c.auths.map(ax=>ax.id===a.id?newA:ax);
     await setCl(clients.map(x=>x.id===c.id ? {...x, auths:newAuths} : x));
 
-    // Resetar prêmios associados para pendente se existirem
+    // Resetar prêmios associados para pendente APENAS se os novos valores ainda qualificarem
     if(premios && setPr){
-       setPr(premios.map(p=>p.authId===a.id && p.status==="rejected" ? {...p, status:"pending"}:p));
+       const minV = cfg.minVisita || 300;
+       const minR = cfg.minRelampago || 60;
+       setPr(premios.map(p=>{
+          if(p.authId===a.id && p.status==="rejected"){
+             const qualifies = (p.tipo === "relampago" && totalJ >= minR) || (p.tipo === "raspadinha" && totalP >= minV);
+             if(qualifies) return {...p, status:"pending"};
+          }
+          return p;
+       }));
     }
 
     setIsEditing(false);
