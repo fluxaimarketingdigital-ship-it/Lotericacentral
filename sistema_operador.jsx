@@ -385,8 +385,8 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       </div>
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
-      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} hoje_={hoje_} ops={ops}/>}
-      {aba==="auths"&&<OpAuths minhas={minhas} hoje_={hoje_}/>}
+      {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} minhasV={minhasV} hoje_={hoje_} ops={ops}/>}
+      {aba==="auths"&&<OpAuths minhasV={minhasV} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
       {aba==="voucher"&&<OpVoucher pr={pr} setPr={setPr} cl={cl} op={op} cfg={cfg}/>}
       {aba==="rank" && <OpRank rank={rank} op={op} pos={pos}/>}
@@ -396,7 +396,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   </div>);
 }
 
-function OpQR({op,cfg,minhas,hoje_}){
+function OpQR({op,cfg,minhas,minhasV,hoje_}){
   const tk = op.id; 
   const wa=`Olá! 🏆 Sou *${op.nome}* da Lotérica Central.\nMeu código de atendimento é: *${tk}*\nUse-o para registrar sua visita no App Fidelidade!`;
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
@@ -425,8 +425,8 @@ function OpQR({op,cfg,minhas,hoje_}){
     <div style={{background:C.ouC,borderRadius:14,padding:"14px",border:`1.5px solid ${C.ou}44`,fontSize:11,color:C.ou2,lineHeight:1.7}}>
       💡 <strong>Como usar:</strong> Mostre este código para o cliente digitar no App dele após carregar os dados do atendimento. Este é seu código permanente de identificação.
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-      {[["📅",hoje_.length,"Auths Hoje",C.az],["✅",minhas.length,"Total Auths",C.vd]].map(([em,v,l,cor])=>(
+    <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:11}}>
+      {[["📅",hoje_.length,"Visitas Hoje",C.az],["✅",minhasV.length,"Visitas Válidas",C.vd]].map(([em,v,l,cor])=>(
         <div key={l} style={{background:"#fff",borderRadius:12,padding:"13px",textAlign:"center",border:`1px solid ${C.bd}`}}>
           <div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:26,color:cor}}>{v}</div>
           <div style={{fontSize:10,color:C.sb,fontWeight:700}}>{l}</div>
@@ -434,7 +434,7 @@ function OpQR({op,cfg,minhas,hoje_}){
       ))}
     </div>
     {hoje_.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
-      <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Auths de Hoje ({hoje_.length})</div>
+      <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Visitas de Hoje ({hoje_.length})</div>
       {hoje_.slice(0,5).map((a,i)=><div key={a.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:30,height:30,borderRadius:8,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🏪</div>
         <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
@@ -443,11 +443,11 @@ function OpQR({op,cfg,minhas,hoje_}){
   </div>);
 }
 
-function OpAuths({minhas,hoje_}){
-  const[f,setF]=useState("all");const lista=f==="hj"?hoje_:minhas;
-  const gr=useMemo(()=>{const m={};minhas.forEach(a=>{const k=mAno(a.data);if(!m[k])m[k]={mes:k,auths:0};m[k].auths++;});return Object.values(m).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-6);},[minhas]);
+function OpAuths({minhasV,hoje_}){
+  const[f,setF]=useState("all");const lista=f==="hj"?hoje_:minhasV;
+  const gr=useMemo(()=>{const m={};minhasV.forEach(a=>{const k=mAno(a.data);if(!m[k])m[k]={mes:k,auths:0};m[k].auths++;});return Object.values(m).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-6);},[minhasV]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
-    <T em="✅" t="Minhas Autenticações"/>
+    <T em="✅" t="Minhas Visitas Válidas"/>
     {gr.length>0&&<div style={{background:"#fff",borderRadius:13,padding:"12px 11px",border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>📈 Por Mês</div>
       <ResponsiveContainer width="100%" height={130}><BarChart data={gr} margin={{left:-20,right:0}}>
@@ -458,7 +458,7 @@ function OpAuths({minhas,hoje_}){
         <Bar dataKey="auths" radius={[5,5,0,0]}>{gr.map((_,i)=><Cell key={i} fill={i===gr.length-1?C.ou:C.az} fillOpacity={i===gr.length-1?1:.7}/>)}</Bar>
       </BarChart></ResponsiveContainer>
     </div>}
-    <div style={{display:"flex",gap:7}}>{[["all","Todas",minhas.length],["hj","Hoje",hoje_.length]].map(([v,l,n])=>(
+    <div style={{display:"flex",gap:7}}>{[["all","Válidas",minhasV.length],["hj","Hoje",hoje_.length]].map(([v,l,n])=>(
       <button key={v} onClick={()=>setF(v)} style={{flex:1,padding:"9px",borderRadius:10,border:`1px solid ${f===v?C.az:C.bd}`,background:f===v?C.az:"#fff",color:f===v?"#fff":C.sb,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>{l} ({n})</button>
     ))}</div>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
