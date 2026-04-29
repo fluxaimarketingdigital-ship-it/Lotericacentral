@@ -147,7 +147,7 @@ export default function App(){
 function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},${C.az2})`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,position:"relative",overflow:"hidden"}}>
   <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",background:C.ou,opacity:.07}}/>
   <div style={{textAlign:"center",zIndex:1}}>
-    <div style={{background:"#fff", width:110, height:110, borderRadius:24, margin:"0 auto 16px", display:"flex", alignItems:"center", justifySelf:"center", padding:12, boxShadow:`0 10px 25px rgba(0,0,0,.15)`, animation:"pop .6s"}}>
+    <div style={{background:"#fff", width:140, height:140, borderRadius:28, margin:"0 auto 16px", display:"flex", alignItems:"center", justifySelf:"center", padding:15, boxShadow:`0 10px 25px rgba(0,0,0,.15)`, animation:"pop .6s"}}>
       <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
     </div>
     <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
@@ -171,7 +171,7 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column"}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:"0 0 30px 30px",padding:"44px 22px 40px",textAlign:"center",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-50,right:-50,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.07}}/>
-      <div style={{background:"#fff", width:90, height:90, borderRadius:20, margin:"0 auto 12px", display:"flex", alignItems:"center", justifySelf:"center", padding:10, boxShadow:`0 8px 20px rgba(0,0,0,.2)`, animation:"pop .5s"}}>
+      <div style={{background:"#fff", width:130, height:130, borderRadius:28, margin:"0 auto 12px", display:"flex", alignItems:"center", justifySelf:"center", padding:12, boxShadow:`0 8px 20px rgba(0,0,0,.2)`, animation:"pop .5s"}}>
         <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
       </div>
       <div style={{fontSize:10,color:C.ou,fontWeight:700,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
@@ -624,7 +624,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       </div>
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
-      {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus}/>}
+      {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus} encerrada={encerrada}/>}
       {aba==="ops" &&<AOps  ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes}/>}
       {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus}/>}
       {aba==="pr"  &&<APr   pr={pr} setPr={setPr} cl={cl} cfg={cfg}/>}
@@ -634,7 +634,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
   </div>);
 }
 
-function ADash({ops,cl,pr,cfg,setAba,setBus}){
+function ADash({ops,cl,pr,cfg,setAba,setBus,encerrada}){
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const totP=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.valida!==false).length||0),0),[cl]);
   const prontos=useMemo(() => {
