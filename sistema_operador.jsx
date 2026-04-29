@@ -642,11 +642,11 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       <button onClick={()=>{setRole(null);setTela("home");}} style={BV}>← Sair</button>
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador</div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>Visão completa da lotérica</div>
-      <div style={{display:"flex",gap:7,marginTop:13}}>
-        {[["👥",cl.length,"Clientes"],["✅",totPoints,"Pontos"],["🏪",totA,"Registros"],["🎁",pr.length,"Prêmios"]].map(([em,v,l])=>(
-          <div key={l} style={{flex:1,background:"rgba(255,255,255,.1)",borderRadius:9,padding:"7px 4px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
-            <div style={{fontSize:13}}>{em}</div><div style={{fontWeight:900,fontSize:16,color:"#fff",lineHeight:1}}>{v}</div>
-            <div style={{fontSize:8,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.4,marginTop:1}}>{l}</div>
+      <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
+        {[["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",pr.filter(p=>p.tipo==="raspadinha"&&(p.status==="approved"||p.status==="redeemed")).length,"Metas"],["⚡",pr.filter(p=>p.tipo==="relampago"&&(p.status==="approved"||p.status==="redeemed")).length,"Relâmp."]].map(([em,v,l])=>(
+          <div key={l} style={{flex:"1 0 62px",background:"rgba(255,255,255,.1)",borderRadius:9,padding:"7px 2px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
+            <div style={{fontSize:13}}>{em}</div><div style={{fontWeight:900,fontSize:14,color:"#fff",lineHeight:1}}>{v}</div>
+            <div style={{fontSize:7,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.3,marginTop:1}}>{l}</div>
           </div>
         ))}
       </div>
@@ -709,9 +709,15 @@ function ADash({ops,cl,pr,cfg,setAba,setBus,encerrada}){
       </div>);})}
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-      {[["👥","Clientes",cl.length,C.az],[cfg.premioMeta.emoji,"Prêmios",pr.length,C.ou2],["✅","Pontos",totP,C.vd],["🏪","Registros",totA,C.rx]].map(([em,t,v,cor])=>(
-        <div key={t} style={{background:"#fff",borderRadius:12,padding:"12px",border:`1px solid ${C.bd}`}}>
-          <div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:24,color:cor,lineHeight:1}}>{v}</div>
+      {[
+        ["👥","Clientes",cl.length,C.az],
+        ["🏪","Registros",totA,C.rx],
+        ["✅","Visitas Válidas",totP,C.vd],
+        ["🏆","Prêmios Meta",pr.filter(p=>p.tipo==="raspadinha"&&(p.status==="approved"||p.status==="redeemed")).length,C.ou2],
+        ["⚡","Relâmpagos",pr.filter(p=>p.tipo==="relampago"&&(p.status==="approved"||p.status==="redeemed")).length,C.rx]
+      ].map(([em,t,v,cor],i)=>(
+        <div key={t} style={{background:"#fff",borderRadius:12,padding:"12px",border:`1px solid ${C.bd}`,gridColumn:i===0?"span 1":i===1?"span 1":"span 1"}}>
+          <div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:22,color:cor,lineHeight:1}}>{v}</div>
           <div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div>
         </div>
       ))}

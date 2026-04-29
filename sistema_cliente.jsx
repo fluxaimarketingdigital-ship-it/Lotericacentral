@@ -16,7 +16,7 @@ const CFG0 = {
     {id:"r1",ativo:true, emoji:"🎟️",nome:"Raspadinha Bônus", prob:8,  desc:"Raspadinha extra! Retire no balcão hoje."},
     {id:"r2",ativo:true, emoji:"🏷️",nome:"Cupom de Desconto",prob:15, desc:"10% de desconto na próxima Raspadinha. Válido 7 dias!"},
     {id:"r3",ativo:true, emoji:"🎁",nome:"Brinde Surpresa",  prob:10, desc:"Um brinde especial esperando por você no balcão!"},
-    {id:"r4",ativo:true, emoji:"⚡",nome:"Dobro de Pontos",  prob:12, desc:"Este registro vale 2 autenticações!"},
+    {id:"r4",ativo:true, emoji:"⚡",nome:"Dobro de Visitas",  prob:12, desc:"Este registro vale 2 visitas válidas!"},
     {id:"r5",ativo:false,emoji:"🌟",nome:"Sorteio do Mês",   prob:5,  desc:"Você entrou no Sorteio do Mês! Resultado dia 01."},
   ],
   regulamento:`REGULAMENTO — CLIENTE FIDELIZADO PREMIADO
@@ -582,7 +582,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
       <div style={{background:C.ou,color:C.az,fontWeight:900,fontSize:12,width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{nBadge}</div>
     </div>}
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9}}>
-      {[["🎯","Total Registros",tot,C.az],[cfg.premioMeta.emoji,"Prêmios",raspa,C.ou2],["⚡","Relâmpagos",meusPr.filter(p=>p.tipo==="relampago").length,C.rx],["✅","Pontos Válidos",totV,C.vd]].map(([em,t,v,cor])=>(
+      {[["🎯","Total Registros",tot,C.az],[cfg.premioMeta.emoji,"Prêmios",raspa,C.ou2],["⚡","Relâmpagos",meusPr.filter(p=>p.tipo==="relampago").length,C.rx],["✅","Visitas Válidas",totV,C.vd]].map(([em,t,v,cor])=>(
         <div key={t} style={{background:"#fff",borderRadius:14,padding:"12px",border:`1px solid ${C.bd}`}}><div style={{fontSize:20,marginBottom:4}}>{em}</div><div style={{fontWeight:900,fontSize:26,color:cor,lineHeight:1}}>{v}</div><div style={{fontWeight:800,fontSize:10,color:C.tx,marginTop:2}}>{t}</div></div>
       ))}
     </div>
@@ -858,10 +858,10 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
     return(<div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14,padding:"20px 0",animation:"fadeUp .5s ease"}}>
       <div style={{fontSize:72,animation:"pop .6s",lineHeight:1}}>{valida?"✅":"⏳"}</div>
       <div style={{fontWeight:900,fontSize:24,color:valida?C.vd:C.ou,textAlign:"center"}}>{valida?"Autenticação Válida!":"Visita Registrada!"}</div>
-      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,textAlign:"center"}}><strong style={{color:C.tx}}>{valida?"Você ganhou 1 ponto!":"Registrada no histórico."}</strong><br/>{valida?"Visita válida para o prêmio principal.":`Esta visita não pontuou (valor abaixo de ${brl(minV)}).`}</div>
+      <div style={{fontSize:13,color:C.sb,lineHeight:1.7,textAlign:"center"}}><strong style={{color:C.tx}}>{valida?"Você ganhou 1 visita válida!":"Registrada no histórico."}</strong><br/>{valida?"Visita válida para o prêmio principal.":`Esta visita não pontuou (valor abaixo de ${brl(minV)}).`}</div>
       <div style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:20,padding:"18px"}}>
         <div style={{display:"flex",justifyContent:"space-between",marginBottom:13}}>
-          <div><div style={{fontSize:10,color:"rgba(255,255,255,.55)",fontWeight:700,textTransform:"uppercase"}}>Progresso</div><div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>{gM?<><span style={{color:C.ou,fontSize:22}}>{cfg.premioMeta.emoji}</span> Você ganhou!</>:<>Faltam <span style={{color:C.ou,fontSize:22}}>{cfg.meta-novoPr_}</span> visitas</>}</div></div>
+          <div><div style={{fontSize:10,color:"rgba(255,255,255,.55)",fontWeight:700,textTransform:"uppercase"}}>Progresso</div><div style={{fontWeight:900,fontSize:16,color:"#fff",marginTop:3}}>{gM?<><span style={{color:C.ou,fontSize:22}}>{cfg.premioMeta.emoji}</span> Você ganhou!</>:<>Faltam <span style={{color:C.ou,fontSize:22}}>{cfg.meta-novoPr_}</span> visitas válidas</>}</div></div>
           <div style={{textAlign:"right"}}><div style={{fontSize:10,color:"rgba(255,255,255,.55)",textTransform:"uppercase"}}>Ganhos</div><div style={{fontWeight:900,fontSize:24,color:C.ou}}>{cfg.premioMeta.emoji} {novoR}</div></div>
         </div>
         <div style={{background:"rgba(0,0,0,.3)",borderRadius:8,height:10,overflow:"hidden",marginBottom:6}}><div style={{height:"100%",borderRadius:8,background:`linear-gradient(90deg,${C.ou},#ffca28)`,width:gM?"100%":`${novoPct}%`,transition:"width .8s ease"}}/></div>
