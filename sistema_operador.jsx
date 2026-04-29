@@ -981,8 +981,8 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
          ))}
          
          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {s!=="not_counted" && s!=="approved" && <button onClick={()=>updateStatus("approved")} style={{flex:1,minWidth:"30%",background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Autenticação</button>}
-            {s!=="not_counted" && s!=="rejected" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,minWidth:"30%",background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>❌ Recusar Autenticação</button>}
+            {a.valida !== false && s!=="approved" && <button onClick={()=>updateStatus("approved")} style={{flex:1,minWidth:"30%",background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Autenticação</button>}
+            {a.valida !== false && s!=="rejected" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,minWidth:"30%",background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>❌ Recusar Autenticação</button>}
             <button onClick={excluirAuth} style={{flex:1,minWidth:"30%",background:"#374151",color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>🗑️ Excluir Autenticação</button>
          </div>
       </div>}

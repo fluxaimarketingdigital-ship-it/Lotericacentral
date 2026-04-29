@@ -574,7 +574,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
         <div style={{fontSize:32, animation:"pulse 1s infinite"}}>⚠️</div>
         <div style={{flex:1}}>
           <div style={{fontWeight:900,fontSize:14,color:C.rd}}>Registros Recusados pela Gerência</div>
-          <div style={{fontSize:11,color:C.rd,opacity:.8,marginTop:4, fontWeight:700}}>Você possui {pendsR.length} registro{pendsR.length>1?"s":""} com divergências. Verifique seu histórico para corrigir agora.</div>
+          <div style={{fontSize:11,color:C.rd,opacity:.8,marginTop:4, fontWeight:700}}>Você possui pendências em seu histórico (visitas ou prêmios recusados). Toque para corrigir e reenviar.</div>
         </div>
         <button onClick={()=>setAba("ct")} style={{background:C.rd, color:"#fff", border:"none", borderRadius:10, padding:"8px 14px", fontSize:11, fontWeight:900, cursor:"pointer", fontFamily:"inherit", boxShadow:`0 2px 8px ${C.rd}44`}}>Corrigir</button>
       </div>
@@ -1273,7 +1273,7 @@ r.readAsDataURL(f);
              <div style={{fontSize:10,color:C.rd,lineHeight:1.6}}>
                {a.data > (cfg.dataFim || "2100-01-01") 
                  ? <span>Esta visita foi registrada após o encerramento da campanha e <strong>não pôde ser validada</strong>. O prazo foi excedido.</span>
-                 : <span>O administrador recusou este registro: <strong>{a.obsAdmin||"Incompatibilidade das informações."}</strong> Você pode corrigir os dados (valores, foto ou data) e reenviar.</span>
+                 : <span>O administrador recusou {hasRejP && s==="not_counted" ? "o seu prêmio relâmpago" : "este registro"}: <strong>{a.obsAdmin||"Incompatibilidade das informações."}</strong> Você pode corrigir os dados (valores de jogo/bolão, foto ou data) e reenviar para nova conferência.</span>
                }
              </div>
              {a.data <= (cfg.dataFim || "2100-01-01") && (
