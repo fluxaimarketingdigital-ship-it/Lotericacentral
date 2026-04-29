@@ -908,7 +908,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     });
 
     const isV = totalP >= (cfg.minVisita || 300);
-    const newStatus = isV ? (a.status === "not_counted" ? "pending" : a.status) : "not_counted";
+    const newStatus = a.status === "redeemed" ? "redeemed" : (isV ? "pending" : "not_counted");
     const emojis = idsSels.map(id=>cfg.formulario.campos.find(f=>f.id===id)?.emoji||"");
 
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, detalhes:fEdit, total:t, selecionados:idsSels, emojis:emojis, valida:isV, status:newStatus}:x);
