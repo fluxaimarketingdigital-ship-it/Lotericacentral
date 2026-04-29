@@ -538,7 +538,20 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba}){
   const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const raspa=Math.floor(totV/cfg.meta);const prog=totV%cfg.meta;
+  const pendsR = (c.auths||[]).filter(a => a.status === "rejected");
+
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+    {pendsR.length > 0 && (
+      <div style={{background:C.rdC, border:`1px solid ${C.rd}44`, borderRadius:16, padding:14, display:"flex", gap:12, alignItems:"center", animation:"pop .4s"}}>
+        <div style={{fontSize:24}}>⚠️</div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:900,fontSize:13,color:C.rd}}>Registros Recusados</div>
+          <div style={{fontSize:11,color:C.rd,opacity:.8,marginTop:2}}>Você tem {pendsR.length} visita{pendsR.length>1?"s":""} com erro. Verifique seu histórico para corrigir.</div>
+        </div>
+        <button onClick={()=>setAba("ct")} style={{background:C.rd, color:"#fff", border:"none", borderRadius:8, padding:"6px 12px", fontSize:10, fontWeight:800, cursor:"pointer", fontFamily:"inherit"}}>Verificar</button>
+      </div>
+    )}
+
     <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,color:C.az,border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.ou}44`}}>
       <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8}}>Já foi atendido?</div><div style={{fontSize:18,fontWeight:900}}>📝 Registrar Nova Visita</div></div>
       <span style={{fontSize:38}}>✨</span>

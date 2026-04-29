@@ -929,7 +929,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
          )}
          
          {pr.filter(px=>px.authId===a.id).map(px=>(
-            <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:C.vdC,borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
+            <div key={px.id} style={{marginBottom:12,padding:10,background:px.status==="pending"?C.ouC:px.status==="approved"?C.vdC:C.rdC,borderRadius:10,display:"flex",alignItems:"center",gap:10}}>
               <div style={{fontSize:20}}>{px.emoji||"🎁"}</div>
               <div style={{flex:1}}>
                 <div style={{fontSize:11,fontWeight:800}}>{px.nome}</div>
@@ -938,7 +938,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
                     <button onClick={()=>updPrize(px.id,"approved")} style={{background:C.vd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Prêmio</button>
                     <button onClick={()=>updPrize(px.id,"rejected")} style={{background:C.rd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>❌ Recusar</button>
                   </div>
-                ) : (
+                ) : px.status==="approved" ? (
                   <div style={{display:"flex",gap:5,marginTop:5}}>
                     <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>🎫 Ver Cupom</button>
                   </div>
@@ -1030,9 +1030,10 @@ function APr({pr, cl, cfg, setPr}){
               <div style={{fontSize:10,color:C.sb}}><strong style={{color:C.az}}>{cli?.nome}</strong></div>
             </div>
             {isP && <span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6}}>PENDENTE</span>}
+            {p.status==="rejected" && <span style={{background:C.rdC,color:C.rd,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:6}}>RECUSADO</span>}
           </div>
           <div style={{display:"flex",gap:6,alignItems:"center"}}>
-            {!isR && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>}
+            {p.status==="approved" && <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>}
             {isR && <div style={{background:C.bg,color:C.sb,borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,textAlign:"center",flex:1}}>✅ Retirado</div>}
           </div>
         </div>);
