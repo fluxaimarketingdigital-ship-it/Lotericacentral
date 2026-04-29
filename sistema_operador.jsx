@@ -79,6 +79,7 @@ const uidOp=(ops=[])=>{
   while(ops.some(o=>o.id===cod)&&attempts<500);
   return cod;
 };
+const limpo = v=>v?v.replace(/\D/g,""):"";
 const now=()=>new Date().toISOString();
 const fD=d=>new Date(d + (d?.includes("T") ? "" : "T12:00:00")).toLocaleDateString("pt-BR");
 const fDT=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
@@ -1105,11 +1106,28 @@ function OpVoucherCard({p, cli, cfg, onClose}){
   async function shareImg() {
     setGerando(true);
     try {
-      const el = document.getElementById("cupom-certificado");
-      if(!el) return;
-      await new Promise(r => setTimeout(r, 400));
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff", width: 600, height: 600 });
+      const el = document.getElementById("cupom-capture-admin");
+      if(!el) {
+        console.error("Elemento cupom-capture-admin não encontrado.");
+        setGerando(false);
+        return;
+      }
+      await new Promise(r => setTimeout(r, 600)); // Espera um pouco mais para garantir render
+      const canvas = await html2canvas(el, { 
+        scale: 2, 
+        useCORS: true, 
+        backgroundColor: "#ffffff", 
+        width: 600, 
+        height: 600,
+        logging: false
+      });
+      
       canvas.toBlob(async (blob) => {
+        if (!blob) {
+          setGerando(false);
+          alert("Erro ao gerar arquivo de imagem.");
+          return;
+        }
         const file = new File([blob], "cupom.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try { await navigator.share({ files: [file], title: "Cupom Lotérica Central", text: msg }); }
@@ -1117,13 +1135,19 @@ function OpVoucherCard({p, cli, cfg, onClose}){
         } else { fallbackDownload(blob); }
         setGerando(false);
       }, "image/png");
-    } catch(e) { console.error(e); setGerando(false); alert("Erro ao gerar imagem."); }
+    } catch(e) { 
+      console.error("Erro no html2canvas:", e); 
+      setGerando(false); 
+      alert("Erro ao gerar imagem do cupom."); 
+    }
   }
 
   function fallbackDownload(blob) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a"); a.href = url; a.download = "cupom.png"; a.click(); URL.revokeObjectURL(url);
-    setTimeout(() => { window.open(`https://wa.me/55${cli?.whats||""}?text=${encodeURIComponent(msg)}`); }, 1000);
+    const tel = limpo(cli?.whats);
+    const link = `https://wa.me/${tel.startsWith("55") ? tel : "55"+tel}?text=${encodeURIComponent(msg)}`;
+    setTimeout(() => { window.open(link); }, 1000);
   }
 
   function copy() {
@@ -1135,7 +1159,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
     {/* CAPTURA (ESCONDIDO) */}
     <div style={{position:"fixed", left: "-9999px", top: 0}}>
-      <div id="cupom-certificado" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
+      <div id="cupom-capture-admin" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
         <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"35px 25px",position:"relative", display: "flex", alignItems:"center", gap:25, justifyContent:"center"}}>
           <div style={{background:"#fff",width:130,height:130,borderRadius:24,display:"flex",alignItems:"center",justifyContent:"center",padding:6,boxShadow:"0 12px 30px rgba(0,0,0,0.2)",flexShrink:0}}>
             <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
@@ -1676,3 +1700,4 @@ function Nav({abas,aba,setAba,cor}){return(<nav style={{position:"fixed",bottom:
     <div style={{fontSize:16,marginBottom:2}}>{a.emoji}</div><div style={{fontSize:8,fontWeight:aba===a.id?800:600,color:aba===a.id?cor:C.sb,lineHeight:1}}>{a.label}</div>
   </button>)}
 </nav>);}
+function Sp({label}){return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><div style={{width:16,height:16,border:"2px solid rgba(0,0,0,.1)",borderTopColor:C.az,borderRadius:"50%",animation:"up .8s linear infinite"}}/><span>{label}</span></div>);}
