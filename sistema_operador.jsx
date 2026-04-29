@@ -479,8 +479,8 @@ function OpVoucher({pr, setPr, cl, op, cfg}){
 
   function validar(p){
     if(!window.confirm("Confirmar a retirada deste prêmio no balcão?")) return;
-    setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", redeemedAt:new Date().toISOString(), opRedeemed:op.nome}:x));
-    setRes({...res, pr:{...p, status:"redeemed"}});
+    setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:op.nome, opIdRetirada:op.id}:x));
+    setRes({...res, pr:{...p, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:op.nome}});
     alert("✅ Retirada registrada com sucesso!");
   }
 
@@ -518,7 +518,8 @@ function OpVoucher({pr, setPr, cl, op, cfg}){
         )}
         {res.pr.status === "redeemed" && (
            <div style={{background:C.vdC,color:C.vd,padding:14,borderRadius:12,fontWeight:800,textAlign:"center",border:`1px solid ${C.vd}44`}}>
-             ✅ Prêmio já retirado em {fDT(res.pr.redeemedAt||res.pr.data)}
+             ✅ Prêmio retirado em {fDT(res.pr.dataRetirada||res.pr.redeemedAt||res.pr.data)}<br/>
+             <span style={{fontSize:10,opacity:.8}}>Operador: {res.pr.opNomeRetirada||res.pr.opRedeemed||"Lotérica Central"}</span>
            </div>
         )}
         {res.pr.status === "pending" && (
@@ -1150,7 +1151,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
           </div>
           <div style={{color:C.ou,fontSize:14,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4, display: "block"}}>Certificado de Premiação</div>
           <div style={{color:"#fff",fontSize:32,fontWeight:900, display: "block"}}>Cliente Premiado</div>
-          <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"4px 15px",borderRadius:20,fontSize:14,fontWeight:900,marginTop:10,letterSpacing:1}}>#{p.id.toUpperCase()}</div>
+          <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"6px 18px",borderRadius:20,fontSize:16,fontWeight:900,marginTop:10,letterSpacing:1.5,boxShadow:"0 4px 12px rgba(0,0,0,0.2)"}}>VOUCHER: {p.id.toUpperCase()}</div>
         </div>
         <div style={{padding:"40px 40px 10px",textAlign:"center", display: "block"}}>
           <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30, display: "block"}}>{cli?.nome}</div>
@@ -1160,6 +1161,13 @@ function OpVoucherCard({p, cli, cfg, onClose}){
             <div style={{fontSize:26,fontWeight:900,color:C.az, display: "block"}}>{p.nome}</div>
           </div>
           <div style={{paddingBottom:20, display: "block", textAlign: "center"}}>
+            {p.status === "redeemed" && (
+              <div style={{background:C.vdC, color:C.vd, padding:15, borderRadius:16, marginBottom:20, border:`1.5px solid ${C.vd}44`}}>
+                <div style={{fontWeight:900, fontSize:12, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
+                <div style={{fontSize:11, marginTop:4}}>Operador: <b>{p.opNomeRetirada || p.opRedeemed || "Lotérica Central"}</b></div>
+                <div style={{fontSize:11}}>Data: <b>{fDT(p.dataRetirada || p.redeemedAt || p.data)}</b></div>
+              </div>
+            )}
             <div style={{display:"inline-block", width:"46%", verticalAlign:"top", marginRight:"4%"}}>
               <div style={{background:C.ouC,borderRadius:16,padding:"15px 10px",border:`1px solid ${C.ou}33`, textAlign: "center"}}>
                 <div style={{fontSize:11,fontWeight:800,color:C.ou2,textTransform:"uppercase", marginBottom: 4}}>Voucher</div>
@@ -1188,7 +1196,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
               </div>
               <div style={{color:C.ou,fontSize:15,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
               <div style={{color:"#fff",fontSize:32,fontWeight:900}}>Cliente Premiado</div>
-              <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"4px 15px",borderRadius:20,fontSize:14,fontWeight:900,marginTop:10,letterSpacing:1}}>#{p.id.toUpperCase()}</div>
+              <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"6px 18px",borderRadius:20,fontSize:16,fontWeight:900,marginTop:10,letterSpacing:1.5,boxShadow:"0 4px 12px rgba(0,0,0,0.2)"}}>VOUCHER: {p.id.toUpperCase()}</div>
             </div>
             <div style={{padding:"40px 40px 10px",textAlign:"center"}}>
               <div style={{fontSize:26,fontWeight:900,color:C.tx,marginBottom:30}}>{cli?.nome}</div>

@@ -466,6 +466,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
   const notsGeral= notsAll.filter(n=>n.tipo==="geral"&&n.ativo!==false);
   const notsVip  = notsAll.filter(n=>n.tipo==="vip"&&n.ativo!==false);
   const noticias=[...(temPr?notsVip:[]),...notsGeral];const nBadge=temPr?notsVip.length:0;
+  const [voucherVer, setVoucherVer] = useState(null);
 
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     {/* HEADER */}
@@ -533,9 +534,9 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
           <button onClick={()=>setAba("ini")} style={{marginTop:20,background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Voltar ao Início</button>
         </div>
       ) : <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>)}
-      {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts}/>}
+      {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts} setVoucherVer={setVoucherVer}/>}
       {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
-      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr}/>}
+      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr} setVoucherVer={setVoucherVer}/>}
     </div>
     {/* NAV */}
     <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:100}}>
@@ -547,6 +548,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         </button>
       );})}
     </nav>
+    {voucherVer && <VoucherCard p={voucherVer} cli={c} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);}
 
 /* ══════════════════════ INÍCIO ══════════════════════ */
@@ -1282,9 +1284,8 @@ r.readAsDataURL(f);
   );
 }
 
-function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerrada,dFim,dIni,premios,setPr}){
+function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerrada,dFim,dIni,premios,setPr,setVoucherVer}){
   const[sub,setSub]=useState("dados");
-  const[voucherVer,setVoucherVer]=useState(null);
   return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
     <Tit em="👤" t="Minha Conta"/>
     <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`}}>{[["dados","Meus Dados"],["reg","Regulamento"]].map(s=><button key={s[0]} onClick={()=>setSub(s[0])} style={{flex:1,padding:"8px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:12,background:sub===s[0]?C.az:"transparent",color:sub===s[0]?"#fff":C.sb,transition:"all .2s"}}>{s[1]}</button>)}</div>
@@ -1372,10 +1373,17 @@ function VoucherCard({p, cli, cfg, onClose}){
         </div>
         <div style={{color:C.ou,fontSize:9,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:4}}>Certificado de Premiação</div>
         <div style={{color:"#fff",fontSize:22,fontWeight:900,lineHeight:1}}>Cupom Digital</div>
-        <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"4px 14px",borderRadius:20,fontSize:12,fontWeight:900,marginTop:8,letterSpacing:1.5,boxShadow:"0 4px 10px rgba(0,0,0,0.2)"}}>#{p.id.toUpperCase()}</div>
+        <div style={{background:C.ou,color:C.az,display:"inline-block",padding:"6px 18px",borderRadius:20,fontSize:16,fontWeight:900,marginTop:10,letterSpacing:1.5,boxShadow:"0 4px 12px rgba(0,0,0,0.2)"}}>VOUCHER: {p.id.toUpperCase()}</div>
       </div>
       <div style={{padding:"25px 22px",textAlign:"center"}}>
         <div style={{fontSize:18,fontWeight:900,color:C.tx,marginBottom:20}}>{cli?.nome}</div>
+        {p.status === "redeemed" && (
+          <div style={{background:C.vdC, color:C.vd, padding:15, borderRadius:16, marginBottom:20, border:`1.5px solid ${C.vd}44`}}>
+            <div style={{fontWeight:900, fontSize:12, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
+            <div style={{fontSize:11, marginTop:4}}>Operador: <b>{p.opNomeRetirada || p.opRedeemed || "Lotérica Central"}</b></div>
+            <div style={{fontSize:11}}>Data: <b>{fDT(p.dataRetirada || p.redeemedAt || p.data)}</b></div>
+          </div>
+        )}
         <div style={{background:C.bg,borderRadius:18,padding:18,marginBottom:20,border:`1px solid ${C.bd}`}}>
           <div style={{fontSize:36,marginBottom:6}}>{p.emoji||cfg.premioMeta.emoji}</div>
           <div style={{fontSize:18,fontWeight:900,color:C.az}}>{p.nome}</div>
