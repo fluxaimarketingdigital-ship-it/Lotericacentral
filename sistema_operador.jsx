@@ -973,6 +973,9 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
         <div style={{flex:1}}>
           <div style={{fontSize:11,fontWeight:800,color:C.tx}}>{fDT(a.data)} <span style={{fontWeight:400,color:C.sb}}>por {opN(a.opId)}</span></div>
           <div style={{fontSize:10,color:C.sb}}>{brl(a.total)} · {labelS} · <span style={{fontWeight:800,color:C.az}}>#{a.controle}</span></div>
+          {s === "not_counted" && (a.obsAdmin || pr.some(p=>p.authId===a.id && p.status==="rejected")) && (
+            <div style={{background:C.rdC, color:C.rd, fontSize:8, fontWeight:900, padding:"1px 6px", borderRadius:4, display:"inline-block", marginTop:4, border:`1px solid ${C.rd}33`}}>❌ AGUARDANDO CLIENTE (EM LOJA)</div>
+          )}
         </div>
         <div style={{fontSize:12,color:C.sb}}>{expA?"▲":"▼"}</div>
       </div>

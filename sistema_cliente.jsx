@@ -1268,6 +1268,15 @@ r.readAsDataURL(f);
            {a.obs && <div style={{marginTop:5,fontStyle:"italic"}}>Obs: {a.obs}</div>}
            <div style={{marginTop:5,fontSize:9,opacity:.7, fontWeight:800}}>Controle / Registro: {a.controle}</div>
         </div>
+
+        {s === "not_counted" && (a.obsAdmin || hasRejP) && (
+           <div style={{marginTop:5, padding:10, background:C.bg, borderRadius:8, border:`1px solid ${C.bd}`}}>
+              <div style={{fontWeight:800, fontSize:10, color:C.sb, display:"flex", alignItems:"center", gap:5}}>ℹ️ Comparecer à Lotérica</div>
+              <div style={{fontSize:9, color:C.sb, marginTop:4, lineHeight:1.4}}>
+                 Este registro está no histórico. Caso deseje contestar a auditoria, por favor <strong>compareça à Lotérica</strong> com seu comprovante.
+              </div>
+           </div>
+        )}
         
         {(s === "rejected" || (hasRejP && s!=="not_counted")) && (
            <div style={{background:C.rdC,padding:12,borderRadius:8,marginBottom:12,border:`1px solid ${C.rd}33`}}>
