@@ -723,7 +723,7 @@ function ADash({ops,cl,pr,cfg,setAba,setBus,encerrada}){
       ))}
     </div>
     {gr.length>0&&<div style={{background:"#fff",borderRadius:13,padding:"12px 11px",border:`1px solid ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>📈 Auths por Mês</div>
+      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:10}}>📈 Visitas Válidas por Mês</div>
       <ResponsiveContainer width="100%" height={140}><BarChart data={gr} margin={{left:-20,right:0}}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false}/>
         <XAxis dataKey="mes" tick={{fill:C.sb,fontSize:8}} tickLine={false}/>
@@ -837,7 +837,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
           <div style={{fontSize:10,color:C.sb,marginTop:2}}>Desde {fD(r.op.cadastro)}</div>
         </div>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>{[["✅","Auths",r.a,C.az],["👥","Clientes",r.cs,C.vd]].map(([em,l,v,cor])=><div key={l} style={{background:C.bg,borderRadius:9,padding:"8px",textAlign:"center"}}><div style={{fontWeight:900,fontSize:18,color:cor}}>{v}</div><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{em} {l}</div></div>)}</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>{[["✅","Visitas Válidas",r.a,C.az],["👥","Clientes",r.cs,C.vd]].map(([em,l,v,cor])=><div key={l} style={{background:C.bg,borderRadius:9,padding:"8px",textAlign:"center"}}><div style={{fontWeight:900,fontSize:18,color:cor}}>{v}</div><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{em} {l}</div></div>)}</div>
       <div style={{marginTop:8,background:"#f3f4f6",borderRadius:6,height:5,overflow:"hidden"}}><div style={{height:"100%",background:oc(r.i),borderRadius:6,width:(r.a/Math.max(rank[0]?.a||1,1)*100)+"%"}}/></div>
     </div>)}
     {ops.length===0&&<V em="👤" msg="Nenhuma operadora cadastrada."/>}
@@ -859,7 +859,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
                 {p.vencedores.map(v => (
                   <div key={v.opId} style={{display:"flex",justifyContent:"space-between",fontSize:12,alignItems:"center",background:C.bg,padding:"6px 10px",borderRadius:8}}>
                     <span style={{fontWeight:700}}>{v.rank}º {v.opNome}</span>
-                    <span style={{fontWeight:800,color:C.az}}>{v.auths} auths</span>
+                    <span style={{fontWeight:800,color:C.az}}>{v.auths} visitas válidas</span>
                   </div>
                 ))}
               </div>
@@ -1109,7 +1109,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
               </div>
               <div onClick={(e)=>{e.stopPropagation(); if(window.confirm(`Excluir o cliente ${c.nome} permanentemente?`)) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
             </div>
-            <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} auths · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
+            <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} registros · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
         </div>
         {exp===c.id&&<div style={{padding:"12px 13px",background:"#fcfdfe",display:"flex",flexDirection:"column",gap:10}}>
