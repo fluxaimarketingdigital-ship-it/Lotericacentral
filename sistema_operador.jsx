@@ -166,6 +166,7 @@ export default function App(){
   const[cfg,setCfg_]=useState(DCFG);
   const[opPrizes,setOpPrizes_]=useState([]);
   const[adminLogs,setAdminLogs_]=useState([]);
+  const[campanhas,setCampanhas_]=useState([]);
   const setOps=d=>{ if(typeof d==="function") { setOps_(prev=>{const n=d(prev);DB.save("lc-ops",n);return n;}); } else { setOps_(d); return DB.save("lc-ops",d); } };
   const setAdmins=d=>{ if(typeof d==="function") { setAdmins_(prev=>{const n=d(prev);DB.save("lc-admins",n);return n;}); } else { setAdmins_(d); return DB.save("lc-admins",d); } };
   const setCl=d=>{ if(typeof d==="function") { setCl_(prev=>{const n=d(prev);DB.save("lc-cl",n);return n;}); } else { setCl_(d); return DB.save("lc-cl",d); } };
@@ -173,6 +174,7 @@ export default function App(){
   const setCfg=d=>{ if(typeof d==="function") { setCfg_(prev=>{const n=d(prev);DB.save("lc-cfg",n);return n;}); } else { setCfg_(d); return DB.save("lc-cfg",d); } };
   const setOpPrizes=d=>{ if(typeof d==="function") { setOpPrizes_(prev=>{const n=d(prev);DB.save("lc-op-prizes",n);return n;}); } else { setOpPrizes_(d); return DB.save("lc-op-prizes",d); } };
   const setAdminLogs=d=>{ if(typeof d==="function") { setAdminLogs_(prev=>{const n=d(prev);DB.save("lc-admin-logs",n);return n;}); } else { setAdminLogs_(d); return DB.save("lc-admin-logs",d); } };
+  const setCampanhas=d=>{ if(typeof d==="function") { setCampanhas_(prev=>{const n=d(prev);DB.save("lc-campanhas",n);return n;}); } else { setCampanhas_(d); return DB.save("lc-campanhas",d); } };
   const logAdminAction = async (acao, detalhes="", payload=null) => {
     if(!adminSel) return;
     const ip = await getIP();
@@ -230,8 +232,8 @@ export default function App(){
     }
   };
   useEffect(()=>{(async()=>{
-    try{const[o,a,c,p,f,opp,al]=await Promise.all([DB.load("lc-ops"),DB.load("lc-admins"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg"),DB.load("lc-op-prizes"),DB.load("lc-admin-logs")]);
-      if(Array.isArray(o))setOps_(o);if(Array.isArray(a))setAdmins_(a);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);if(Array.isArray(al))setAdminLogs_(al);
+    try{const[o,a,c,p,f,opp,al,cp]=await Promise.all([DB.load("lc-ops"),DB.load("lc-admins"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg"),DB.load("lc-op-prizes"),DB.load("lc-admin-logs"),DB.load("lc-campanhas")]);
+      if(Array.isArray(o))setOps_(o);if(Array.isArray(a))setAdmins_(a);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);if(Array.isArray(al))setAdminLogs_(al);if(Array.isArray(cp))setCampanhas_(cp);
       if(f)setCfg_({...DCFG,...f,relampagos:f.relampagos||DCFG.relampagos,premioMeta:f.premioMeta||DCFG.premioMeta,noticias:f.noticias||DCFG.noticias,formulario:{...DCFG.formulario,...(f.formulario||{}),cats:f.formulario?.cats||DCFG.formulario.cats,campos:f.formulario?.campos||DCFG.formulario.campos}});}catch(_){}
     setTimeout(()=>{
       setTela("home");
@@ -243,6 +245,7 @@ export default function App(){
     DB.listen?.("lc-pr", val => { if(Array.isArray(val)) setPr_(val); });
     DB.listen?.("lc-op-prizes", val => { if(Array.isArray(val)) setOpPrizes_(val); });
     DB.listen?.("lc-admin-logs", val => { if(Array.isArray(val)) setAdminLogs_(val); });
+    DB.listen?.("lc-campanhas", val => { if(Array.isArray(val)) setCampanhas_(val); });
     DB.listen?.("lc-cfg", val => { if(val) setCfg_(prev => ({...DCFG,...prev,...val})); });
   })();},[]);
 
@@ -261,7 +264,7 @@ export default function App(){
     return false;
   };
 
-  const ctx={tela,setTela,role,setRole,opSel,setOpSel,adminSel,setAdminSel,ops,setOps,admins,setAdmins,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes,adminLogs,setAdminLogs,logAdminAction,reverterAcao,checkM};
+  const ctx={tela,setTela,role,setRole,opSel,setOpSel,adminSel,setAdminSel,ops,setOps,admins,setAdmins,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes,adminLogs,setAdminLogs,campanhas,setCampanhas,logAdminAction,reverterAcao,checkM};
   return(<><style>{CSS}</style>
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:520,margin:"0 auto",fontSize:13,color:C.tx}}>
       {tela==="splash"&&<Splash/>}{tela==="home"&&<Home{...ctx}/>}{tela==="opreg"&&<OpReg{...ctx}/>}
@@ -786,8 +789,328 @@ function OpRegulamento({cfg}){
   </div>);
 }
 
+/* ═══════ RELATÓRIOS ═══════ */
+function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,setCampanhas,adminLogs,setAdminLogs,checkM}){
+  const[aba,setAba]=useState("cli");
+  const[vis,setVis]=useState(15);
+  const ABAS=[{id:"cli",l:"👥 Clientes"},{id:"vis",l:"✅ Visitas"},{id:"pr",l:"🎁 Prêmios"},{id:"ops",l:"🏅 Operadores"},{id:"met",l:"📊 Métricas"},{id:"hist",l:"📚 Histórico"}];
+
+  // Métricas auxiliares
+  const met = useMemo(() => {
+    let totV = 0, totVal = 0, totBoleto = 0, totPix = 0, totJogos = 0, totBolao = 0;
+    const campoUso = {};
+    cl.forEach(c => {
+      (c.auths||[]).forEach(a => {
+        totV++;
+        if(a.valida !== false) {
+          totVal += (a.total || 0);
+        }
+        Object.keys(a.detalhes||{}).forEach(fid => {
+          const f = cfg.formulario.campos.find(x=>x.id===fid);
+          if(f) {
+            campoUso[f.nome] = (campoUso[f.nome]||0) + 1;
+            if(f.cat === "bc") {
+              if(f.id === "pix") totPix++;
+              else totBoleto++;
+            } else {
+              if(f.id === "bolao") totBolao++;
+              else totJogos++;
+            }
+          }
+        });
+      });
+    });
+    const sortedCampos = Object.entries(campoUso).sort((a,b)=>b[1]-a[1]);
+    return { totV, totVal, totBoleto, totPix, totJogos, totBolao, sortedCampos, avg: totV > 0 ? totVal/totV : 0 };
+  }, [cl, cfg]);
+
+  const exportPDF = (titulo, colunas, dados, orientation="p") => {
+    const w = window.open("", "_blank");
+    w.document.write(`
+      <html><head><title>${titulo}</title>
+      <style>
+        body { font-family: 'Nunito', sans-serif; padding: 40px; color: #0d2137; }
+        .h { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #003478; padding-bottom: 15px; margin-bottom: 20px; }
+        h1 { color: #003478; margin: 0; font-size: 24px; }
+        .info { text-align: right; font-size: 11px; color: #5a7a96; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #dde6f5; }
+        th { background: #f0f4fb; color: #003478; font-weight: 800; text-transform: uppercase; }
+        .footer { margin-top: 30px; font-size: 9px; color: #5a7a96; border-top: 1px solid #eee; padding-top: 10px; display: flex; justify-content: space-between; }
+        @media print { @page { size: ${orientation === "p" ? "A4 portrait" : "A4 landscape"}; margin: 1cm; } }
+      </style></head><body>
+        <div class="h">
+          <div>
+            <h1>${titulo}</h1>
+            <div style="font-size:12px; font-weight:800; color:#d97706; margin-top:5px;">Campanha: ${cfg.premioMeta.nome}</div>
+          </div>
+          <div class="info">
+            Período: ${fD(cfg.dataInicio)} — ${fD(cfg.dataFim)}<br/>
+            Gerado em: ${new Date().toLocaleString("pt-BR")}
+          </div>
+        </div>
+        <table>
+          <thead><tr>${colunas.map(c=>`<th>${c}</th>`).join("")}</tr></thead>
+          <tbody>${dados.map(row=>`<tr>${row.map(cell=>`<td>${cell}</td>`).join("")}</tr>`).join("")}</tbody>
+        </table>
+        <div class="footer">
+          <span>Relatório Oficial — Lotérica Central</span>
+          <span>Página 1 de 1</span>
+        </div>
+        <script>setTimeout(()=>{ window.print(); setTimeout(window.close, 500); }, 500);</script>
+      </body></html>
+    `);
+    w.document.close();
+  };
+
+  const relCli = () => {
+    const dados = cl.map(c => [
+      c.nome,
+      fmtDN(c.nasc),
+      fD(c.cadastro),
+      c.auths?.length || 0,
+      brl(c.auths?.reduce((s,a)=>s+(a.total||0),0)||0)
+    ]);
+    exportPDF("Relatório de Clientes", ["Nome", "Nascimento", "Cadastro", "Visitas", "Total Movimentado"], dados);
+  };
+
+  const relPr = () => {
+    const dados = pr.map(p => {
+      const cli = cl.find(c=>c.id===p.clientId);
+      return [
+        fDT(p.data),
+        p.nome,
+        p.tipo === "relampago" ? "⚡ Relâmpago" : "🏆 Meta",
+        cli?.nome || "—",
+        p.status === "redeemed" ? "✅ Retirado" : p.status === "approved" ? "⏳ Aguardando" : "❌ Pendente",
+        p.opNomeRetirada || "—"
+      ];
+    });
+    exportPDF("Relatório de Prêmios", ["Data/Hora", "Prêmio", "Tipo", "Cliente", "Status", "Operador (Retirada)"], dados, "l");
+  };
+
+  const relOps = () => {
+    const dados = ops.map(o => {
+      const pts = cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.opId===o.id && a.valida!==false).length||0),0);
+      const premios = (opPrizes||[]).filter(p=>p.vencedores.some(v=>v.opId===o.id && p.status==="paid")).length;
+      return [o.nome, o.id, fD(o.cadastro), pts, premios];
+    });
+    exportPDF("Relatório de Operadores", ["Nome", "ID/Código", "Cadastro", "Visitas Válidas", "Ciclos Pagos"], dados);
+  };
+
+  const relVis = () => {
+    const dados = [];
+    cl.forEach(c => {
+      (c.auths||[]).forEach(a => {
+        dados.push([
+          fDT(a.data),
+          c.nome,
+          a.valida !== false ? "✅ Válida" : "⏳ Pendente",
+          brl(a.total),
+          a.opNome || "—",
+          a.controle || "—"
+        ]);
+      });
+    });
+    dados.sort((a,b) => new Date(b[0]) - new Date(a[0]));
+    exportPDF("Relatório Geral de Visitas", ["Data/Hora", "Cliente", "Status", "Valor", "Operador", "Registro"], dados, "l");
+  };
+
+  const fecharCampanha = () => {
+    if(!checkM(`⚠️ ATENÇÃO: Esta ação irá ENCERRAR a campanha "${cfg.premioMeta.nome}".
+Um relatório final será gerado e salvo no histórico.
+Os dados de visitas e prêmios da campanha atual serão APAGADOS para iniciar um novo ciclo.
+Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "ENCERRAMENTO_CAMPANHA")) return;
+
+    const summary = {
+      id: uid(),
+      nome: cfg.premioMeta.nome,
+      inicio: cfg.dataInicio,
+      fim: cfg.dataFim || now().slice(0,10),
+      dataFechamento: now(),
+      metricas: {
+        totalClientes: cl.length,
+        totalVisitas: met.totV,
+        totalMovimentado: met.totVal,
+        ticketMedio: met.avg,
+        premiosEntregues: pr.filter(p=>p.status==="redeemed").length,
+        premiosNaoEntregues: pr.filter(p=>p.status!=="redeemed").length,
+        clientesSemProgresso: cl.filter(c=>(c.auths?.length||0)===0).length,
+        detalhes: met.sortedCampos
+      }
+    };
+
+    setCampanhas(prev => [summary, ...(prev||[])]);
+    
+    // Limpar dados sazonais conforme solicitado
+    setCl(prev => prev.map(c => ({...c, auths: []})));
+    setPr([]);
+    setAdminLogs([]);
+    setOpPrizes([]);
+    
+    alert("✅ Campanha encerrada com sucesso! O relatório final foi salvo no Histórico.");
+  };
+
+  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
+    <T em="📈" t="Central de Relatórios" s="Gere e exporte dados da campanha atual"/>
+    
+    <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`,overflowX:"auto",scrollbarWidth:"none"}}>
+      {ABAS.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:"1 0 auto",padding:"8px 12px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:11,background:aba===a.id?C.az:"transparent",color:aba===a.id?"#fff":C.sb,transition:"all .2s"}}>{a.l}</button>)}
+    </div>
+
+    {aba==="cli" && (
+      <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`,animation:"up .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:15}}>
+          <div style={L}>Base de Clientes</div>
+          <button onClick={relCli} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {cl.slice(0,vis).map(c=>(
+            <div key={c.id} style={{display:"flex",justifyContent:"space-between",fontSize:12,borderBottom:`1px solid ${C.bd}33`,paddingBottom:6}}>
+              <span style={{fontWeight:700}}>{c.nome}</span>
+              <span style={{color:C.sb}}>{c.auths?.length||0} vis.</span>
+            </div>
+          ))}
+        </div>
+        <VerMais total={cl.length} visiveis={vis} setVisiveis={setVis} />
+      </div>
+    )}
+
+    {aba==="vis" && (
+      <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`,animation:"up .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:15}}>
+          <div style={L}>Log Geral de Visitas</div>
+          <button onClick={relVis} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {cl.flatMap(c=>(c.auths||[]).map(a=>({...a, cNome:c.nome}))).sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,vis).map(a=>(
+            <div key={a.id} style={{fontSize:11, borderBottom:`1px solid ${C.bd}22`, paddingBottom:6, display:"flex", justifyContent:"space-between"}}>
+              <div>
+                <div style={{fontWeight:800}}>{a.cNome}</div>
+                <div style={{fontSize:9, color:C.sb}}>{fDT(a.data)} · {a.opNome}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontWeight:900, color:C.az}}>{brl(a.total)}</div>
+                <div style={{fontSize:9, color:a.valida!==false?C.vd:C.ou2}}>{a.valida!==false?"VÁLIDA":"PENDENTE"}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <VerMais total={cl.reduce((s,c)=>s+(c.auths?.length||0),0)} visiveis={vis} setVisiveis={setVis} />
+      </div>
+    )}
+
+    {aba==="pr" && (
+      <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`,animation:"up .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:15}}>
+          <div style={L}>Distribuição de Prêmios</div>
+          <button onClick={relPr} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:15}}>
+          <div style={{background:C.bg,padding:10,borderRadius:10,textAlign:"center"}}>
+            <div style={{fontSize:18}}>✅</div>
+            <div style={{fontWeight:900,fontSize:16,color:C.vd}}>{pr.filter(p=>p.status==="redeemed").length}</div>
+            <div style={{fontSize:9,color:C.sb,fontWeight:800}}>RETIRADOS</div>
+          </div>
+          <div style={{background:C.bg,padding:10,borderRadius:10,textAlign:"center"}}>
+            <div style={{fontSize:18}}>⏳</div>
+            <div style={{fontWeight:900,fontSize:16,color:C.ou2}}>{pr.filter(p=>p.status!=="redeemed").length}</div>
+            <div style={{fontSize:9,color:C.sb,fontWeight:800}}>PENDENTES</div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {aba==="ops" && (
+      <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`,animation:"up .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:15}}>
+          <div style={L}>Desempenho de Operadores</div>
+          <button onClick={relOps} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {ops.map(o=>(
+            <div key={o.id} style={{display:"flex",justifyContent:"space-between",fontSize:12,padding:"6px 0",borderBottom:`1px solid ${C.bd}22`}}>
+              <span>{o.nome}</span>
+              <span style={{fontWeight:800,color:C.az}}>{cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.opId===o.id && a.valida!==false).length||0),0)} pts</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {aba==="met" && (
+      <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`,animation:"up .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:15}}>
+          <div style={L}>Métricas da Campanha</div>
+          <button onClick={()=>exportPDF("Métricas de Desempenho", ["Categoria/Campo", "Quantidade", "Frequência %"], met.sortedCampos.map(([n,v])=>[n,v,Math.round(v/met.totV*100)+"%"]))} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
+        </div>
+        
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:15}}>
+          <div style={{background:C.azC,padding:12,borderRadius:12,textAlign:"center"}}>
+            <div style={{fontSize:10,color:C.az,fontWeight:800}}>TICKET MÉDIO</div>
+            <div style={{fontWeight:900,fontSize:18,color:C.az}}>{brl(met.avg)}</div>
+          </div>
+          <div style={{background:C.ouC,padding:12,borderRadius:12,textAlign:"center"}}>
+            <div style={{fontSize:10,color:C.ou2,fontWeight:800}}>TOTAL VISITAS</div>
+            <div style={{fontWeight:900,fontSize:18,color:C.ou2}}>{met.totV}</div>
+          </div>
+        </div>
+
+        <div style={{fontWeight:800,fontSize:11,color:C.sb,marginBottom:10}}>TOP ATIVIDADES</div>
+        <div style={{display:"flex",flexDirection:"column",gap:6}}>
+          {met.sortedCampos.slice(0,5).map(([nome,qtd])=>(
+            <div key={nome} style={{fontSize:12}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:2}}><span>{nome}</span><span style={{fontWeight:800}}>{qtd}</span></div>
+              <div style={{height:6,background:C.bg,borderRadius:3,overflow:"hidden"}}><div style={{height:"100%",background:C.az,width:(qtd/met.totV*100)+"%"}}/></div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {aba==="hist" && (
+      <div style={{display:"flex",flexDirection:"column",gap:10,animation:"up .3s"}}>
+        {campanhas.length === 0 && <V em="📚" msg="Ainda não existem campanhas encerradas no histórico." />}
+        {campanhas.map(camp => (
+          <div key={camp.id} style={{background:"#fff",borderRadius:14,padding:14,border:`1px solid ${C.bd}`}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+              <div>
+                <div style={{fontWeight:900,fontSize:14,color:C.tx}}>{camp.nome}</div>
+                <div style={{fontSize:10,color:C.sb}}>{fD(camp.inicio)} — {fD(camp.fim)}</div>
+              </div>
+              <button onClick={()=>{
+                const m = camp.metricas;
+                const dados = [
+                  ["Total Clientes", m.totalClientes],
+                  ["Total Visitas", m.totalVisitas],
+                  ["Movimentação Total", brl(m.totalMovimentado)],
+                  ["Ticket Médio", brl(m.ticketMedio)],
+                  ["Prêmios Entregues", m.premiosEntregues],
+                  ["Prêmios Pendentes", m.premiosNaoEntregues],
+                  ["Clientes s/ Progresso", m.clientesSemProgresso],
+                  ...m.detalhes.map(([n,v]) => ["Uso: "+n, v])
+                ];
+                exportPDF("Relatório de Campanha Encerrada", ["Indicador", "Resultado"], dados);
+              }} style={{background:"none",border:`1px solid ${C.bd}`,borderRadius:8,padding:"5px 10px",fontSize:10,fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>📊 Ver Relatório</button>
+            </div>
+            <div style={{fontSize:11,color:C.sb,background:C.bg,padding:8,borderRadius:8}}>
+              Encerrada em {fDT(camp.dataFechamento)}
+            </div>
+          </div>
+        ))}
+      </div>
+    )}
+
+    <div style={{marginTop:20,padding:18,background:C.rdC,borderRadius:16,border:`1.5px dashed ${C.rd}44`,textAlign:"center"}}>
+      <div style={{fontWeight:900,fontSize:14,color:C.rd,marginBottom:6}}>⚠️ Encerrar Campanha Atual</div>
+      <div style={{fontSize:11,color:C.rd,opacity:.8,marginBottom:15,lineHeight:1.5}}>Ao encerrar, os dados da campanha atual serão salvos no histórico e a base de visitas será limpa para um novo ciclo.</div>
+      <button onClick={fecharCampanha} style={{background:C.rd,color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontWeight:900,fontSize:13,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 15px ${C.rd}44`}}>🔒 Fechar Campanha e Limpar Dados</button>
+    </div>
+  </div>);
+}
+
 /* ═══════ ADMIN PANEL ═══════ */
-function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,adminSel,setAdminSel,opPrizes,setOpPrizes,adminLogs,setAdminLogs,logAdminAction,reverterAcao,checkM}){
+function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,campanhas,setCampanhas,setTela,setRole,adminSel,setAdminSel,opPrizes,setOpPrizes,adminLogs,setAdminLogs,logAdminAction,reverterAcao,checkM}){
   const[aba,setAba]=useState("dash");
   const[bus,setBus]=useState("");
   const totPoints=useMemo(()=>{
@@ -821,7 +1144,14 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,se
 
 
 
-  const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
+  const ABAS=[
+    {id:"dash",emoji:"📊",label:"Painel"},
+    {id:"ops",emoji:"🏅",label:"Operadoras"},
+    {id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},
+    {id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},
+    {id:"rel",emoji:"📈",label:"Relatórios"},
+    {id:"cfg",emoji:"⚙️",label:"Ajustes"}
+  ];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
@@ -843,6 +1173,7 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,se
       {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} adminSel={adminSel} />}
       {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
       {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} />}
+      {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} />}
       {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
