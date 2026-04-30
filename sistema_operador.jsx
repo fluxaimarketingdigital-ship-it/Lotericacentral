@@ -299,6 +299,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = Math.max(0, ops.findIndex(o => o.id === op?.id));
   const lastReset = cfg.lastReset || "2000-01-01";
+  if(!op) return(<div style={{padding:40,textAlign:"center",color:C.sb}}><div style={{fontSize:40,marginBottom:15}}>⚠️</div><div>Sessão não encontrada ou expirada.</div><button onClick={()=>{setRole(null);setOpSel(null);setTela("home");}} style={{marginTop:20,padding:"10px 20px",background:C.az,color:"#fff",border:"none",borderRadius:10,fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Fazer Login</button></div>);
   const checkM = (m="Digite a SENHA MESTRA para autorizar esta exclusão:") => {
     const p = window.prompt(m);
     if(p === (cfg.senhaMestra||"123456")) return true;
@@ -322,7 +323,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const hoje_ = useMemo(() => minhasV.filter(a => a.data?.slice(0, 10) === hoje()), [minhasV]);
   const meusCl = cl.filter(c => (c.auths || []).some(a => {
     const s = a.status || (a.valida !== false ? "approved" : "rejected");
-    return a.opId === op.id && (s === "approved" || (s === "pending" && a.valida !== false));
+    return a.opId === op?.id && (s === "approved" || (s === "pending" && a.valida !== false));
   }));
   const metasOp = useMemo(() => pr.filter(p => p.tipo === "raspadinha" && (p.status === "approved" || p.status === "redeemed") && minhas.some(a => a.id === p.authId)).length, [pr, minhas]);
   const relampOp = useMemo(() => pr.filter(p => p.tipo === "relampago" && (p.status === "approved" || p.status === "redeemed") && minhas.some(a => a.id === p.authId)).length, [pr, minhas]);
@@ -339,10 +340,10 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
     });
     return list.sort((a, b) => b.t - a.t);
   }, [cl, ops, lastReset]);
-  const pos = rank.findIndex(r => r.op.id === op.id) + 1;
-  const isDefault = !op.senha || String(op.senha) === "1234";
+  const pos = rank.findIndex(r => r.op.id === op?.id) + 1;
+  const isDefault = !op?.senha || String(op?.senha) === "1234";
 
-  function mudarS(){if(altS.n.length<4){setMsgS("❌ Mínimo 4 caracteres.");return;}if(altS.n!==altS.c){setMsgS("❌ Senhas não conferem.");return;}if(!isDefault && String(altS.a)!==String(op.senha)){setMsgS("❌ Senha atual incorreta.");return;}setOps(ops.map(o=>o.id===op.id?{...o,senha:altS.n}:o));setMsgS("✅ Senha alterada!");setTimeout(()=>{setShowAlt(false);setMsgS("");setAltS({a:"",n:"",c:""});},2000);}
+  function mudarS(){if(altS.n.length<4){setMsgS("❌ Mínimo 4 caracteres.");return;}if(altS.n!==altS.c){setMsgS("❌ Senhas não conferem.");return;}if(!isDefault && String(altS.a)!==String(op?.senha)){setMsgS("❌ Senha atual incorreta.");return;}setOps(ops.map(o=>o.id===op?.id?{...o,senha:altS.n}:o));setMsgS("✅ Senha alterada!");setTimeout(()=>{setShowAlt(false);setMsgS("");setAltS({a:"",n:"",c:""});},2000);}
 
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     {isDefault && <div style={{position:"fixed",inset:0,background:"rgba(0,52,120,.95)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
@@ -645,6 +646,12 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       return p.status === "pending" || p.status === "approved";
     }).length;
   }, [pr, cfg, encerrada]);
+  const checkM = (m="Digite a SENHA MESTRA para autorizar esta exclusão:") => {
+    const p = window.prompt(m);
+    if(p === (cfg.senhaMestra||"123456")) return true;
+    if(p !== null) alert("❌ Senha Mestra incorreta!");
+    return false;
+  };
   const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
@@ -663,10 +670,10 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
       {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus} encerrada={encerrada}/>}
-      {aba==="ops" &&<AOps  ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes}/>}
-      {aba==="cl"  &&<ACl   cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus}/>}
-      {aba==="pr"  &&<APr   pr={pr} setPr={setPr} cl={cl} cfg={cfg}/>}
-      {aba==="cfg" &&<ACfg  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
+      {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} />}
+      {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
+      {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} />}
+      {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} />}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
   </div>);
@@ -790,7 +797,7 @@ function FeedbackDash({cl,ops}){
   </div>);
 }
 
-function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
+function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM}){
   const[eId,setEId]=useState(null);const[eN,setEN]=useState("");
   const lastReset = cfg.lastReset || "2000-01-01";
   const lrTime = new Date(lastReset).getTime();
@@ -843,7 +850,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
         <div style={{flex:1}}>
           {eId===r.op.id?<div style={{display:"flex",gap:5}}><input value={eN} onChange={e=>setEN(e.target.value)} style={{flex:1,...I,padding:"5px 9px",fontSize:12}}/><button onClick={()=>{setOps(ops.map(o=>o.id===r.op.id?{...o,nome:eN}:o));setEId(null);}} style={{background:C.vd,color:"#fff",border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✓</button><button onClick={()=>setEId(null)} style={{background:"#f3f4f6",color:C.sb,border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button></div>
-          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:r.op.id===op.id?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{r.op.id===op.id?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}?`)) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
+          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:(op && r.op.id===op.id)?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{(op && r.op.id===op.id)?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}?`)) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
           <div style={{fontSize:10,color:C.sb,marginTop:2}}>Desde {fD(r.op.cadastro)}</div>
         </div>
       </div>
@@ -887,7 +894,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
   </div>);
 }
 
-function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer}){
+function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,checkM}){
   const [expA, setExpA] = useState(false);
   const [edit, setEdit] = useState(false);
   const [fEdit, setFEdit] = useState(a.detalhes||{});
@@ -1081,7 +1088,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
   );
 }
 
-function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
+function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
   const[exp,setExp]=useState(null);
   const[voucherVer,setVoucherVer]=useState(null);
   const opN=id=>ops.find(o=>o.id===id)?.nome||"—";
@@ -1132,7 +1139,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
                const s = a.status || (a.valida===false?"not_counted":"approved");
                const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
                const labelS = s==="approved"?"Aprovada" : s==="pending"?"Aguardando Auditoria" : s==="not_counted"?"Histórico" : "Recusada";
-               return <AAud key={a.id} a={a} c={c} corS={corS} labelS={labelS} opN={opN} brl={brl} fDT={fDT} cfg={cfg} setCl={setCl} cl={cl} pr={pr} setPr={setPr} setVoucherVer={setVoucherVer}/>;
+               return <AAud key={a.id} a={a} c={c} corS={corS} labelS={labelS} opN={opN} brl={brl} fDT={fDT} cfg={cfg} setCl={setCl} cl={cl} pr={pr} setPr={setPr} setVoucherVer={setVoucherVer} checkM={checkM}/>;
             })}
           </div>
         </div>}
@@ -1338,7 +1345,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     </div>
   </div>);}
 
-function ACfg({cfg,setCfg,ops,setOps,cl,pr}){
+function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM}){
   const[sub,setSub]=useState("meta");
   const SUBS=[{id:"meta",l:"🎯 Meta"},{id:"rl",l:"⚡ Relâmpago"},{id:"form",l:"📝 Formulário"},{id:"reg",l:"📋 Regulamento"},{id:"not",l:"📰 Notícias"},{id:"sis",l:"🔧 Sistema"}];
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
@@ -1347,10 +1354,10 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr}){
       {SUBS.map(s=><button key={s.id} onClick={()=>setSub(s.id)} style={{flex:1,minWidth:58,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:10,background:sub===s.id?C.az:"transparent",color:sub===s.id?"#fff":C.sb,transition:"all .2s"}}>{s.l}</button>)}
     </div>
     {sub==="meta"&&<CfgMeta cfg={cfg} setCfg={setCfg}/>}
-    {sub==="rl"  &&<CfgRl   cfg={cfg} setCfg={setCfg}/>}
+    {sub==="rl"  && <CfgRelampagos cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="form"&&<CfgForm cfg={cfg} setCfg={setCfg}/>}
     {sub==="reg" &&<CfgReg  cfg={cfg} setCfg={setCfg}/>}
-    {sub==="not" &&<CfgNoticias cfg={cfg} setCfg={setCfg}/>}
+    {sub==="not" &&<CfgNoticias cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
   </div>);
 }
@@ -1488,7 +1495,7 @@ function CfgMeta({cfg,setCfg}){
   </div>);
 }
 
-function CfgRl({cfg,setCfg}){
+function CfgRelampagos({cfg,setCfg,checkM}){
   const[lista,setLista]=useState(cfg.relampagos.map(r=>({...r})));
   const[minR,setMinR]=useState(cfg.minRelampago||60);
   const[editId,setEditId]=useState(null);
@@ -1589,7 +1596,7 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
 }
 
 /* ═══════ CONFIG NOTÍCIAS ═══════ */
-function CfgNoticias({cfg,setCfg}){
+function CfgNoticias({cfg,setCfg,checkM}){
   const nots0 = cfg.noticias||DCFG.noticias;
   const[lista,  setLista]  = useState(nots0.map(n=>({...n})));
   const[editId, setEditId] = useState(null);
