@@ -317,6 +317,9 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
     const s = a.status || (a.valida !== false ? "approved" : "rejected");
     return a.opId === op.id && (s === "approved" || (s === "pending" && a.valida !== false));
   }));
+  const metasOp = useMemo(() => pr.filter(p => p.tipo === "raspadinha" && (p.status === "approved" || p.status === "redeemed") && minhas.some(a => a.id === p.authId)).length, [pr, minhas]);
+  const relampOp = useMemo(() => pr.filter(p => p.tipo === "relampago" && (p.status === "approved" || p.status === "redeemed") && minhas.some(a => a.id === p.authId)).length, [pr, minhas]);
+
   const rank = useMemo(() => {
     const list = ops.map((o, i) => {
       let t = 0;
@@ -375,11 +378,11 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       </div>
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>{op.nome} <span style={{fontSize:9,opacity:.5,fontWeight:400}}>v1.3</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)",marginTop:1}}>Operador de Caixa · {fD(op.cadastro)}</div>
-      <div style={{display:"flex",gap:7,marginTop:13}}>
-        {[["✅",minhasV.length,"Válidas"],["🏪",minhas.length,"Registros"],["👥",meusCl.length,"Clientes"],[`${pos}º`,"","Ranking"]].map(([v,,l],ki)=>(
-          <div key={l+ki} style={{flex:1,background:"rgba(255,255,255,.12)",borderRadius:9,padding:"7px 4px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
-            <div style={{fontWeight:900,fontSize:16,color:"#fff",lineHeight:1}}>{v}</div>
-            <div style={{fontSize:8,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:.4,marginTop:2}}>{l}</div>
+      <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
+        {[["👥",meusCl.length,"Clientes"],["✅",minhasV.length,"Válidas"],["🏪",minhas.length,"Registros"],["🎟️",metasOp,"Metas"],["⚡",relampOp,"Relâmp."],[`${pos}º`,"","Ranking"]].map(([em,v,l],ki)=>(
+          <div key={l+ki} style={{flex:"1 0 62px",background:"rgba(255,255,255,.12)",borderRadius:9,padding:"7px 2px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
+            <div style={{fontSize:13}}>{em}</div><div style={{fontWeight:900,fontSize:14,color:"#fff",lineHeight:1}}>{v}</div>
+            <div style={{fontSize:7,color:"rgba(255,255,255,.5)",textTransform:"uppercase",letterSpacing:.3,marginTop:1}}>{l}</div>
           </div>
         ))}
       </div>
