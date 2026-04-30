@@ -231,10 +231,12 @@ function Splash(){return(
       <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:6,letterSpacing:3,textTransform:"uppercase"}}>Cliente Fidelizado Premiado</div>
       <div style={{display:"flex",gap:9,justifyContent:"center",marginTop:28}}>
         {[0,1,2].map(i=><div key={i} style={{width:10,height:10,borderRadius:"50%",background:C.ou,animation:`dt 1.1s ${i*.22}s infinite`}}/>)}
+      </div>
       <div style={{marginTop:30,textAlign:"center",fontSize:11,color:"#fff",fontWeight:700}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
     </div>
   </div>
-);}
+);
+}
 
 /* ══════════════════════ BOAS-VINDAS ══════════════════════ */
 function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
