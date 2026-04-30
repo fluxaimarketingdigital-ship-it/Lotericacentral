@@ -294,7 +294,7 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
 
 function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
-  const ABAS=[{id:"qr",emoji:"📲",label:"Código"},{id:"auths",emoji:"✅",label:"Auths"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
+  const ABAS=[{id:"qr",emoji:"📲",label:"Código"},{id:"auths",emoji:"✅",label:"Visitas"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = Math.max(0, ops.findIndex(o => o.id === op?.id));
   const lastReset = cfg.lastReset || "2000-01-01";
@@ -376,7 +376,7 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>{op.nome} <span style={{fontSize:9,opacity:.5,fontWeight:400}}>v1.3</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)",marginTop:1}}>Operador de Caixa · {fD(op.cadastro)}</div>
       <div style={{display:"flex",gap:7,marginTop:13}}>
-        {[["✅",minhasV.length,"Total"],["📅",hoje_.length,"Hoje"],["👥",meusCl.length,"Clientes"],[`${pos}º`,"","Ranking"]].map(([v,,l],ki)=>(
+        {[["✅",minhasV.length,"Válidas"],["🏪",minhas.length,"Registros"],["👥",meusCl.length,"Clientes"],[`${pos}º`,"","Ranking"]].map(([v,,l],ki)=>(
           <div key={l+ki} style={{flex:1,background:"rgba(255,255,255,.12)",borderRadius:9,padding:"7px 4px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
             <div style={{fontWeight:900,fontSize:16,color:"#fff",lineHeight:1}}>{v}</div>
             <div style={{fontSize:8,color:"rgba(255,255,255,.55)",textTransform:"uppercase",letterSpacing:.4,marginTop:2}}>{l}</div>
