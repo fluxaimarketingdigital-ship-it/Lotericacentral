@@ -724,13 +724,6 @@ function OpVoucher({pr, setPr, cl, op, cfg, checkM}){
                  <div style={{fontSize:10, color:C.sb, fontWeight:800}}>VALIDADE</div>
                  <div style={{fontWeight:900, color:C.tx}}>{fD(res.pr.validade || new Date(new Date(res.pr.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString())}</div>
                </div>
-               <button onClick={() => {
-                 const novaV = window.prompt("Digite a nova data de validade (AAAA-MM-DD):", (res.pr.validade || new Date(new Date(res.pr.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString()).slice(0,10));
-                 if(novaV && checkM("Alterar a validade do prêmio? Digite sua Senha de Alteração e Exclusão:")) {
-                   setPr(pr.map(p => p.id === res.pr.id ? {...p, validade: novaV + "T23:59:59Z"} : p));
-                   setRes({...res, pr: {...res.pr, validade: novaV + "T23:59:59Z"}});
-                 }
-               }} style={{background:"none", border:`1px solid ${C.bd}`, borderRadius:8, padding:"4px 8px", fontSize:10, fontWeight:800, cursor:"pointer", color:C.az}}>✏️ Alterar</button>
              </div>
              <button onClick={()=>validar(res.pr)} style={{width:"100%",background:C.vd,color:"#fff",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.vd}44`}}>✅ Registrar Retirada no Balcão</button>
            </div>
@@ -1213,12 +1206,14 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,ca
   useEffect(() => {
     if (encerrada && (cl.some(c => (c.auths || []).length > 0) || pr.length > 0)) {
        const timer = setTimeout(() => {
-         if (window.confirm(`📢 CAMPANHA ENCERRADA!
+          if (window.confirm(`📢 CAMPANHA ENCERRADA!
 A data de término (${fD(cfg.dataFim)}) já passou.
-Deseja gerar o relatório final e limpar os dados da campanha agora?`)) {
+Para iniciar um novo ciclo, você deve gerar o Relatório Final agora.
+Isso irá ARQUIVAR os dados atuais e LIMPAR o histórico de visitas/prêmios para a nova campanha.
+Deseja ir para a tela de Relatórios agora?`)) {
            setAba("rel");
            // Role relatórios tem o botão de fechar campanha no final
-         }
+          }
        }, 1000);
        return () => clearTimeout(timer);
     }
@@ -1275,7 +1270,8 @@ Deseja gerar o relatório final e limpar os dados da campanha agora?`)) {
               <span style={{fontSize:24, animation:"dt 1s infinite"}}>🚨</span>
               <div>
                 <div style={{fontWeight:900, fontSize:14}}>ATENÇÃO: A campanha se encerra HOJE!</div>
-                <div style={{fontSize:11, opacity:.9}}>Verifique se todos os registros pendentes foram auditados antes das 23:59h.</div>
+                <div style={{fontSize:11, opacity:.9}}>Após as 23:59h o app cliente entrará em modo "Somente Leitura".</div>
+                <div style={{fontSize:10, fontWeight:800, marginTop:4, background:"rgba(0,0,0,.2)", padding:"2px 8px", borderRadius:4, display:"inline-block"}}>Amanhã você deverá gerar o Relatório Final para zerar o histórico.</div>
               </div>
             </div>
           )}

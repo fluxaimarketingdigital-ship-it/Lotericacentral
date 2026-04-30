@@ -529,7 +529,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         <div style={{display:"flex", justifyContent:"flex-end", marginBottom:10}}>
           {diasFaltam >= 0 && diasFaltam <= 2 && !encerrada && (
             <div style={{background:C.ou,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20,animation:"dt 1s infinite"}}>
-              ⚠️ CAMPANHA ENCERRA {hoje()===cfg.dataFim?"HOJE":`EM ${diasFaltam} DIA${diasFaltam>1?"S":""}`}!
+              ⚠️ CAMPANHA ENCERRA {hoje()===cfg.dataFim || diasFaltam <= 1 ?"HOJE":`EM ${diasFaltam-1} DIA${diasFaltam-1>1?"S":""}`}!
             </div>
           )}
 
@@ -586,11 +586,11 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
     </div>
     {/* CONTEÚDO */}
     <div style={{flex:1,padding:"14px 14px 82px"}}>
-      {aba!=="ct" && encerrada ? (
+      {aba==="reg" && encerrada ? (
         <CampanhaEncerradaView cfg={cfg} dFim={dFim} setAba={setAba} />
       ) : (
         <>
-          {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba} premios={premios}/>}
+          {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba} premios={premios} encerrada={encerrada}/>}
           {aba==="reg" && <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>}
           {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts} setVoucherVer={setVoucherVer}/>}
           {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
@@ -634,7 +634,7 @@ function CampanhaEncerradaView({cfg, dFim, setAba}){
 
 
 /* ══════════════════════ INÍCIO ══════════════════════ */
-function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
+function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada}){
   const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const raspa=Math.floor(totV/cfg.meta);const prog=totV%cfg.meta;
@@ -643,9 +643,9 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     <div style={{height:4}}/>
 
-    <button onClick={()=>setAba("reg")} style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:"glw 2.5s infinite",boxShadow:`0 6px 22px ${C.az}44`}}>
-      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:C.ou}}>Comprovante em mãos?</div><div style={{fontSize:18,fontWeight:900}}>📷 Escanear Comprovante</div></div>
-      <span style={{fontSize:38}}>📄</span>
+    <button onClick={()=>encerrada?alert("🚫 A campanha atual já foi encerrada. Aguarde o início do novo ciclo!"):setAba("reg")} style={{background:encerrada?C.bd:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:encerrada?"not-allowed":"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:encerrada?"none":"glw 2.5s infinite",boxShadow:encerrada?"none":`0 6px 22px ${C.az}44`}}>
+      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:encerrada?"#fff":C.ou}}>{encerrada?"Campanha Encerrada":"Comprovante em mãos?"}</div><div style={{fontSize:18,fontWeight:900}}>{encerrada?"🔒 Registro Suspenso":"📷 Escanear Comprovante"}</div></div>
+      <span style={{fontSize:38}}>{encerrada?"🚫":"📄"}</span>
     </button>
     {temPr&&nBadge>0&&<div onClick={()=>setAba("not")} style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:16,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
       <div style={{width:40,height:40,borderRadius:12,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🌟</div>
