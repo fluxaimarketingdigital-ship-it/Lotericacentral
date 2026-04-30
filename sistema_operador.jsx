@@ -790,10 +790,20 @@ function OpRegulamento({cfg}){
 }
 
 /* ═══════ RELATÓRIOS ═══════ */
-function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,setCampanhas,adminLogs,setAdminLogs,checkM}){
+function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,setCampanhas,adminLogs,setAdminLogs,checkM,adminSel}){
   const[aba,setAba]=useState("cli");
   const[vis,setVis]=useState(15);
-  const ABAS=[{id:"cli",l:"👥 Clientes"},{id:"vis",l:"✅ Visitas"},{id:"pr",l:"🎁 Prêmios"},{id:"ops",l:"🏅 Operadores"},{id:"met",l:"📊 Métricas"},{id:"admLog",l:"🛡️ Auditoria Adm"},{id:"hist",l:"📚 Histórico"}];
+  const isM = adminSel?.role === "master";
+
+  const ABAS=[
+    {id:"cli",l:"👥 Clientes"},
+    {id:"vis",l:"✅ Visitas"},
+    {id:"pr",l:"🎁 Prêmios"},
+    {id:"ops",l:"🏅 Operadores"},
+    {id:"met",l:"📊 Métricas"},
+    ...(isM ? [{id:"admLog",l:"🛡️ Auditoria Adm"}] : []),
+    {id:"hist",l:"📚 Histórico"}
+  ];
 
   // Métricas auxiliares
   const met = useMemo(() => {
@@ -1226,7 +1236,7 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,ca
       {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} adminSel={adminSel} />}
       {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
       {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} />}
-      {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} />}
+      {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} adminSel={adminSel} />}
       {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
