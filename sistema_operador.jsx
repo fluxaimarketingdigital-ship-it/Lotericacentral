@@ -114,11 +114,8 @@ const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRa
 /* ═══════ APP ROOT ═══════ */
 export default function App(){
   const[tela,setTela]=useState("splash");
-  const[role,setRole]=useState(()=>localStorage.getItem("lc_op_role"));
-  const[opSel,setOpSel]=useState(()=>{
-     const saved = localStorage.getItem("lc_op_sel");
-     try { return saved ? JSON.parse(saved) : null; } catch(e) { return null; }
-  });
+  const[role,setRole]=useState(null);
+  const[opSel,setOpSel]=useState(null);
   const[ops,setOps_]=useState([]);
   const[cl,setCl_]=useState([]);
   const[pr,setPr_]=useState([]);
@@ -134,9 +131,7 @@ export default function App(){
       if(Array.isArray(o))setOps_(o);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);
       if(f)setCfg_({...DCFG,...f,relampagos:f.relampagos||DCFG.relampagos,premioMeta:f.premioMeta||DCFG.premioMeta,noticias:f.noticias||DCFG.noticias,formulario:{...DCFG.formulario,...(f.formulario||{}),cats:f.formulario?.cats||DCFG.formulario.cats,campos:f.formulario?.campos||DCFG.formulario.campos}});}catch(_){}
     setTimeout(()=>{
-      if(role === "admin") setTela("admin");
-      else if(role === "op" && opSel) setTela("op");
-      else setTela("home");
+      setTela("home");
     },1400);
 
     DB.listen?.("lc-ops", val => { if(Array.isArray(val)) setOps_(val); });
@@ -146,15 +141,6 @@ export default function App(){
     DB.listen?.("lc-cfg", val => { if(val) setCfg_(prev => ({...DCFG,...prev,...val})); });
   })();},[]);
 
-  useEffect(()=>{
-    if(role) localStorage.setItem("lc_op_role", role);
-    else localStorage.removeItem("lc_op_role");
-  },[role]);
-
-  useEffect(()=>{
-    if(opSel) localStorage.setItem("lc_op_sel", JSON.stringify(opSel));
-    else localStorage.removeItem("lc_op_sel");
-  },[opSel]);
 
   const ctx={tela,setTela,role,setRole,opSel,setOpSel,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes};
   return(<><style>{CSS}</style>
