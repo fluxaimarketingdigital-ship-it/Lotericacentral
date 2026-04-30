@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Proposta Comercial - Fluxo de Fidelidade FluxAI</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; color: #1f2937; line-height: 1.6; }
+        .page { width: 210mm; min-height: 297mm; padding: 20mm; margin: 10mm auto; background: white; box-shadow: 0 0 10px rgba(0,0,0,0.1); box-sizing: border-box; position: relative; }
+        @media print {
+            body { background: none; }
+            .page { margin: 0; box-shadow: none; page-break-after: always; }
+            .no-print { display: none; }
+        }
+        h1 { color: #003478; font-size: 32px; font-weight: 900; margin-bottom: 10px; }
+        h2 { color: #003478; font-size: 24px; border-bottom: 3px solid #f5a800; display: inline-block; padding-bottom: 5px; margin-top: 40px; }
+        p { font-size: 16px; margin-bottom: 20px; }
+        .highlight { color: #d97706; font-weight: 700; }
+        .footer { margin-top: 50px; border-top: 1px solid #e5e7eb; padding-top: 20px; font-size: 12px; color: #6b7280; text-align: center; }
+        .img-box { width: 100%; border-radius: 15px; overflow: hidden; margin: 20px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .img-box img { width: 100%; display: block; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
+        .card { background: #f3f4f6; padding: 15px; border-radius: 12px; border-left: 5px solid #003478; }
+        .card strong { display: block; font-size: 14px; color: #003478; margin-bottom: 5px; }
+        .btn-print { position: fixed; top: 20px; right: 20px; background: #003478; color: white; border: none; padding: 12px 24px; border-radius: 30px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(0,52,120,0.4); }
+    </style>
+</head>
+<body>
+    <button class="btn-print no-print" onclick="window.print()">🖨️ Salvar como PDF</button>
+
+    <!-- CAPA -->
+    <div class="page">
+        <div style="text-align: center; margin-top: 100px;">
+            <div style="font-size: 14px; font-weight: 700; letter-spacing: 5px; color: #d97706; text-transform: uppercase;">Apresentação Comercial</div>
+            <h1 style="font-size: 48px; margin: 20px 0;">Fluxo de Fidelidade Digital</h1>
+            <p style="font-size: 20px; color: #6b7280;">A solução definitiva para retenção de clientes e inteligência de dados.</p>
+            <div class="img-box">
+                <img src="./mockup_app_cliente_1777585588385.png" alt="App Mockup">
+            </div>
+            <div style="margin-top: 80px;">
+                <p>Desenvolvido por:</p>
+                <h2 style="margin: 0; border: none;">FluxAI Marketing Digital</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- O PROBLEMA -->
+    <div class="page">
+        <h2>O Desafio do Varejo</h2>
+        <p>Muitas empresas perdem dinheiro porque não conhecem seus clientes. O cartão de papel é passado, ineficiente e vulnerável a fraudes.</p>
+        
+        <div class="grid">
+            <div class="card"><strong>Incerteza</strong> Sem dados, você não sabe quem é seu melhor cliente.</div>
+            <div class="card"><strong>Inércia</strong> Clientes sem incentivo digital não retornam com frequência.</div>
+            <div class="card"><strong>Vulnerabilidade</strong> Carimbos manuais são facilmente falsificáveis.</div>
+        </div>
+
+        <h2>A Nossa Solução</h2>
+        <p>Um sistema <span class="highlight">Cloud-Native</span> que conecta o caixa da sua loja ao smartphone do cliente em tempo real.</p>
+        
+        <div class="img-box">
+            <img src="./fluxai_interaction_mockup_1777585623308.png" alt="Interação PDV">
+        </div>
+    </div>
+
+    <!-- BENEFÍCIOS -->
+    <div class="page">
+        <h2>Inteligência de Gestão</h2>
+        <p>Transforme dados brutos em estratégias de marketing agressivas e eficazes.</p>
+
+        <div class="img-box">
+            <img src="./dashboard_adm_mockup_1777585604697.png" alt="Dashboard">
+        </div>
+
+        <div class="grid">
+            <div class="card"><strong>WhatsApp Marketing</strong> Exporte sua base de contatos para campanhas diretas.</div>
+            <div class="card"><strong>Ticket Médio</strong> Aumente o faturamento com Prêmios Relâmpago automáticos.</div>
+            <div class="card"><strong>Auditoria Real</strong> Logs detalhados de todas as ações de operadores e administradores.</div>
+            <div class="card"><strong>Branding FluxAI</strong> Um sistema com design premium que valoriza sua marca.</div>
+        </div>
+
+        <div class="footer">
+            FluxAI Marketing Digital &copy; 2026 - Todos os direitos reservados.
+        </div>
+    </div>
+
+</body>
+</html>

@@ -285,7 +285,7 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
       <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
     </div>
     <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
-    <div style={{marginTop:30,textAlign:"center",fontSize:10,color:"rgba(255,255,255,.4)"}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
+    <div style={{marginTop:30,textAlign:"center",fontSize:11,color:"#fff",fontWeight:700}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
   </div>
 </div>);}
 
@@ -419,7 +419,7 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
           </div>
         ))}
       </div>
-      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:10,color:C.sb,opacity:.7}}>
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:11,color:C.sb,fontWeight:700}}>
         Desenvolvido por <strong>FluxAI Marketing Digital</strong>
       </div>
     </div>
@@ -644,7 +644,7 @@ function OpQR({op,cfg,minhas,minhasV,hoje_}){
       </div>)}
       {hoje_.length > 15 && <div style={{padding:8, textAlign:"center", fontSize:10, color:C.sb, background:C.bg}}>Exibindo as 15 visitas mais recentes</div>}
     </div>}
-    <div style={{marginTop:20,textAlign:"center",fontSize:10,color:C.sb,opacity:.7}}>
+    <div style={{marginTop:20,textAlign:"center",fontSize:11,color:C.sb,fontWeight:700}}>
       Desenvolvido por <strong>FluxAI Marketing Digital</strong>
     </div>
   </div>);
@@ -1348,7 +1348,7 @@ Deseja ir para a tela de Relatórios agora?`)) {
 
       {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} adminSel={adminSel} />}
       {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
-      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:11,color:C.sb,opacity:.7}}>
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:12,color:C.sb,fontWeight:700}}>
         Fluxo de Fidelidade — <strong>Lotérica Central</strong><br/>
         Desenvolvido por <strong>FluxAI Marketing Digital</strong>
       </div>
