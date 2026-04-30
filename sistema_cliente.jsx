@@ -503,8 +503,8 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
             <div style={{fontWeight:800,fontSize:15,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:26}}>{c.nome?.split(" ")[0]}!</span> 👋</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:4}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
           </div>
-          <div style={{height:54, background:"#fff", borderRadius:14, padding:"6px 16px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 10px 25px rgba(0,0,0,0.25)"}}>
-            <img src={logoLoterica} style={{height:"100%", width:"auto", objectFit:"contain"}} alt="Logo"/>
+          <div style={{height:54, background:"#fff", borderRadius:14, padding:"4px 8px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 10px 25px rgba(0,0,0,0.25)"}}>
+            <img src={logoLoterica} style={{height:"110%", width:"auto", objectFit:"contain"}} alt="Logo"/>
           </div>
         </div>
 
