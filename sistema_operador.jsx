@@ -1831,7 +1831,7 @@ function CfgReg({cfg,setCfg,checkM}){
 function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmins,checkM}){
   const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[msg,setMsg]=useState("");
   const[novaAcesso,setNovaAcesso]=useState("");const[novaMestra,setNovaMestra]=useState("");
-  const[showM,setShowM]=useState(false);const[showA,setShowA]=useState(false);
+  const[showM,setShowM]=useState(false);const[showA,setShowA]=useState(false);const[visM,setVisM]=useState(false);
 
   const isMaster = adminSel?.role === "master";
 
@@ -1871,20 +1871,41 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
       <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12,background:!isMaster?"#f3f4f6":"#fff",color:!isMaster?C.sb:C.tx}} readOnly={!isMaster}/>
       <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12,background:!isMaster?"#f3f4f6":"#fff",color:!isMaster?C.sb:C.tx}} readOnly={!isMaster}/>
       
-      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
-      <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
-      <div style={{display:"flex",gap:8,marginBottom:12}}>
-        <div style={{flex:1,position:"relative"}}>
-          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Acesso</label>
-          <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type={showA?"text":"password"} placeholder="Nova senha para logar" style={{...I,marginTop:4,paddingRight:45}}/>
-          <button onClick={()=>setShowA(!showA)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showA?"Ocultar":"Ver"}</button>
+      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Segurança</div>
+      <div style={{fontSize:11,color:C.sb,marginBottom:12}}>Gerencie suas senhas de acesso e de operações críticas.</div>
+      
+      <button onClick={()=>setShowM(true)} style={{...BV,background:C.ou,color:C.az,width:"100%",padding:12,borderRadius:10,fontWeight:900,fontSize:13,display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:15}}>
+        🔒 Alterar Minhas Senhas
+      </button>
+
+      {showM && <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+        <div style={{background:"#fff",borderRadius:22,padding:22,width:"100%",maxWidth:400,animation:"up .3s",boxShadow:"0 10px 40px rgba(0,0,0,.3)"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+            <div style={{fontWeight:900,fontSize:17,color:C.tx}}>🔒 Alterar Minhas Senhas</div>
+            <button onClick={()=>{setShowM(false);setNovaAcesso("");setNovaMestra("");}} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:C.sb}}>✕</button>
+          </div>
+          
+          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+            <div style={{position:"relative"}}>
+              <label style={L}>Nova Senha de Acesso</label>
+              <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type={showA?"text":"password"} placeholder="Para entrar no sistema" style={{...I,marginTop:5,paddingRight:42}}/>
+              <button onClick={()=>setShowA(!showA)} style={{position:"absolute",right:10,top:32,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"3px 6px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showA?"Ocultar":"Ver"}</button>
+            </div>
+
+            <div style={{position:"relative"}}>
+              <label style={L}>Nova Senha de Alteração/Exclusão</label>
+              <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={visM?"text":"password"} placeholder="Para autorizar ações" style={{...I,marginTop:5,paddingRight:42}}/>
+              <button onClick={()=>setVisM(!visM)} style={{position:"absolute",right:10,top:32,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"3px 6px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{visM?"Ocultar":"Ver"}</button>
+            </div>
+
+            {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd,textAlign:"center"}}>{msg}</div>}
+            
+            <button onClick={salvar} style={{marginTop:10,padding:15,borderRadius:13,border:"none",background:C.az,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>
+              Confirmar Alteração de Senhas
+            </button>
+          </div>
         </div>
-        <div style={{flex:1,position:"relative"}}>
-          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Alteração e Exclusão</label>
-          <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={showM?"text":"password"} placeholder="Nova senha de exclusões" style={{...I,marginTop:4,paddingRight:45}}/>
-          <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
-        </div>
-      </div>
+      </div>}
 
       {msg&&<div style={{padding:"9px 12px",borderRadius:9,marginBottom:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
       <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Alterações</button>
