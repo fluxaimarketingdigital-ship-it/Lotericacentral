@@ -236,7 +236,7 @@ function Home({ops,cl,pr,setRole,setOpSel,setTela}){
         </form>}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-        {[["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",metas,"Metas"],["⚡",relamp,"Relâmp."]].map(([em,v,l])=>(
+        {[["🏅",ops.length,"Operadoras"],["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",metas,"Metas"],["⚡",relamp,"Relâmp."]].map(([em,v,l])=>(
           <div key={l} style={{background:"#fff",borderRadius:12,padding:"11px 8px",textAlign:"center",border:`1px solid ${C.bd}`}}>
             <div style={{fontSize:16}}>{em}</div><div style={{fontWeight:900,fontSize:20,color:C.az}}>{v}</div>
             <div style={{fontSize:9,color:C.sb,textTransform:"uppercase",letterSpacing:.5,marginTop:2}}>{l}</div>
