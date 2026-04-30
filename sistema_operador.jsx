@@ -161,11 +161,20 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
   </div>
 </div>);}
 
-function Home({ops,cl,setRole,setOpSel,setTela}){
+function Home({ops,cl,pr,setRole,setOpSel,setTela}){
   const[senha,setSenha]=useState("");const[showS,setShowS]=useState(false);const[erroS,setErroS]=useState("");const[showOps,setShowOps]=useState(false);
   const[opLogin,setOpLogin]=useState(null);const[senhaOp,setSenhaOp]=useState("");const[erroOp,setErroOp]=useState("");
   const[vis,setVis]=useState({adm:false,op:false});
-  const totalAuths=cl.reduce((s,c)=>s+(c.auths?.length||0),0);
+  const totPoints=useMemo(()=>{
+    let n=0; 
+    cl.forEach(c=>(c.auths||[]).forEach(a=>{
+      if(a.status === "approved" || (a.status === "pending" && a.valida !== false)) n++;
+    }));
+    return n;
+  },[cl]);
+  const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
+  const metas=pr.filter(p=>p.tipo==="raspadinha"&&(p.status==="approved"||p.status==="redeemed")).length;
+  const relamp=pr.filter(p=>p.tipo==="relampago"&&(p.status==="approved"||p.status==="redeemed")).length;
   function entrarAdmin(){if(senha==="central2026"){setRole("admin");setTela("admin");}else setErroS("Senha incorreta.");}
   function entrarOp(){
     if(!opLogin) return;
@@ -227,7 +236,7 @@ function Home({ops,cl,setRole,setOpSel,setTela}){
         </form>}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
-        {[["🏅",ops.length,"Operadoras"],["👥",cl.length,"Clientes"],["✅",totalAuths,"Auths"]].map(([em,v,l])=>(
+        {[["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",metas,"Metas"],["⚡",relamp,"Relâmp."]].map(([em,v,l])=>(
           <div key={l} style={{background:"#fff",borderRadius:12,padding:"11px 8px",textAlign:"center",border:`1px solid ${C.bd}`}}>
             <div style={{fontSize:16}}>{em}</div><div style={{fontWeight:900,fontSize:20,color:C.az}}>{v}</div>
             <div style={{fontSize:9,color:C.sb,textTransform:"uppercase",letterSpacing:.5,marginTop:2}}>{l}</div>
