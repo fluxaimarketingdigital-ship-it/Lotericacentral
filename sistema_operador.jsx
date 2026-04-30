@@ -741,12 +741,13 @@ function OpRank({rank,op,pos}){
       <div style={{fontSize:12,fontWeight:700,marginTop:10,background:"rgba(255,255,255,.15)",padding:"5px 12px",borderRadius:20,display:"inline-block"}}>Você está no top {Math.round((pos/rank.length)*100)}%</div>
     </div>
     <div style={{display:"flex",flexDirection:"column",gap:8}}>
-      {rank.map((r,i)=><div key={r.op.id} style={{background:r.op.id===op.id?C.azC:"#fff",borderRadius:13,padding:"13px 15px",display:"flex",alignItems:"center",gap:12,border:`1.5px solid ${r.op.id===op.id?C.az:C.bd+"66"}`,animation:`up .4s ${i*0.05}s both`}}>
+      {rank.slice(0,vis).map((r,i)=><div key={r.op.id} style={{background:r.op.id===op.id?C.azC:"#fff",borderRadius:13,padding:"13px 15px",display:"flex",alignItems:"center",gap:12,border:`1.5px solid ${r.op.id===op.id?C.az:C.bd+"66"}`,animation:`up .4s ${i*0.05}s both`}}>
         <div style={{width:28,height:28,borderRadius:8,background:i===0?C.ou:i===1?"#cbd5e1":i===2?"#d97706":C.bg,color:i<3?"#fff":C.sb,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>{i+1}</div>
         <div style={{flex:1}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div></div>
         <div style={{textAlign:"right"}}><div style={{fontWeight:900,fontSize:18,color:C.az}}>{r.t}</div><div style={{fontSize:9,color:C.sb,fontWeight:700,textTransform:"uppercase"}}>Pontos</div></div>
       </div>)}
     </div>
+    <VerMais total={rank.length} visiveis={vis} setVisiveis={setVis} />
   </div>);
 }
 

@@ -1402,7 +1402,6 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
             }
             items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer} premios={premios} setPr={setPr}/>);
           });
-          });
           return (
             <>
               {items}
