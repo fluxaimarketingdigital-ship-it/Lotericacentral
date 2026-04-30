@@ -111,38 +111,55 @@ const LS={fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letter
 const IS={padding:"10px 12px",border:`1.5px solid ${C.bd}`,borderRadius:10,fontSize:13,fontFamily:"inherit",outline:"none",color:C.tx,background:"#fff"};
 const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRadius:9,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"};
 
+async function getIP() {
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip || "Desconhecido";
+  } catch(e) {
+    return "Desconhecido";
+  }
+}
+
 /* ═══════ APP ROOT ═══════ */
 export default function App(){
   const[tela,setTela]=useState("splash");
   const[role,setRole]=useState(null);
   const[opSel,setOpSel]=useState(null);
+  const[adminSel,setAdminSel]=useState(null);
   const[ops,setOps_]=useState([]);
+  const[admins,setAdmins_]=useState([]);
   const[cl,setCl_]=useState([]);
   const[pr,setPr_]=useState([]);
   const[cfg,setCfg_]=useState(DCFG);
   const[opPrizes,setOpPrizes_]=useState([]);
+  const[adminLogs,setAdminLogs_]=useState([]);
   const setOps=d=>{setOps_(d); return DB.save("lc-ops",d);};
+  const setAdmins=d=>{setAdmins_(d); return DB.save("lc-admins",d);};
   const setCl=d=>{setCl_(d); return DB.save("lc-cl",d);};
   const setPr=d=>{setPr_(d); return DB.save("lc-pr",d);};
   const setCfg=d=>{setCfg_(d); return DB.save("lc-cfg",d);};
   const setOpPrizes=d=>{setOpPrizes_(d); return DB.save("lc-op-prizes",d);};
+  const setAdminLogs=d=>{setAdminLogs_(d); return DB.save("lc-admin-logs",d);};
   useEffect(()=>{(async()=>{
-    try{const[o,c,p,f,opp]=await Promise.all([DB.load("lc-ops"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg"),DB.load("lc-op-prizes")]);
-      if(Array.isArray(o))setOps_(o);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);
+    try{const[o,a,c,p,f,opp,al]=await Promise.all([DB.load("lc-ops"),DB.load("lc-admins"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg"),DB.load("lc-op-prizes"),DB.load("lc-admin-logs")]);
+      if(Array.isArray(o))setOps_(o);if(Array.isArray(a))setAdmins_(a);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);if(Array.isArray(al))setAdminLogs_(al);
       if(f)setCfg_({...DCFG,...f,relampagos:f.relampagos||DCFG.relampagos,premioMeta:f.premioMeta||DCFG.premioMeta,noticias:f.noticias||DCFG.noticias,formulario:{...DCFG.formulario,...(f.formulario||{}),cats:f.formulario?.cats||DCFG.formulario.cats,campos:f.formulario?.campos||DCFG.formulario.campos}});}catch(_){}
     setTimeout(()=>{
       setTela("home");
     },1400);
 
     DB.listen?.("lc-ops", val => { if(Array.isArray(val)) setOps_(val); });
+    DB.listen?.("lc-admins", val => { if(Array.isArray(val)) setAdmins_(val); });
     DB.listen?.("lc-cl", val => { if(Array.isArray(val)) setCl_(val); });
     DB.listen?.("lc-pr", val => { if(Array.isArray(val)) setPr_(val); });
     DB.listen?.("lc-op-prizes", val => { if(Array.isArray(val)) setOpPrizes_(val); });
+    DB.listen?.("lc-admin-logs", val => { if(Array.isArray(val)) setAdminLogs_(val); });
     DB.listen?.("lc-cfg", val => { if(val) setCfg_(prev => ({...DCFG,...prev,...val})); });
   })();},[]);
 
 
-  const ctx={tela,setTela,role,setRole,opSel,setOpSel,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes};
+  const ctx={tela,setTela,role,setRole,opSel,setOpSel,adminSel,setAdminSel,ops,setOps,admins,setAdmins,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes,adminLogs,setAdminLogs};
   return(<><style>{CSS}</style>
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:520,margin:"0 auto",fontSize:13,color:C.tx}}>
       {tela==="splash"&&<Splash/>}{tela==="home"&&<Home{...ctx}/>}{tela==="opreg"&&<OpReg{...ctx}/>}
@@ -161,9 +178,10 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
   </div>
 </div>);}
 
-function Home({ops,cl,pr,setRole,setOpSel,setTela}){
+function Home({ops,admins,cl,pr,setRole,setOpSel,setAdminSel,setTela}){
   const[senha,setSenha]=useState("");const[showS,setShowS]=useState(false);const[erroS,setErroS]=useState("");const[showOps,setShowOps]=useState(false);
   const[opLogin,setOpLogin]=useState(null);const[senhaOp,setSenhaOp]=useState("");const[erroOp,setErroOp]=useState("");
+  const[adminLogin,setAdminLogin]=useState(null);
   const[vis,setVis]=useState({adm:false,op:false});
   const totPoints=useMemo(()=>{
     let n=0; 
@@ -175,7 +193,23 @@ function Home({ops,cl,pr,setRole,setOpSel,setTela}){
   const totA=useMemo(()=>cl.reduce((s,c)=>s+(c.auths?.length||0),0),[cl]);
   const metas=pr.filter(p=>p.tipo==="raspadinha"&&(p.status==="approved"||p.status==="redeemed")).length;
   const relamp=pr.filter(p=>p.tipo==="relampago"&&(p.status==="approved"||p.status==="redeemed")).length;
-  function entrarAdmin(){if(senha==="central2026"){setRole("admin");setTela("admin");}else setErroS("Senha incorreta.");}
+  function entrarAdmin(){
+    if(senha==="central2026"){
+      setRole("admin");
+      setAdminSel({id:"master",nome:"Master Padrao",role:"master"});
+      setTela("admin");
+    }else setErroS("Senha incorreta.");
+  }
+  function entrarAdminNovo(){
+    if(!adminLogin) return;
+    if(adminLogin.senhaAcesso === senha || !adminLogin.senhaAcesso){
+      setRole("admin");
+      setAdminSel(adminLogin);
+      setTela("admin");
+    } else {
+      setErroS("Senha incorreta.");
+    }
+  }
   function entrarOp(){
     if(!opLogin) return;
     if(opLogin.senha === senhaOp || !opLogin.senha) {
@@ -226,14 +260,32 @@ function Home({ops,cl,pr,setRole,setOpSel,setTela}){
           <div><div style={{fontWeight:900,fontSize:15,color:C.tx}}>🔒 Administrador / Lotérica</div><div style={{fontSize:11,color:C.sb,marginTop:2}}>Dashboard completo + Configurações</div></div>
           <button onClick={()=>setShowS(!showS)} style={{background:"#374151",color:"#fff",border:"none",borderRadius:9,padding:"8px 13px",fontWeight:800,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>{showS?"Fechar":"Entrar →"}</button>
         </div>
-        {showS&&<form onSubmit={e=>{e.preventDefault(); entrarAdmin();}} style={{padding:"11px 15px",borderTop:`1px solid ${C.bd}`}}>
-          <div style={{display:"flex",gap:7,marginBottom:erroS?7:0,position:"relative"}}>
-            <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} type={vis.adm?"text":"password"} placeholder="Senha admin…" style={{flex:1,...I,paddingRight:42}}/>
-            <button type="button" onClick={()=>setVis({...vis,adm:!vis.adm})} style={{position:"absolute",right:65,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.adm?"Ocultar":"Ver"}</button>
-            <button type="submit" style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
-          </div>
-          {erroS&&<div style={{fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroS}</div>}
-        </form>}
+        {showS&&<div style={{maxHeight:240,overflowY:"auto"}}>
+          {admins?.length===0&&<form onSubmit={e=>{e.preventDefault(); entrarAdmin();}} style={{padding:"11px 15px",borderTop:`1px solid ${C.bd}`}}>
+            <div style={{display:"flex",gap:7,marginBottom:erroS?7:0,position:"relative"}}>
+              <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} type={vis.adm?"text":"password"} placeholder="Senha master padrão…" style={{flex:1,...I,paddingRight:42}}/>
+              <button type="button" onClick={()=>setVis({...vis,adm:!vis.adm})} style={{position:"absolute",right:65,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.adm?"Ocultar":"Ver"}</button>
+              <button type="submit" style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>OK</button>
+            </div>
+            {erroS&&<div style={{fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroS}</div>}
+          </form>}
+          {admins?.length>0&&admins.map((a,i)=><div key={a.id} onClick={()=>{setAdminLogin(a);setSenha("");setErroS("");}}
+            style={{padding:"11px 15px",borderBottom:`1px solid ${C.bd}22`,display:"flex",alignItems:"center",gap:11,cursor:"pointer"}}
+            onMouseEnter={e=>e.currentTarget.style.background=C.azC} onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+            <div style={{width:34,height:34,borderRadius:"50%",background:C.az,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:"#fff",flexShrink:0}}>{a.nome[0].toUpperCase()}</div>
+            <div style={{flex:1}}><div style={{fontWeight:800,fontSize:13,color:C.tx}}>{a.nome}</div><div style={{fontSize:10,color:C.sb}}>{a.role==="master"?"Acesso Master":"Gerência"}</div></div>
+            <span style={{fontSize:16,color:C.sb}}>→</span>
+          </div>)}
+          {adminLogin && <form onSubmit={e=>{e.preventDefault(); entrarAdminNovo();}} style={{padding:"11px 15px",background:C.azC,borderTop:`1px solid ${C.bd}`}}>
+            <div style={{fontSize:11,fontWeight:800,color:C.az,marginBottom:8}}>SENHA DE {adminLogin.nome.toUpperCase()}</div>
+            <div style={{display:"flex",gap:7,position:"relative"}}>
+              <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} type={vis.adm?"text":"password"} placeholder="Senha..." autoFocus style={{flex:1,...I,paddingRight:42}}/>
+              <button type="button" onClick={()=>setVis({...vis,adm:!vis.adm})} style={{position:"absolute",right:105,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.adm?"Ocultar":"Ver"}</button>
+              <button type="submit" style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>ENTRAR</button>
+            </div>
+            {erroS && <div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroS}</div>}
+          </form>}
+        </div>}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
         {[["🏅",ops.length,"Operadoras"],["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",metas,"Metas"],["⚡",relamp,"Relâmp."]].map(([em,v,l])=>(
@@ -612,7 +664,7 @@ function OpRegulamento({cfg}){
 }
 
 /* ═══════ ADMIN PANEL ═══════ */
-function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opPrizes,setOpPrizes}){
+function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opPrizes,setOpPrizes,adminSel,admins,setAdmins,adminLogs,setAdminLogs}){
   const[aba,setAba]=useState("dash");
   const[bus,setBus]=useState("");
   const totPoints=useMemo(()=>{
@@ -641,10 +693,33 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       return p.status === "pending" || p.status === "approved";
     }).length;
   }, [pr, cfg, encerrada]);
-  const checkM = (m="Digite a SENHA MESTRA para autorizar esta exclusão:") => {
+  const logAdminAction = async (acao, detalhes="") => {
+    if(!adminSel) return;
+    const ip = await getIP();
+    const log = {
+      id: uid(),
+      adminId: adminSel.id,
+      adminNome: adminSel.nome,
+      role: adminSel.role,
+      acao,
+      detalhes,
+      data: new Date().toISOString(),
+      ip
+    };
+    setAdminLogs([log, ...(adminLogs||[])].slice(0, 500)); // Keep last 500 logs
+  };
+
+  const checkM = (m="Digite sua Senha de Exclusão Pessoal para autorizar:") => {
+    if(!adminSel || adminSel.role !== "master") {
+      alert("❌ Acesso Negado: Apenas o perfil MASTER pode realizar exclusões no sistema.");
+      return false;
+    }
     const p = window.prompt(m);
-    if(p === (cfg.senhaMestra||"123456")) return true;
-    if(p !== null) alert("❌ Senha Mestra incorreta!");
+    if(p === (adminSel.senhaMestra||"123456")) {
+      logAdminAction("EXCLUSAO", m);
+      return true;
+    }
+    if(p !== null) alert("❌ Senha incorreta!");
     return false;
   };
   const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
@@ -652,8 +727,9 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <button onClick={()=>{setRole(null);setTela("home");}} style={BV}>← Sair</button>
-      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador</div>
-      <div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>Visão completa da lotérica</div>
+      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span></div>
+      <div style={{fontSize:11,color:"rgba(255,255,255,.55)"}}>{adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}</div>
+
       <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
         {[["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",pr.filter(p=>p.tipo==="raspadinha"&&(p.status==="approved"||p.status==="redeemed")).length,"Metas"],["⚡",pr.filter(p=>p.tipo==="relampago"&&(p.status==="approved"||p.status==="redeemed")).length,"Relâmp."]].map(([em,v,l])=>(
           <div key={l} style={{flex:"1 0 62px",background:"rgba(255,255,255,.1)",borderRadius:9,padding:"7px 2px",textAlign:"center",border:"1px solid rgba(255,255,255,.15)"}}>
@@ -668,7 +744,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} />}
       {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
       {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} />}
-      {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} />}
+      {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} />}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
   </div>);
@@ -1340,9 +1416,14 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     </div>
   </div>);}
 
-function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM}){
+function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,adminLogs,logAdminAction}){
   const[sub,setSub]=useState("meta");
-  const SUBS=[{id:"meta",l:"🎯 Meta"},{id:"rl",l:"⚡ Relâmpago"},{id:"form",l:"📝 Formulário"},{id:"reg",l:"📋 Regulamento"},{id:"not",l:"📰 Notícias"},{id:"sis",l:"🔧 Sistema"}];
+  const isMaster = adminSel?.role === "master";
+  let SUBS=[{id:"meta",l:"🎯 Meta"},{id:"rl",l:"⚡ Relâmpago"},{id:"form",l:"📝 Formulário"},{id:"reg",l:"📋 Regulamento"},{id:"not",l:"📰 Notícias"},{id:"sis",l:"🔧 Sistema"}];
+  if(isMaster) {
+    SUBS.push({id:"admins",l:"🛡️ Administradores"});
+    SUBS.push({id:"audit",l:"🕵️ Auditoria"});
+  }
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="⚙️" t="Configurações" s="Edite prêmios, formulário, notícias e sistema"/>
     <div style={{display:"flex",gap:5,background:"#fff",borderRadius:12,padding:4,border:`1px solid ${C.bd}`,flexWrap:"wrap"}}>
@@ -1354,6 +1435,70 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM}){
     {sub==="reg" &&<CfgReg  cfg={cfg} setCfg={setCfg}/>}
     {sub==="not" &&<CfgNoticias cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
+    {sub==="admins" && isMaster && <CfgAdmins admins={admins} setAdmins={setAdmins} adminSel={adminSel} />}
+    {sub==="audit" && isMaster && <CfgAuditoria adminLogs={adminLogs} />}
+  </div>);
+}
+
+function CfgAdmins({admins,setAdmins,adminSel}){
+  const[nome,setNome]=useState("");const[senha,setSenha]=useState("");const[role,setRole]=useState("gerencia");const[senhaMestra,setSenhaMestra]=useState("");
+  const[erro,setErro]=useState("");
+  const salvar = () => {
+    if(!nome.trim()){setErro("Nome obrigatório");return;}
+    if(!senha.trim()){setErro("Senha de acesso obrigatória");return;}
+    if(role==="master" && !senhaMestra.trim()){setErro("Senha de exclusão obrigatória para Master");return;}
+    setAdmins([...(admins||[]),{id:uid(),nome:nome.trim(),senhaAcesso:senha.trim(),role,senhaMestra:senhaMestra.trim()||"",cadastro:new Date().toISOString()}]);
+    setNome("");setSenha("");setSenhaMestra("");setErro("");setRole("gerencia");
+  };
+  const remover = (id) => {
+    if(id===adminSel.id){alert("Não pode remover a si mesmo!");return;}
+    if(window.confirm("Remover este administrador?")) setAdmins(admins.filter(a=>a.id!==id));
+  };
+  return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+    <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
+      <div style={{fontWeight:800,fontSize:14,marginBottom:11,color:C.az}}>➕ Novo Administrador</div>
+      <div style={{display:"flex",flexDirection:"column",gap:9}}>
+        <div><label style={LS}>Nome</label><input value={nome} onChange={e=>{setNome(e.target.value);setErro("");}} style={{width:"100%",marginTop:4,...IS}}/></div>
+        <div style={{display:"flex",gap:8}}>
+          <div style={{flex:1}}><label style={LS}>Senha de Acesso</label><input value={senha} onChange={e=>{setSenha(e.target.value);setErro("");}} type="text" placeholder="Para logar..." style={{width:"100%",marginTop:4,...IS}}/></div>
+          <div style={{flex:1}}><label style={LS}>Perfil</label><select value={role} onChange={e=>setRole(e.target.value)} style={{width:"100%",marginTop:4,...IS}}><option value="gerencia">Gerência</option><option value="master">Master</option></select></div>
+        </div>
+        {role==="master"&&<div><label style={LS}>Senha de Exclusão Pessoal (Senha Mestra)</label><input value={senhaMestra} onChange={e=>{setSenhaMestra(e.target.value);setErro("");}} type="text" placeholder="Usada para aprovar exclusões..." style={{width:"100%",marginTop:4,...IS}}/></div>}
+        {erro&&<div style={{color:C.rd,fontSize:11,fontWeight:700}}>⚠️ {erro}</div>}
+        <button onClick={salvar} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:12,fontWeight:800,cursor:"pointer",fontFamily:"inherit",marginTop:4}}>Salvar Administrador</button>
+      </div>
+    </div>
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      {(admins||[]).map(a=><div key={a.id} style={{background:"#fff",borderRadius:12,padding:"12px 14px",border:`1px solid ${C.bd}`,display:"flex",alignItems:"center",gap:11}}>
+        <div style={{width:34,height:34,borderRadius:"50%",background:C.azC,color:C.az,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,flexShrink:0}}>{a.nome[0].toUpperCase()}</div>
+        <div style={{flex:1}}>
+          <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{a.nome} {a.id===adminSel.id&&<span style={{color:C.vd,fontSize:10,fontWeight:800}}>(Você)</span>}</div>
+          <div style={{fontSize:10,color:C.sb}}>{a.role==="master"?"Acesso Master":"Gerência"}</div>
+        </div>
+        {a.id!==adminSel.id&&<button onClick={()=>remover(a.id)} style={{background:C.rdC,color:C.rd,border:"none",borderRadius:8,padding:"7px",fontSize:12,cursor:"pointer"}}>🗑️</button>}
+      </div>)}
+    </div>
+  </div>);
+}
+
+function CfgAuditoria({adminLogs}){
+  return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+    <div style={{background:C.azC,padding:14,borderRadius:12,border:`1px solid ${C.az}33`,fontSize:11,color:C.az,lineHeight:1.5}}>
+      <strong>Auditoria do Sistema</strong><br/>Este log registra todas as exclusões ou ações críticas feitas pelos administradores, capturando data, hora e endereço de IP da máquina que realizou o comando.
+    </div>
+    <div style={{background:"#fff",borderRadius:14,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
+      {(!adminLogs||adminLogs.length===0)&&<div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhum registro de auditoria encontrado.</div>}
+      {(adminLogs||[]).map(l=><div key={l.id} style={{padding:"12px 15px",borderBottom:`1px solid ${C.bd}33`,display:"flex",flexDirection:"column",gap:5}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontWeight:800,fontSize:12,color:C.tx}}>{l.adminNome} <span style={{color:C.sb,fontWeight:600}}>({l.role})</span></div>
+          <div style={{fontSize:10,color:C.sb,fontFamily:"monospace"}}>{new Date(l.data).toLocaleString("pt-BR")}</div>
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
+          <div style={{fontSize:11,color:C.tx}}><span style={{fontWeight:800,color:C.rd}}>[{l.acao}]</span> {l.detalhes}</div>
+          <div style={{fontSize:9,color:C.sb,fontFamily:"monospace",background:C.bg,padding:"2px 6px",borderRadius:4,border:`1px solid ${C.bd}`}}>IP: {l.ip}</div>
+        </div>
+      </div>)}
+    </div>
   </div>);
 }
 
