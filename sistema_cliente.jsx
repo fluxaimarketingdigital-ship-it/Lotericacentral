@@ -495,8 +495,8 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
             </div>
           )}
           {!encerrada && diasFaltam > 2 && <div/>}
-          <div style={{width:90, height:30, background:"#fff", borderRadius:8, padding:"4px 8px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 2px 8px rgba(0,0,0,0.1)"}}>
-            <img src={logoLoterica} style={{maxWidth:"100%", maxHeight:"100%", objectFit:"contain"}} alt="Logo"/>
+          <div style={{height:42, background:"#fff", borderRadius:10, padding:"5px 14px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(0,0,0,0.15)"}}>
+            <img src={logoLoterica} style={{height:"100%", width:"auto", objectFit:"contain"}} alt="Logo"/>
           </div>
         </div>
         <div style={{fontWeight:800,fontSize:14,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:22}}>{c.nome?.split(" ")[0]}!</span> 👋 <span style={{fontSize:9,opacity:.5}}>v1.3</span></div>
