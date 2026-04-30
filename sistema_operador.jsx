@@ -1831,7 +1831,8 @@ function CfgReg({cfg,setCfg,checkM}){
 function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
   const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[msg,setMsg]=useState("");
   const[novaAcesso,setNovaAcesso]=useState("");const[novaMestra,setNovaMestra]=useState("");
-  const[showM,setShowM]=useState(false);
+  const[showM,setShowM]=useState(false);const[showA,setShowA]=useState(false);
+
   const isMaster = adminSel?.role === "master";
 
   function salvar(){
@@ -1857,9 +1858,10 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
       <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
       <div style={{display:"flex",gap:8,marginBottom:12}}>
-        <div style={{flex:1}}>
+        <div style={{flex:1,position:"relative"}}>
           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Acesso</label>
-          <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type="text" placeholder="Nova senha para logar" style={{...I,marginTop:4}}/>
+          <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type={showA?"text":"password"} placeholder="Nova senha para logar" style={{...I,marginTop:4,paddingRight:45}}/>
+          <button onClick={()=>setShowA(!showA)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showA?"Ocultar":"Ver"}</button>
         </div>
         <div style={{flex:1,position:"relative"}}>
           <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Alteração e Exclusão</label>
