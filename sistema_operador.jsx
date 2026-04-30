@@ -954,8 +954,17 @@ Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "EN
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📈" t="Central de Relatórios" s="Gere e exporte dados da campanha atual"/>
     
-    <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`,overflowX:"auto",scrollbarWidth:"none"}}>
-      {ABAS.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:"1 0 auto",padding:"8px 12px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:11,background:aba===a.id?C.az:"transparent",color:aba===a.id?"#fff":C.sb,transition:"all .2s"}}>{a.l}</button>)}
+    <div style={{display:"flex",flexDirection:"column",gap:8}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:10}}>
+        <div style={{fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:1}}>Tipo de Relatório</div>
+        <select value={aba} onChange={e=>setAba(e.target.value)} style={{...IS,width:"auto",padding:"6px 12px",fontSize:12,fontWeight:700,background:C.azC,border:`1px solid ${C.az}33`,color:C.az}}>
+          {ABAS.map(a=><option key={a.id} value={a.id}>{a.l}</option>)}
+        </select>
+      </div>
+
+      <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`,overflowX:"auto",paddingBottom:8}}>
+        {ABAS.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:"1 0 auto",padding:"8px 15px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:11,background:aba===a.id?C.az:"transparent",color:aba===a.id?"#fff":C.sb,transition:"all .2s",whiteSpace:"nowrap"}}>{a.l}</button>)}
+      </div>
     </div>
 
     {aba==="cli" && (
