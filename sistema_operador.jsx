@@ -203,8 +203,20 @@ function Home({ops,admins,cl,pr,setRole,setOpSel,setAdminSel,setTela}){
   function entrarAdminNovo(){
     if(!adminLogin) return;
     if(adminLogin.senhaAcesso === senha || !adminLogin.senhaAcesso){
+      let finalAdmin = {...adminLogin};
+      if(adminLogin.senhaAcesso === "123456" || !adminLogin.senhaAcesso || !adminLogin.senhaMestra) {
+        const nAcesso = window.prompt(`[PRIMEIRO ACESSO] Defina sua NOVA SENHA DE ACESSO (para logar):`, "");
+        if(!nAcesso) return alert("Você precisa definir uma senha de acesso!");
+        const nMestra = window.prompt(`[PRIMEIRO ACESSO] Defina sua NOVA SENHA DE EXCLUSÃO PESSOAL (para autorizar ações):`, "");
+        if(!nMestra) return alert("Você precisa definir uma senha de exclusão!");
+        finalAdmin.senhaAcesso = nAcesso.trim();
+        finalAdmin.senhaMestra = nMestra.trim();
+        const updatedAdmins = admins.map(a => a.id === finalAdmin.id ? finalAdmin : a);
+        if(typeof setAdmins === "function") setAdmins(updatedAdmins);
+        alert("Senhas configuradas com sucesso! Bem-vindo(a).");
+      }
       setRole("admin");
-      setAdminSel(adminLogin);
+      setAdminSel(finalAdmin);
       setTela("admin");
     } else {
       setErroS("Senha incorreta.");
@@ -261,7 +273,7 @@ function Home({ops,admins,cl,pr,setRole,setOpSel,setAdminSel,setTela}){
           <button onClick={()=>setShowS(!showS)} style={{background:"#374151",color:"#fff",border:"none",borderRadius:9,padding:"8px 13px",fontWeight:800,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>{showS?"Fechar":"Entrar →"}</button>
         </div>
         {showS&&<div style={{maxHeight:240,overflowY:"auto"}}>
-          {admins?.length===0&&<form onSubmit={e=>{e.preventDefault(); entrarAdmin();}} style={{padding:"11px 15px",borderTop:`1px solid ${C.bd}`}}>
+          {!admins?.some(a=>a.role==="master")&&<form onSubmit={e=>{e.preventDefault(); entrarAdmin();}} style={{padding:"11px 15px",borderTop:`1px solid ${C.bd}`}}>
             <div style={{display:"flex",gap:7,marginBottom:erroS?7:0,position:"relative"}}>
               <input value={senha} onChange={e=>{setSenha(e.target.value);setErroS("");}} type={vis.adm?"text":"password"} placeholder="Senha master padrão…" style={{flex:1,...I,paddingRight:42}}/>
               <button type="button" onClick={()=>setVis({...vis,adm:!vis.adm})} style={{position:"absolute",right:65,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"2px 5px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis.adm?"Ocultar":"Ver"}</button>
@@ -1441,14 +1453,13 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,admi
 }
 
 function CfgAdmins({admins,setAdmins,adminSel}){
-  const[nome,setNome]=useState("");const[senha,setSenha]=useState("");const[role,setRole]=useState("gerencia");const[senhaMestra,setSenhaMestra]=useState("");
+  const[nome,setNome]=useState("");const[role,setRole]=useState("gerencia");
   const[erro,setErro]=useState("");
   const salvar = () => {
     if(!nome.trim()){setErro("Nome obrigatório");return;}
-    if(!senha.trim()){setErro("Senha de acesso obrigatória");return;}
-    if(!senhaMestra.trim()){setErro("Senha de exclusão obrigatória");return;}
-    setAdmins([...(admins||[]),{id:uid(),nome:nome.trim(),senhaAcesso:senha.trim(),role,senhaMestra:senhaMestra.trim(),cadastro:new Date().toISOString()}]);
-    setNome("");setSenha("");setSenhaMestra("");setErro("");setRole("gerencia");
+    setAdmins([...(admins||[]),{id:uid(),nome:nome.trim(),senhaAcesso:"123456",role,senhaMestra:"",cadastro:new Date().toISOString()}]);
+    setNome("");setErro("");setRole("gerencia");
+    alert("Administrador criado! A senha de acesso padrão é 123456. No primeiro login, o sistema exigirá a configuração das senhas.");
   };
   const remover = (id) => {
     if(id===adminSel.id){alert("Não pode remover a si mesmo!");return;}
@@ -1459,11 +1470,8 @@ function CfgAdmins({admins,setAdmins,adminSel}){
       <div style={{fontWeight:800,fontSize:14,marginBottom:11,color:C.az}}>➕ Novo Administrador</div>
       <div style={{display:"flex",flexDirection:"column",gap:9}}>
         <div><label style={LS}>Nome</label><input value={nome} onChange={e=>{setNome(e.target.value);setErro("");}} style={{width:"100%",marginTop:4,...IS}}/></div>
-        <div style={{display:"flex",gap:8}}>
-          <div style={{flex:1}}><label style={LS}>Senha de Acesso</label><input value={senha} onChange={e=>{setSenha(e.target.value);setErro("");}} type="text" placeholder="Para logar..." style={{width:"100%",marginTop:4,...IS}}/></div>
-          <div style={{flex:1}}><label style={LS}>Perfil</label><select value={role} onChange={e=>setRole(e.target.value)} style={{width:"100%",marginTop:4,...IS}}><option value="gerencia">Gerência</option><option value="master">Master</option></select></div>
-        </div>
-        <div><label style={LS}>Senha de Exclusão Pessoal</label><input value={senhaMestra} onChange={e=>{setSenhaMestra(e.target.value);setErro("");}} type="text" placeholder="Usada para aprovar exclusões..." style={{width:"100%",marginTop:4,...IS}}/></div>
+        <div><label style={LS}>Perfil</label><select value={role} onChange={e=>setRole(e.target.value)} style={{width:"100%",marginTop:4,...IS}}><option value="gerencia">Gerência</option><option value="master">Master</option></select></div>
+        <div style={{fontSize:11,color:C.sb,background:C.bg,padding:10,borderRadius:8,lineHeight:1.4}}>⚠️ A senha padrão de acesso será <strong>123456</strong>. No primeiro login, o administrador será forçado a criar suas próprias senhas de acesso e de exclusão.</div>
         {erro&&<div style={{color:C.rd,fontSize:11,fontWeight:700}}>⚠️ {erro}</div>}
         <button onClick={salvar} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:12,fontWeight:800,cursor:"pointer",fontFamily:"inherit",marginTop:4}}>Salvar Administrador</button>
       </div>
