@@ -1492,7 +1492,7 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,admi
     {sub==="form"&&<CfgForm cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="reg" &&<CfgReg  cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="not" &&<CfgNoticias cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
-    {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} adminSel={adminSel} admins={admins} setAdmins={setAdmins}/>}
+    {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} adminSel={adminSel} admins={admins} setAdmins={setAdmins} checkM={checkM}/>}
     {sub==="admins" && isMaster && <CfgAdmins admins={admins} setAdmins={setAdmins} adminSel={adminSel} />}
     {sub==="audit" && isMaster && <CfgAuditoria adminLogs={adminLogs} reverterAcao={reverterAcao} />}
   </div>);
