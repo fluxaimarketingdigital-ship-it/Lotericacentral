@@ -140,7 +140,61 @@ export default function App(){
   const setPr=d=>{setPr_(d); return DB.save("lc-pr",d);};
   const setCfg=d=>{setCfg_(d); return DB.save("lc-cfg",d);};
   const setOpPrizes=d=>{setOpPrizes_(d); return DB.save("lc-op-prizes",d);};
-  const setAdminLogs=d=>{setAdminLogs_(d); return DB.save("lc-admin-logs",d);};
+  const logAdminAction = async (acao, detalhes="", payload=null) => {
+    if(!adminSel) return;
+    const ip = await getIP();
+    const log = {
+      id: uid(),
+      adminId: adminSel.id,
+      adminNome: adminSel.nome,
+      role: adminSel.role,
+      acao,
+      detalhes,
+      payload,
+      reverted: false,
+      data: new Date().toISOString(),
+      ip
+    };
+    setAdminLogs([log, ...(adminLogs||[])].slice(0, 500)); // Keep last 500 logs
+  };
+
+  const reverterAcao = (logId) => {
+    const log = adminLogs?.find(l => l.id === logId);
+    if(!log || !log.payload) {
+      alert("❌ Dados de restauração não encontrados ou incompatíveis.");
+      return;
+    }
+    if(log.reverted) {
+      alert("⚠️ Esta ação já foi revertida anteriormente.");
+      return;
+    }
+    if(!window.confirm("Deseja realmente REVERTER esta ação e restaurar os dados excluídos?")) return;
+    
+    try {
+      const p = log.payload;
+      if(p.tipo === "cliente") {
+        setCl([...cl, p.dado]);
+      } else if(p.tipo === "auth") {
+        setCl(cl.map(c => c.id === p.clientId ? {...c, auths: [...(c.auths||[]), p.dado]} : c));
+      } else if(p.tipo === "operadora") {
+        setOps([...ops, p.dado]);
+      } else if(p.tipo === "opPrize") {
+        setOpPrizes([...(opPrizes||[]), p.dado]);
+      } else if(p.tipo === "relampago") {
+        setCfg({...cfg, relampagos: [...cfg.relampagos, p.dado]});
+      } else if(p.tipo === "noticia") {
+        setCfg({...cfg, noticias: [...cfg.noticias, p.dado]});
+      } else {
+         alert("Tipo de dado desconhecido para reversão.");
+         return;
+      }
+      
+      setAdminLogs(adminLogs.map(l => l.id === logId ? {...l, reverted: true, detalhes: l.detalhes + " (REVERTIDO)"} : l));
+      alert("✅ Ação revertida com sucesso! O registro voltou ao sistema.");
+    } catch(e) {
+      alert("Erro ao reverter: " + e.message);
+    }
+  };
   useEffect(()=>{(async()=>{
     try{const[o,a,c,p,f,opp,al]=await Promise.all([DB.load("lc-ops"),DB.load("lc-admins"),DB.load("lc-cl"),DB.load("lc-pr"),DB.load("lc-cfg"),DB.load("lc-op-prizes"),DB.load("lc-admin-logs")]);
       if(Array.isArray(o))setOps_(o);if(Array.isArray(a))setAdmins_(a);if(Array.isArray(c))setCl_(c);if(Array.isArray(p))setPr_(p);if(Array.isArray(opp))setOpPrizes_(opp);if(Array.isArray(al))setAdminLogs_(al);
@@ -159,7 +213,21 @@ export default function App(){
   })();},[]);
 
 
-  const ctx={tela,setTela,role,setRole,opSel,setOpSel,adminSel,setAdminSel,ops,setOps,admins,setAdmins,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes,adminLogs,setAdminLogs};
+  const checkM = (m="Digite sua Senha de Alteração e Exclusão para autorizar:", payload=null, acaoNome="EXCLUSAO") => {
+    if(!adminSel) {
+      alert("❌ Acesso Negado: Você precisa estar logado como administrador.");
+      return false;
+    }
+    const p = window.prompt(m);
+    if(p === (adminSel.senhaMestra||"123456")) {
+      logAdminAction(acaoNome, m, payload);
+      return true;
+    }
+    if(p !== null) alert("❌ Senha incorreta!");
+    return false;
+  };
+
+  const ctx={tela,setTela,role,setRole,opSel,setOpSel,adminSel,setAdminSel,ops,setOps,admins,setAdmins,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes,adminLogs,setAdminLogs,logAdminAction,reverterAcao,checkM};
   return(<><style>{CSS}</style>
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:520,margin:"0 auto",fontSize:13,color:C.tx}}>
       {tela==="splash"&&<Splash/>}{tela==="home"&&<Home{...ctx}/>}{tela==="opreg"&&<OpReg{...ctx}/>}
@@ -178,7 +246,7 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
   </div>
 </div>);}
 
-function Home({ops,admins,cl,pr,setRole,setOpSel,setAdminSel,setTela}){
+function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela}){
   const[senha,setSenha]=useState("");const[showS,setShowS]=useState(false);const[erroS,setErroS]=useState("");const[showOps,setShowOps]=useState(false);
   const[opLogin,setOpLogin]=useState(null);const[senhaOp,setSenhaOp]=useState("");const[erroOp,setErroOp]=useState("");
   const[adminLogin,setAdminLogin]=useState(null);
@@ -677,7 +745,7 @@ function OpRegulamento({cfg}){
 }
 
 /* ═══════ ADMIN PANEL ═══════ */
-function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opPrizes,setOpPrizes,adminSel,admins,setAdmins,adminLogs,setAdminLogs}){
+function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,adminSel,setAdminSel,opPrizes,setOpPrizes,adminLogs,setAdminLogs,logAdminAction,reverterAcao,checkM}){
   const[aba,setAba]=useState("dash");
   const[bus,setBus]=useState("");
   const totPoints=useMemo(()=>{
@@ -706,75 +774,11 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       return p.status === "pending" || p.status === "approved";
     }).length;
   }, [pr, cfg, encerrada]);
-  const logAdminAction = async (acao, detalhes="", payload=null) => {
-    if(!adminSel) return;
-    const ip = await getIP();
-    const log = {
-      id: uid(),
-      adminId: adminSel.id,
-      adminNome: adminSel.nome,
-      role: adminSel.role,
-      acao,
-      detalhes,
-      payload,
-      reverted: false,
-      data: new Date().toISOString(),
-      ip
-    };
-    setAdminLogs([log, ...(adminLogs||[])].slice(0, 500)); // Keep last 500 logs
-  };
 
-  const checkM = (m="Digite sua Senha de Alteração e Exclusão para autorizar:", payload=null, acaoNome="EXCLUSAO") => {
-    if(!adminSel) {
-      alert("❌ Acesso Negado: Você precisa estar logado como administrador.");
-      return false;
-    }
-    const p = window.prompt(m);
-    if(p === (adminSel.senhaMestra||"123456")) {
-      logAdminAction(acaoNome, m, payload);
-      return true;
-    }
-    if(p !== null) alert("❌ Senha incorreta!");
-    return false;
-  };
 
-  const reverterAcao = (logId) => {
-    const log = adminLogs?.find(l => l.id === logId);
-    if(!log || !log.payload) {
-      alert("❌ Dados de restauração não encontrados ou incompatíveis.");
-      return;
-    }
-    if(log.reverted) {
-      alert("⚠️ Esta ação já foi revertida anteriormente.");
-      return;
-    }
-    if(!window.confirm("Deseja realmente REVERTER esta ação e restaurar os dados excluídos?")) return;
-    
-    try {
-      const p = log.payload;
-      if(p.tipo === "cliente") {
-        setCl([...cl, p.dado]);
-      } else if(p.tipo === "auth") {
-        setCl(cl.map(c => c.id === p.clientId ? {...c, auths: [...(c.auths||[]), p.dado]} : c));
-      } else if(p.tipo === "operadora") {
-        setOps([...ops, p.dado]);
-      } else if(p.tipo === "opPrize") {
-        setOpPrizes([...(opPrizes||[]), p.dado]);
-      } else if(p.tipo === "relampago") {
-        setCfg({...cfg, relampagos: [...cfg.relampagos, p.dado]});
-      } else if(p.tipo === "noticia") {
-        setCfg({...cfg, noticias: [...cfg.noticias, p.dado]});
-      } else {
-         alert("Tipo de dado desconhecido para reversão.");
-         return;
-      }
-      
-      setAdminLogs(adminLogs.map(l => l.id === logId ? {...l, reverted: true, detalhes: l.detalhes + " (REVERTIDO)"} : l));
-      alert("✅ Ação revertida com sucesso! O registro voltou ao sistema.");
-    } catch(e) {
-      alert("Erro ao reverter: " + e.message);
-    }
-  };
+
+
+
   const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
@@ -965,7 +969,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM}){
     {rank.length > 0 && (
       <div style={{background:C.az,borderRadius:14,padding:16,display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,boxShadow:`0 4px 12px ${C.az}44`}}>
         <div><div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase"}}>Ciclo Mensal Atual</div><div style={{color:"#fff",fontWeight:900,fontSize:14}}>Desde {fD(lastReset)}</div></div>
-        <button onClick={()=>{if(checkM("Encerrar o ciclo mensal? Esta ação zerará o ranking atual. Digite a senha:")) encerrarCiclo();}} style={{background:C.ou,color:C.az,border:"none",borderRadius:9,padding:"8px 14px",fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🏆 Encerrar Ciclo</button>
+        <button onClick={()=>{if(checkM("Encerrar o ciclo mensal? Esta ação zerará o ranking atual. Digite sua Senha de Alteração e Exclusão:")) encerrarCiclo();}} style={{background:C.ou,color:C.az,border:"none",borderRadius:9,padding:"8px 14px",fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🏆 Encerrar Ciclo</button>
       </div>
     )}
 
@@ -974,7 +978,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM}){
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
         <div style={{flex:1}}>
           {eId===r.op.id?<div style={{display:"flex",gap:5}}><input value={eN} onChange={e=>setEN(e.target.value)} style={{flex:1,...I,padding:"5px 9px",fontSize:12}}/><button onClick={()=>{setOps(ops.map(o=>o.id===r.op.id?{...o,nome:eN}:o));setEId(null);}} style={{background:C.vd,color:"#fff",border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✓</button><button onClick={()=>setEId(null)} style={{background:"#f3f4f6",color:C.sb,border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button></div>
-          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:(op && r.op.id===op.id)?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{(op && r.op.id===op.id)?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}?`, {tipo: 'operadora', dado: r.op})) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
+          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:(op && r.op.id===op.id)?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{(op && r.op.id===op.id)?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234? Digite sua Senha de Alteração e Exclusão:`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}? Digite sua Senha de Alteração e Exclusão:`, {tipo: 'operadora', dado: r.op})) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
           <div style={{fontSize:10,color:C.sb,marginTop:2}}>Desde {fD(r.op.cadastro)}</div>
         </div>
       </div>
@@ -993,7 +997,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM}){
                 <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Ciclo {p.periodo}</div>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   <div style={{background:p.status==="paid"?C.vdC:C.ouC,color:p.status==="paid"?C.vd:C.ou2,fontSize:9,fontWeight:900,padding:"2px 8px",borderRadius:20}}>{p.status==="paid"?"✅ PAGO":"⏳ PENDENTE"}</div>
-                  <button onClick={()=>{if(checkM("Remover este registro do histórico de prêmios?", {tipo: 'opPrize', dado: p})) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
+                  <button onClick={()=>{if(checkM("Remover este registro do histórico de prêmios? Digite sua Senha de Alteração e Exclusão:", {tipo: 'opPrize', dado: p})) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
                 </div>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -1034,7 +1038,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
     }
   };
   const excluirAuth = () => {
-    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente?", {tipo: 'auth', clientId: c.id, dado: a})) return;
+    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente? Digite sua Senha de Alteração e Exclusão:", {tipo: 'auth', clientId: c.id, dado: a})) return;
     setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
     setPr(pr.filter(p=>p.authId!==a.id));
   };
@@ -1248,7 +1252,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
                 <span>{c.nome}</span>
                 {(c.auths?.some(a=>a.status==="pending") || pr.some(p=>p.clientId===c.id && p.status==="pending")) && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
               </div>
-              <div onClick={(e)=>{e.stopPropagation(); if(checkM(`Excluir o cliente ${c.nome} permanentemente?`, {tipo: 'cliente', dado: c})) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
+              <div onClick={(e)=>{e.stopPropagation(); if(checkM(`Excluir o cliente ${c.nome} permanentemente? Digite sua Senha de Alteração e Exclusão:`, {tipo: 'cliente', dado: c})) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
             </div>
             <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} registros · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
@@ -1619,7 +1623,7 @@ function CfgAuditoria({adminLogs, reverterAcao}){
   </div>);
 }
 
-function CfgForm({cfg,setCfg}){
+function CfgForm({cfg,setCfg,checkM}){
   const form0 = cfg.formulario || {cats:[],campos:[]};
   const[campos,setCampos]=useState(form0.campos.map(c=>({...c})));
   const[cats,  setCats]  =useState(form0.cats.map(c=>({...c})));
@@ -1699,7 +1703,7 @@ function CfgForm({cfg,setCfg}){
   </div>);
 }
 
-function CfgMeta({cfg,setCfg}){
+function CfgMeta({cfg,setCfg,checkM}){
   const[meta,setMeta]=useState(String(cfg.meta));
   const[minV,setMinV]=useState(cfg.minVisita||300);
   const[valDias,setValDias]=useState(cfg.validadeDias||30);
@@ -1784,7 +1788,7 @@ function CfgRelampagos({cfg,setCfg,checkM}){
         <div style={{display:"flex",gap:8}}><div style={{flex:1}}><label style={L}>Emoji</label><input value={r.emoji} onChange={e=>upd(r.id,"emoji",e.target.value)} style={{width:"100%",marginTop:4,padding:"8px",border:`1.5px solid ${C.bd}`,borderRadius:9,fontSize:18,textAlign:"center",fontFamily:"inherit",outline:"none"}}/></div><div style={{flex:1}}><label style={L}>Prob. (%)</label><input value={r.prob} onChange={e=>upd(r.id,"prob",e.target.value)} type="number" min="0.1" max="100" step="0.1" style={{width:"100%",marginTop:4,...I}}/></div></div>
         <div><label style={L}>Nome *</label><input value={r.nome} onChange={e=>upd(r.id,"nome",e.target.value)} style={{width:"100%",marginTop:4,...I}} placeholder="Ex: Raspadinha Bônus"/></div>
         <div><label style={L}>Descrição</label><textarea value={r.desc} onChange={e=>upd(r.id,"desc",e.target.value)} rows={2} style={{width:"100%",marginTop:4,...I,resize:"vertical"}} placeholder="Mensagem para o cliente…"/></div>
-        <button onClick={()=>{if(checkM("Remover este prêmio relâmpago?", {tipo: 'relampago', dado: r})) remover(r.id);}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
+        <button onClick={()=>{if(checkM("Remover este prêmio relâmpago? Digite sua Senha de Alteração e Exclusão:", {tipo: 'relampago', dado: r})) remover(r.id);}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
       </div>}
     </div>)}
     <button onClick={addNovo} style={{background:C.rxC,color:C.rx,border:`1.5px dashed ${C.rx}55`,borderRadius:12,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>➕ Adicionar Novo Prêmio Relâmpago</button>
@@ -1793,7 +1797,7 @@ function CfgRelampagos({cfg,setCfg,checkM}){
   </div>);
 }
 
-function CfgReg({cfg,setCfg}){
+function CfgReg({cfg,setCfg,checkM}){
   const[txt,setTxt]=useState(cfg.regulamento);
   const[ini,setIni]=useState(cfg.dataInicio||"2026-04-01");
   const[fim,setFim]=useState(cfg.dataFim||"2026-12-31");
@@ -1823,11 +1827,14 @@ function CfgReg({cfg,setCfg}){
   </div>);
 }
 
-function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins}){
+function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
   const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[msg,setMsg]=useState("");
   const[novaAcesso,setNovaAcesso]=useState("");const[novaMestra,setNovaMestra]=useState("");
   const[showM,setShowM]=useState(false);
+  const isMaster = adminSel?.role === "master";
+
   function salvar(){
+    if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar as Configurações do Sistema:", null, "ALTERACAO")) return;
     setCfg({...cfg,appUrl:url.trim(),wts:wts.trim()});
     if(novaAcesso.trim() || novaMestra.trim()){
       const adminAtualizado = {...adminSel};
@@ -1842,32 +1849,41 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins}){
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:10}}>🌐 URL do Aplicativo Cliente</div>
-      <div style={{fontSize:11,color:C.sb,marginBottom:8,lineHeight:1.7}}>URL pública do portal do cliente (ex: <code>https://meuapp.vercel.app</code>). Necessária para os QR Codes funcionarem no celular. {adminSel?.role !== "master" && "(Apenas Master pode alterar)"}</div>
-      <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12,background:adminSel?.role!=="master"?"#f3f4f6":"#fff",color:adminSel?.role!=="master"?C.sb:C.tx}} readOnly={adminSel?.role!=="master"}/>
-      <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12,background:adminSel?.role!=="master"?"#f3f4f6":"#fff",color:adminSel?.role!=="master"?C.sb:C.tx}} readOnly={adminSel?.role!=="master"}/>
-      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
-      <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
-      <div style={{display:"flex",gap:8,marginBottom:12}}>
-        <div style={{flex:1}}>
-          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Acesso</label>
-          <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type="text" placeholder="Nova senha para logar" style={{...I,marginTop:4}}/>
-        </div>
-        <div style={{flex:1,position:"relative"}}>
-          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Alteração e Exclusão</label>
-          <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={showM?"text":"password"} placeholder="Nova senha de exclusões" style={{...I,marginTop:4,paddingRight:45}}/>
-          <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
-        </div>
-      </div>
+      <div style={{fontSize:11,color:C.sb,marginBottom:8,lineHeight:1.7}}>URL pública do portal do cliente (ex: <code>https://meuapp.vercel.app</code>). Necessária para os QR Codes funcionarem no celular. {!isMaster && "(Apenas Master pode alterar)"}</div>
+      <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12,background:!isMaster?"#f3f4f6":"#fff",color:!isMaster?C.sb:C.tx}} readOnly={!isMaster}/>
+      <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12,background:!isMaster?"#f3f4f6":"#fff",color:!isMaster?C.sb:C.tx}} readOnly={!isMaster}/>
+      
+      {isMaster && (
+        <>
+          <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
+          <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
+          <div style={{display:"flex",gap:8,marginBottom:12}}>
+            <div style={{flex:1}}>
+              <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Acesso</label>
+              <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type="text" placeholder="Nova senha para logar" style={{...I,marginTop:4}}/>
+            </div>
+            <div style={{flex:1,position:"relative"}}>
+              <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Alteração e Exclusão</label>
+              <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={showM?"text":"password"} placeholder="Nova senha de exclusões" style={{...I,marginTop:4,paddingRight:45}}/>
+              <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
+            </div>
+          </div>
+        </>
+      )}
+
       {msg&&<div style={{padding:"9px 12px",borderRadius:9,marginBottom:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
-      <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Alterações</button>
+      {isMaster && <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Alterações</button>}
     </div>
-    <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
-        {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Registros","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
-        ["🎁","Prêmios",`${pr.length} registros`,()=>csv([["ID","Cliente","Tipo","Nome","Data"],...pr.map(p=>[p.id,cl.find(c=>c.id===p.clientId)?.nome||"",p.tipo,p.nome,fDT(p.data)])],`premios_${hoje()}.csv`)],
-        ["✅","Autenticações","Todos os registros",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
-      ].map(([ic,t,s,fn])=><div key={t} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 12px",background:C.bg,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:7}}><span style={{fontSize:22}}>{ic}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{t}</div><div style={{fontSize:10,color:C.sb}}>{s}</div></div><button onClick={fn} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>⬇️ CSV</button></div>)}
-    </div>
+    
+    {isMaster && (
+      <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
+        <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
+          {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Registros","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
+          ["🎁","Prêmios",`${pr.length} registros`,()=>csv([["ID","Cliente","Tipo","Nome","Data"],...pr.map(p=>[p.id,cl.find(c=>c.id===p.clientId)?.nome||"",p.tipo,p.nome,fDT(p.data)])],`premios_${hoje()}.csv`)],
+          ["✅","Autenticações","Todos os registros",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
+        ].map(([ic,t,s,fn])=><div key={t} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 12px",background:C.bg,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:7}}><span style={{fontSize:22}}>{ic}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{t}</div><div style={{fontSize:10,color:C.sb}}>{s}</div></div><button onClick={fn} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>⬇️ CSV</button></div>)}
+      </div>
+    )}
   </div>);
 }
 
