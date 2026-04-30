@@ -1446,7 +1446,7 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,admi
     {sub==="form"&&<CfgForm cfg={cfg} setCfg={setCfg}/>}
     {sub==="reg" &&<CfgReg  cfg={cfg} setCfg={setCfg}/>}
     {sub==="not" &&<CfgNoticias cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
-    {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr}/>}
+    {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} adminSel={adminSel} admins={admins} setAdmins={setAdmins}/>}
     {sub==="admins" && isMaster && <CfgAdmins admins={admins} setAdmins={setAdmins} adminSel={adminSel} />}
     {sub==="audit" && isMaster && <CfgAuditoria adminLogs={adminLogs} />}
   </div>);
@@ -1713,10 +1713,21 @@ function CfgReg({cfg,setCfg}){
   </div>);
 }
 
-function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
-  const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[mst,setMst]=useState(cfg.senhaMestra||"123456");const[msg,setMsg]=useState("");
+function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins}){
+  const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[msg,setMsg]=useState("");
+  const[novaAcesso,setNovaAcesso]=useState("");const[novaMestra,setNovaMestra]=useState("");
   const[showM,setShowM]=useState(false);
-  function salvar(){setCfg({...cfg,appUrl:url.trim(),wts:wts.trim(),senhaMestra:mst.trim()});setMsg("✅ Salvo!");setTimeout(()=>setMsg(""),3000);}
+  function salvar(){
+    setCfg({...cfg,appUrl:url.trim(),wts:wts.trim()});
+    if(novaAcesso.trim() || novaMestra.trim()){
+      const adminAtualizado = {...adminSel};
+      if(novaAcesso.trim()) adminAtualizado.senhaAcesso = novaAcesso.trim();
+      if(novaMestra.trim()) adminAtualizado.senhaMestra = novaMestra.trim();
+      if(typeof setAdmins === "function") setAdmins(admins.map(a => a.id === adminSel.id ? adminAtualizado : a));
+    }
+    setNovaAcesso("");setNovaMestra("");
+    setMsg("✅ Salvo!");setTimeout(()=>setMsg(""),3000);
+  }
   function csv(rows,name){const d=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(d);a.download=name;a.click();}
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
@@ -1724,14 +1735,21 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
       <div style={{fontSize:11,color:C.sb,marginBottom:8,lineHeight:1.7}}>URL pública do portal do cliente (ex: <code>https://meuapp.vercel.app</code>). Necessária para os QR Codes funcionarem no celular.</div>
       <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12}}/>
       <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12}}/>
-      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:8}}>🔒 Senha Mestra de Exclusão</div>
-      <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Senha exigida para excluir clientes, operadoras ou registros.</div>
-      <div style={{position:"relative"}}>
-        <input value={mst} onChange={e=>setMst(e.target.value)} type={showM?"text":"password"} style={{...I,marginBottom:12,paddingRight:45}}/>
-        <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:6,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
+      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
+      <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
+      <div style={{display:"flex",gap:8,marginBottom:12}}>
+        <div style={{flex:1}}>
+          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Acesso</label>
+          <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type="text" placeholder="Nova senha para logar" style={{...I,marginTop:4}}/>
+        </div>
+        <div style={{flex:1,position:"relative"}}>
+          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Exclusão</label>
+          <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={showM?"text":"password"} placeholder="Nova senha de exclusões" style={{...I,marginTop:4,paddingRight:45}}/>
+          <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
+        </div>
       </div>
       {msg&&<div style={{padding:"9px 12px",borderRadius:9,marginBottom:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
-      <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar</button>
+      <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Alterações</button>
     </div>
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
