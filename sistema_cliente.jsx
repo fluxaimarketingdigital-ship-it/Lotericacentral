@@ -599,8 +599,6 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
       )}
     </div>
 
-      {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr} setVoucherVer={setVoucherVer}/>}
-    </div>
     {/* NAV */}
     <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:100}}>
       {ABAS.map(a=>{const badge=a.id==="not"&&temPr&&nBadge>0;const isReg=a.id==="reg";return(
