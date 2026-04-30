@@ -121,6 +121,20 @@ async function getIP() {
   }
 }
 
+const VerMais = ({total, visiveis, setVisiveis}) => {
+  if(visiveis >= total) return null;
+  return (
+    <div style={{padding:"12px 0", textAlign:"center"}}>
+      <button 
+        onClick={() => setVisiveis(prev => prev + 15)} 
+        style={{background:C.bg, border:`1.5px solid ${C.bd}`, borderRadius:20, padding:"6px 16px", fontSize:11, fontWeight:800, color:C.az, cursor:"pointer", display:"flex", alignItems:"center", gap:6, margin:"0 auto", transition:".2s", fontFamily:"inherit"}}
+      >
+        Ver mais {Math.min(15, total - visiveis)} registros <span style={{fontSize:14}}>↓</span>
+      </button>
+    </div>
+  );
+};
+
 /* ═══════ APP ROOT ═══════ */
 export default function App(){
   const[tela,setTela]=useState("splash");
@@ -575,7 +589,7 @@ function OpQR({op,cfg,minhas,minhasV,hoje_}){
     </div>
     {hoje_.length>0&&<div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       <div style={{padding:"10px 13px",borderBottom:`1px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Visitas de Hoje ({hoje_.length})</div>
-      {hoje_.slice(0,5).map((a,i)=><div key={a.id} style={{padding:"9px 13px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+      {hoje_.slice(0,15).map((a,i)=><div key={a.id} style={{padding:"9px 13px",borderBottom:i<14?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:30,height:30,borderRadius:8,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🏪</div>
         <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
       </div>)}
@@ -584,7 +598,8 @@ function OpQR({op,cfg,minhas,minhasV,hoje_}){
 }
 
 function OpAuths({minhasV,hoje_}){
-  const[f,setF]=useState("all");const lista=f==="hj"?hoje_:minhasV;
+  const[f,setF]=useState("all");const[vis,setVis]=useState(15);
+  const lista=f==="hj"?hoje_:minhasV;
   const gr=useMemo(()=>{const m={};minhasV.forEach(a=>{const k=mAno(a.data);if(!m[k])m[k]={mes:k,auths:0};m[k].auths++;});return Object.values(m).sort((a,b)=>a.mes.localeCompare(b.mes)).slice(-6);},[minhasV]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="✅" t="Minhas Visitas Válidas"/>
@@ -603,27 +618,31 @@ function OpAuths({minhasV,hoje_}){
     ))}</div>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="✅" msg="Nenhuma autenticação neste período."/>}
-      {lista.map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+      {lista.slice(0,vis).map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 13px",borderBottom:i<lista.slice(0,vis).length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:32,height:32,borderRadius:9,background:v?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>{v?"✅":"⏳"}</div>
         <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:v?C.tx:C.sb}}>{a.cn} · {v?"Ponto":"Histórico"}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
       </div>);})}
     </div>
+    <VerMais total={lista.length} visiveis={vis} setVisiveis={setVis} />
   </div>);
 }
 
-function OpCl({meusCl,cfg}){return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
+function OpCl({meusCl,cfg}){
+  const[vis,setVis]=useState(15);
+  return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
   <T em="👥" t="Meus Clientes" s={`${meusCl.length} atendidos`}/>
   <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
     {meusCl.length===0&&<V em="👥" msg="Ainda nenhum cliente atendido."/>}
-    {meusCl.map((c,i)=>{
+    {meusCl.slice(0,vis).map((c,i)=>{
       const vs=c.auths?.filter(a=>a.valida!==false)||[];
       const prog=vs.length%cfg.meta;const ganhou=vs.length>0&&vs.length%cfg.meta===0;
-      return(<div key={c.id} style={{padding:"10px 13px",borderBottom:i<meusCl.length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+      return(<div key={c.id} style={{padding:"10px 13px",borderBottom:i<meusCl.slice(0,vis).length-1?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
       <div style={{width:34,height:34,borderRadius:"50%",background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:13,color:C.az,flexShrink:0}}>{c.nome?.[0]?.toUpperCase()||"?"}</div>
       <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{c.nome}</div><div style={{fontSize:10,color:C.sb}}>{vs.length} pts / {c.auths?.length||0} total</div></div>
       {ganhou&&<span style={{background:C.vdC,color:C.vd,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{cfg.premioMeta.emoji} Pronto!</span>}
       {!ganhou&&prog>=cfg.meta-3&&prog>0&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>Faltam {cfg.meta-prog}</span>}
     </div>);})}</div>
+    <VerMais total={meusCl.length} visiveis={vis} setVisiveis={setVis} />
 </div>);}
 
 function OpVoucher({pr, setPr, cl, op, cfg}){
@@ -693,6 +712,7 @@ function OpVoucher({pr, setPr, cl, op, cfg}){
 }
 
 function OpRank({rank,op,pos}){
+  const[vis,setVis]=useState(15);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="🏅" t="Ranking de Operadores" s="Competição mensal"/>
     <div style={{background:C.az,borderRadius:18,padding:22,textAlign:"center",color:"#fff",boxShadow:`0 8px 25px ${C.az}44`,marginBottom:10,animation:"pop .5s"}}>
@@ -928,6 +948,7 @@ function FeedbackDash({cl,ops}){
 
 function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}){
   const[eId,setEId]=useState(null);const[eN,setEN]=useState("");
+  const[visR,setVisR]=useState(15);const[visP,setVisP]=useState(15);
   const lastReset = cfg.lastReset || "2000-01-01";
   const lrTime = new Date(lastReset).getTime();
   const rank=useMemo(()=>ops.map((o,i)=>{
@@ -974,7 +995,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}
       </div>
     )}
 
-    {rank.map((r,i)=><div key={r.op.id} style={{background:"#fff",borderRadius:13,padding:"13px",border:i<2?`2px solid ${C.ou}55`:`1px solid ${C.bd}`}}>
+    {rank.slice(0,visR).map((r,i)=><div key={r.op.id} style={{background:"#fff",borderRadius:13,padding:"13px",border:i<2?`2px solid ${C.ou}55`:`1px solid ${C.bd}`}}>
       <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:10}}>
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
         <div style={{flex:1}}>
@@ -986,13 +1007,14 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>{[["✅","Visitas Válidas",r.a,C.az],["👥","Clientes",r.cs,C.vd]].map(([em,l,v,cor])=><div key={l} style={{background:C.bg,borderRadius:9,padding:"8px",textAlign:"center"}}><div style={{fontWeight:900,fontSize:18,color:cor}}>{v}</div><div style={{fontSize:9,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{em} {l}</div></div>)}</div>
       <div style={{marginTop:8,background:"#f3f4f6",borderRadius:6,height:5,overflow:"hidden"}}><div style={{height:"100%",background:oc(r.i),borderRadius:6,width:(r.a/Math.max(rank[0]?.a||1,1)*100)+"%"}}/></div>
     </div>)}
+    <VerMais total={rank.length} visiveis={visR} setVisiveis={setVisR} />
     {ops.length===0&&<V em="👤" msg="Nenhuma operadora cadastrada."/>}
 
     {opPrizes && opPrizes.length > 0 && (
       <div style={{marginTop:20}}>
         <T em="🎁" t="Histórico de Prêmios" s="Controle de pagamentos das operadoras"/>
         <div style={{display:"flex",flexDirection:"column",gap:10,marginTop:10}}>
-          {opPrizes.map(p => (
+          {opPrizes.slice(0,visP).map(p => (
             <div key={p.id} style={{background:"#fff",borderRadius:13,padding:14,border:`1px solid ${p.status==="paid"?C.vd+"33":C.bd}`}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
                 <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Ciclo {p.periodo}</div>
@@ -1017,6 +1039,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}
               )}
             </div>
           ))}
+          <VerMais total={opPrizes.length} visiveis={visP} setVisiveis={setVisP} />
         </div>
       </div>
     )}
@@ -1218,7 +1241,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
 }
 
 function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
-  const[exp,setExp]=useState(null);
+  const[exp,setExp]=useState(null);const[vis,setVis]=useState(15);
   const[voucherVer,setVoucherVer]=useState(null);
   const opN=id=>ops.find(o=>o.id===id)?.nome||"—";
   
@@ -1244,7 +1267,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
     <input value={bus} onChange={e=>setBus(e.target.value)} placeholder="🔍 Buscar por nome, WhatsApp ou Número de Controle…" style={{...I}}/>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
       {lista.length===0&&<V em="👥" msg="Nenhum cliente encontrado."/>}
-      {lista.map(c=>(<div key={c.id} style={{borderBottom:`1px solid ${C.bd}22`}}>
+      {lista.slice(0,vis).map(c=>(<div key={c.id} style={{borderBottom:`1px solid ${C.bd}22`}}>
         <div style={{padding:12,display:"flex",alignItems:"center",gap:10,cursor:"pointer",background:exp===c.id?C.bg:"#fff"}}>
           <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{width:34,height:34,borderRadius:10,background:C.azC,color:C.az,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:14}}>{c.nome?.charAt(0)}</div>
           <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{flex:1}}>
@@ -1274,17 +1297,18 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
         </div>}
       </div>))}
     </div>
+    <VerMais total={lista.length} visiveis={vis} setVisiveis={setVis} />
     {voucherVer && <OpVoucherCard p={voucherVer} cli={cl.find(c=>c.id===voucherVer.clientId)} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);
 }
 
 function APr({pr, cl, cfg, setPr}){
-  const [voucherVer, setVoucherVer] = useState(null);
+  const [voucherVer, setVoucherVer] = useState(null);const [vis, setVis] = useState(15);
   const cN=id=>cl.find(c=>c.id===id)?.nome||"—";
   const visPr = pr.filter(p=>p.status!=="rejected" && p.status!=="not_counted");
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}><T em="🎁" t="Prêmios Distribuídos" s={`${visPr.length} total`}/>
     <div style={{background:"#fff",borderRadius:13,overflow:"hidden",border:`1px solid ${C.bd}`}}>
-      {[...visPr].reverse().map((p,i)=>{
+      {[...visPr].reverse().slice(0,vis).map((p,i)=>{
         const cli=cl.find(c=>c.id===p.clientId);
         const isP = p.status==="pending";
         const isR = p.status==="redeemed";
@@ -1325,6 +1349,7 @@ function APr({pr, cl, cfg, setPr}){
         </div>);
       })}
     </div>
+    <VerMais total={visPr.length} visiveis={vis} setVisiveis={setVis} />
     {voucherVer && <OpVoucherCard p={voucherVer} cli={cl.find(c=>c.id===voucherVer.clientId)} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);
 }
