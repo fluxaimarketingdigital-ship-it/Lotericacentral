@@ -1,4 +1,8 @@
-import { useState, useEffect, useMemo } from "react";
+/**
+ * Lotérica Central - Sistema Operador
+ * Versão: 1.0.1 - Deploy Force Update
+ */
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { DB } from "./firebase.js";
 import logoLoterica from "./logo_loterica.png";
