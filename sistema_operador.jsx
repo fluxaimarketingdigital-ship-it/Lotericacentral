@@ -462,17 +462,34 @@ function OpReg({ops,setOps,setOpSel,setRole,setTela}){
   </div>);
 }
 
-function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
+function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole,logAdminAction,adminLogs,setAdminLogs}){
   const[aba,setAba]=useState("qr");const[showAlt,setShowAlt]=useState(false);const[altS,setAltS]=useState({a:"",n:"",c:""});const[msgS,setMsgS]=useState("");const[vis,setVis]=useState({a:false,n:false,c:false});
   const ABAS=[{id:"qr",emoji:"📲",label:"Código"},{id:"auths",emoji:"✅",label:"Visitas"},{id:"clnts",emoji:"👥",label:"Clientes"},{id:"voucher",emoji:"🎟️",label:"Voucher"},{id:"rank",emoji:"🏅",label:"Rank"}];
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = Math.max(0, ops.findIndex(o => o.id === op?.id));
   const lastReset = cfg.lastReset || "2000-01-01";
   if(!op) return(<div style={{padding:40,textAlign:"center",color:C.sb}}><div style={{fontSize:40,marginBottom:15}}>⚠️</div><div>Sessão não encontrada ou expirada.</div><button onClick={()=>{setRole(null);setOpSel(null);setTela("home");}} style={{marginTop:20,padding:"10px 20px",background:C.az,color:"#fff",border:"none",borderRadius:10,fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Fazer Login</button></div>);
-  const checkM = (m="Digite a SENHA MESTRA para autorizar esta exclusão:") => {
+  const checkM = (m="Digite a SENHA MESTRA para autorizar:", payload=null, acaoNome="AUTORIZACAO_LOCAL") => {
     const p = window.prompt(m);
-    if(p === (cfg.senhaMestra||"123456")) return true;
-    if(p !== null) alert("❌ Senha Mestra incorreta!");
+    if(p === (cfg.senhaMestra||"123456")) {
+      if(typeof logAdminAction === "function") {
+        // Logar como autorização master local, pois não há admin logado no painel do operador
+        const log = {
+          id: uid(),
+          adminId: "master_local",
+          adminNome: "Gerência/Master",
+          role: "master",
+          acao: acaoNome,
+          detalhes: m,
+          payload: payload,
+          data: new Date().toISOString(),
+          ip: "Local (Operador)"
+        };
+        setAdminLogs(prev => [log, ...(prev||[])].slice(0, 500));
+      }
+      return true;
+    }
+    if(p !== null) alert("❌ Senha incorreta!");
     return false;
   };
   const minhas = useMemo(() => {
@@ -687,7 +704,7 @@ function OpVoucher({pr, setPr, cl, op, cfg, checkM}){
 
   function validar(p, expirado=false){
     if(expirado) {
-      if(!checkM("⚠️ VOUCHER VENCIDO! Para autorizar a entrega deste prêmio fora do prazo, solicite a SENHA DE ALTERAÇÃO do Gerente ou Master:")) return;
+      if(!checkM("⚠️ VOUCHER VENCIDO! Para autorizar a entrega deste prêmio (" + p.nome + "), digite a SENHA DE ALTERAÇÃO:", {id: p.id, cliente: res.c?.nome, acao: "entrega_vencido"}, "ENTREGA_VENCIDO")) return;
     } else {
       if(!window.confirm("Confirmar a retirada deste prêmio no balcão?")) return;
     }
@@ -1832,7 +1849,7 @@ function APr({pr, cl, cfg, setPr, checkM}){
                   </div>
                   <button onClick={() => {
                     const novaV = window.prompt("Digite a nova data de validade (AAAA-MM-DD):", (p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString()).slice(0,10));
-                    if(novaV && checkM("Alterar a validade do prêmio? Digite sua Senha de Alteração e Exclusão:")) {
+                    if(novaV && checkM(`Alterar validade de ${p.nome} (${cli?.nome||"?"}) para ${fD(novaV)}?`, {id: p.id, nova: novaV, antiga: p.validade}, "ALTERACAO_VALIDADE")) {
                       setPr(pr.map(x => x.id === p.id ? {...x, validade: novaV + "T23:59:59Z"} : x));
                     }
                   }} style={{background:"none", border:`1px solid ${C.bd}`, borderRadius:8, padding:"4px 8px", fontSize:10, fontWeight:800, cursor:"pointer", color:C.az}}>✏️ Alterar</button>
@@ -1840,8 +1857,10 @@ function APr({pr, cl, cfg, setPr, checkM}){
                 <div style={{display:"flex", gap:8}}>
                   <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>
                   <button onClick={()=>{
-                    if(!window.confirm("Dar baixa manual neste prêmio como Administrador?")) return;
-                    setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:"Administrador", opIdRetirada:"admin"}:x));
+                    if(checkM(`Dar baixa manual no prêmio ${p.nome} (${cli?.nome||"?"})?`, {id: p.id, acao: "baixa_manual_admin"}, "BAIXA_MANUAL_ADMIN")) {
+                      setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:"Administrador", opIdRetirada:"admin"}:x));
+                      alert("✅ Baixa manual realizada e registrada no log.");
+                    }
                   }} style={{background:C.vd,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1.2,fontFamily:"inherit"}}>✅ Dar Baixa Manual</button>
                 </div>
               </>
