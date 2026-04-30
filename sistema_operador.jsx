@@ -1560,6 +1560,7 @@ function CfgReg({cfg,setCfg}){
 
 function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
   const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[mst,setMst]=useState(cfg.senhaMestra||"123456");const[msg,setMsg]=useState("");
+  const[showM,setShowM]=useState(false);
   function salvar(){setCfg({...cfg,appUrl:url.trim(),wts:wts.trim(),senhaMestra:mst.trim()});setMsg("✅ Salvo!");setTimeout(()=>setMsg(""),3000);}
   function csv(rows,name){const d=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(d);a.download=name;a.click();}
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
@@ -1570,7 +1571,10 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
       <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12}}/>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:8}}>🔒 Senha Mestra de Exclusão</div>
       <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Senha exigida para excluir clientes, operadoras ou registros.</div>
-      <input value={mst} onChange={e=>setMst(e.target.value)} type="password" style={{...I,marginBottom:12}}/>
+      <div style={{position:"relative"}}>
+        <input value={mst} onChange={e=>setMst(e.target.value)} type={showM?"text":"password"} style={{...I,marginBottom:12,paddingRight:45}}/>
+        <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:6,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
+      </div>
       {msg&&<div style={{padding:"9px 12px",borderRadius:9,marginBottom:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
       <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar</button>
     </div>
