@@ -166,13 +166,13 @@ export default function App(){
   const[cfg,setCfg_]=useState(DCFG);
   const[opPrizes,setOpPrizes_]=useState([]);
   const[adminLogs,setAdminLogs_]=useState([]);
-  const setOps=d=>{setOps_(d); return DB.save("lc-ops",d);};
-  const setAdmins=d=>{setAdmins_(d); return DB.save("lc-admins",d);};
-  const setCl=d=>{setCl_(d); return DB.save("lc-cl",d);};
-  const setPr=d=>{setPr_(d); return DB.save("lc-pr",d);};
-  const setCfg=d=>{setCfg_(d); return DB.save("lc-cfg",d);};
-  const setOpPrizes=d=>{setOpPrizes_(d); return DB.save("lc-op-prizes",d);};
-  const setAdminLogs=d=>{setAdminLogs_(d); return DB.save("lc-admin-logs",d);};
+  const setOps=d=>{ if(typeof d==="function") { setOps_(prev=>{const n=d(prev);DB.save("lc-ops",n);return n;}); } else { setOps_(d); return DB.save("lc-ops",d); } };
+  const setAdmins=d=>{ if(typeof d==="function") { setAdmins_(prev=>{const n=d(prev);DB.save("lc-admins",n);return n;}); } else { setAdmins_(d); return DB.save("lc-admins",d); } };
+  const setCl=d=>{ if(typeof d==="function") { setCl_(prev=>{const n=d(prev);DB.save("lc-cl",n);return n;}); } else { setCl_(d); return DB.save("lc-cl",d); } };
+  const setPr=d=>{ if(typeof d==="function") { setPr_(prev=>{const n=d(prev);DB.save("lc-pr",n);return n;}); } else { setPr_(d); return DB.save("lc-pr",d); } };
+  const setCfg=d=>{ if(typeof d==="function") { setCfg_(prev=>{const n=d(prev);DB.save("lc-cfg",n);return n;}); } else { setCfg_(d); return DB.save("lc-cfg",d); } };
+  const setOpPrizes=d=>{ if(typeof d==="function") { setOpPrizes_(prev=>{const n=d(prev);DB.save("lc-op-prizes",n);return n;}); } else { setOpPrizes_(d); return DB.save("lc-op-prizes",d); } };
+  const setAdminLogs=d=>{ if(typeof d==="function") { setAdminLogs_(prev=>{const n=d(prev);DB.save("lc-admin-logs",n);return n;}); } else { setAdminLogs_(d); return DB.save("lc-admin-logs",d); } };
   const logAdminAction = async (acao, detalhes="", payload=null) => {
     if(!adminSel) return;
     const ip = await getIP();
@@ -188,7 +188,7 @@ export default function App(){
       data: new Date().toISOString(),
       ip
     };
-    setAdminLogs([log, ...(adminLogs||[])].slice(0, 500)); // Keep last 500 logs
+    setAdminLogs(prev => [log, ...(prev||[])].slice(0, 500)); 
   };
 
   const reverterAcao = (logId) => {
@@ -206,23 +206,24 @@ export default function App(){
     try {
       const p = log.payload;
       if(p.tipo === "cliente") {
-        setCl([...cl, p.dado]);
+        setCl(prev => [...prev, p.dado]);
       } else if(p.tipo === "auth") {
-        setCl(cl.map(c => c.id === p.clientId ? {...c, auths: [...(c.auths||[]), p.dado]} : c));
+        setCl(prev => prev.map(c => c.id === p.clientId ? {...c, auths: [...(c.auths||[]), p.dado]} : c));
+        if(p.prize) setPr(prev => [...prev, p.prize]);
       } else if(p.tipo === "operadora") {
-        setOps([...ops, p.dado]);
+        setOps(prev => [...prev, p.dado]);
       } else if(p.tipo === "opPrize") {
-        setOpPrizes([...(opPrizes||[]), p.dado]);
+        setOpPrizes(prev => [...(prev||[]), p.dado]);
       } else if(p.tipo === "relampago") {
-        setCfg({...cfg, relampagos: [...cfg.relampagos, p.dado]});
+        setCfg(prev => ({...prev, relampagos: [...prev.relampagos, p.dado]}));
       } else if(p.tipo === "noticia") {
-        setCfg({...cfg, noticias: [...cfg.noticias, p.dado]});
+        setCfg(prev => ({...prev, noticias: [...prev.noticias, p.dado]}));
       } else {
          alert("Tipo de dado desconhecido para reversão.");
          return;
       }
       
-      setAdminLogs(adminLogs.map(l => l.id === logId ? {...l, reverted: true, detalhes: l.detalhes + " (REVERTIDO)"} : l));
+      setAdminLogs(prev => prev.map(l => l.id === logId ? {...l, reverted: true, detalhes: l.detalhes + " (REVERTIDO)"} : l));
       alert("✅ Ação revertida com sucesso! O registro voltou ao sistema.");
     } catch(e) {
       alert("Erro ao reverter: " + e.message);
@@ -1081,7 +1082,8 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
     }
   };
   const excluirAuth = () => {
-    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente? Digite sua Senha de Alteração e Exclusão:", {tipo: 'auth', clientId: c.id, dado: a})) return;
+    const associatedPrize = pr.find(p=>p.authId===a.id);
+    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente? Digite sua Senha de Alteração e Exclusão:", {tipo: 'auth', clientId: c.id, dado: a, prize: associatedPrize})) return;
     setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
     setPr(pr.filter(p=>p.authId!==a.id));
   };
