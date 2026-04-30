@@ -1322,16 +1322,6 @@ function ADash({ops,cl,pr,cfg,setAba,setBus,encerrada}){
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
     
-    {terminaHoje && (
-       <div style={{background:C.rd,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rd}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s",marginBottom:5}}>
-         <span style={{fontSize:24}}>🚨</span>
-         <div style={{flex:1}}>
-            <div style={{fontWeight:900,fontSize:14}}>A campanha se encerra HOJE!</div>
-            <div style={{fontSize:11,opacity:.9}}>Data: {fD(cfg.dataFim)} às 23:59h.</div>
-         </div>
-       </div>
-    )}
-
     {!encerrada && pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
        <div style={{background:C.rx,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rx}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s",marginBottom:11}}>
          <span style={{fontSize:24}}>⚡</span>
