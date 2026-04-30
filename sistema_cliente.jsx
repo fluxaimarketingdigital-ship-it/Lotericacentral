@@ -225,7 +225,7 @@ function Splash(){return(
   <div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},${C.az2})`,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
     <div style={{position:"absolute",top:-80,right:-80,width:280,height:280,borderRadius:"50%",background:C.ou,opacity:.07}}/>
     <div style={{textAlign:"center",animation:"pop .5s ease",zIndex:1}}>
-      <div style={{background:"#fff", width:190, height:190, borderRadius:40, margin:"0 auto 20px", display:"flex", alignItems:"center", justifySelf:"center", padding:8, boxShadow:`0 12px 30px rgba(0,0,0,.2)`, animation:"pop .6s"}}>
+      <div style={{background:"#fff", width:190, height:190, borderRadius:40, margin:"0 auto 20px", display:"flex", alignItems:"center", justifySelf:"center", padding:2, boxShadow:`0 12px 30px rgba(0,0,0,.2)`, animation:"pop .6s"}}>
         <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
       </div>
       <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:6,letterSpacing:3,textTransform:"uppercase"}}>Cliente Fidelizado Premiado</div>
@@ -258,7 +258,7 @@ function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
       <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"40px 24px",textAlign:"center",position:"relative",overflow:"hidden"}}>
         <div style={{position:"absolute",top:-60,right:-60,width:240,height:240,borderRadius:"50%",background:C.ou,opacity:.08}}/>
         <div style={{position:"absolute",bottom:-40,left:-40,width:180,height:180,borderRadius:"50%",background:C.ou,opacity:.05}}/>
-        <div style={{background:"#fff", width:190, height:190, borderRadius:40, margin:"0 auto 20px", display:"flex", alignItems:"center", justifySelf:"center", padding:8, boxShadow:`0 12px 30px rgba(0,0,0,.2)`, animation:"pop .6s"}}>
+        <div style={{background:"#fff", width:190, height:190, borderRadius:40, margin:"0 auto 20px", display:"flex", alignItems:"center", justifySelf:"center", padding:2, boxShadow:`0 12px 30px rgba(0,0,0,.2)`, animation:"pop .6s"}}>
           <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
         </div>
         <div style={{fontWeight:700,fontSize:12,color:C.ou,letterSpacing:3,textTransform:"uppercase",marginBottom:22}}>Cliente Fidelizado Premiado</div>
@@ -546,7 +546,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
             <div style={{fontWeight:800,fontSize:15,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:26}}>{c.nome?.split(" ")[0]}!</span> 👋</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:4}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
           </div>
-          <div style={{height:46, background:"#fff", borderRadius:12, padding:"0px 6px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 20px rgba(0,0,0,0.2)"}}>
+          <div style={{height:46, background:"#fff", borderRadius:12, padding:"0px 2px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 20px rgba(0,0,0,0.2)"}}>
             <img src={logoLoterica} style={{height:"130%", width:"auto", objectFit:"contain"}} alt="Logo"/>
           </div>
         </div>
@@ -597,6 +597,9 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
           {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr} setVoucherVer={setVoucherVer}/>}
         </>
       )}
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:10,color:C.sb,opacity:.7}}>
+        Desenvolvido por <strong>FluxAI Marketing Digital</strong>
+      </div>
     </div>
 
     {/* NAV */}

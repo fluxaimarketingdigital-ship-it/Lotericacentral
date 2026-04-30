@@ -639,6 +639,9 @@ function OpQR({op,cfg,minhas,minhasV,hoje_}){
       </div>)}
       {hoje_.length > 15 && <div style={{padding:8, textAlign:"center", fontSize:10, color:C.sb, background:C.bg}}>Exibindo as 15 visitas mais recentes</div>}
     </div>}
+    <div style={{marginTop:20,textAlign:"center",fontSize:10,color:C.sb,opacity:.7}}>
+      Desenvolvido por <strong>FluxAI Marketing Digital</strong>
+    </div>
   </div>);
 }
 
@@ -858,12 +861,13 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
 
   // Métricas auxiliares
   const met = useMemo(() => {
-    let totV = 0, totVal = 0, totBoleto = 0, totPix = 0, totJogos = 0, totBolao = 0;
+    let totV = 0, totV_V = 0, totVal = 0, totBoleto = 0, totPix = 0, totJogos = 0, totBolao = 0;
     const campoUso = {};
     cl.forEach(c => {
       (c.auths||[]).forEach(a => {
         totV++;
         if(a.valida !== false) {
+          totV_V++;
           totVal += (a.total || 0);
         }
         Object.keys(a.detalhes||{}).forEach(fid => {
@@ -882,7 +886,7 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
       });
     });
     const sortedCampos = Object.entries(campoUso).sort((a,b)=>b[1]-a[1]);
-    return { totV, totVal, totBoleto, totPix, totJogos, totBolao, sortedCampos, avg: totV > 0 ? totVal/totV : 0 };
+    return { totV, totV_V, totVal, totBoleto, totPix, totJogos, totBolao, sortedCampos, avg: totV_V > 0 ? totVal/totV_V : 0 };
   }, [cl, cfg]);
 
   const exportPDF = (titulo, colunas, dados, orientation="p") => {
@@ -901,9 +905,12 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
         @media print { @page { size: ${orientation === "p" ? "A4 portrait" : "A4 landscape"}; margin: 1cm; } }
       </style></head><body>
         <div class="h">
-          <div>
-            <h1>${titulo}</h1>
-            <div style="font-size:12px; font-weight:800; color:#d97706; margin-top:5px;">Campanha: ${cfg.premioMeta.nome}</div>
+          <div style="display:flex; align-items:center; gap:15px;">
+            <img src="${logoLoterica}" style="height:60px; width:60px; object-fit:contain; background:#fff; border-radius:10px; padding:5px; border:1px solid #eee;" />
+            <div>
+              <h1>${titulo}</h1>
+              <div style="font-size:12px; font-weight:800; color:#d97706; margin-top:5px;">Campanha: ${cfg.premioMeta.nome}</div>
+            </div>
           </div>
           <div class="info">
             Período: ${fD(cfg.dataInicio)} — ${fD(cfg.dataFim)}<br/>
@@ -927,27 +934,31 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
   const relCli = () => {
     const dados = cl.map(c => [
       c.nome,
+      c.whats ? fmtW(c.whats) : "—",
       fmtDN(c.nasc),
       fD(c.cadastro),
       c.auths?.length || 0,
+      pr.filter(p=>p.clientId===c.id).length,
       brl(c.auths?.reduce((s,a)=>s+(a.total||0),0)||0)
     ]);
-    exportPDF("Relatório de Clientes", ["Nome", "Nascimento", "Cadastro", "Visitas", "Total Movimentado"], dados);
+    exportPDF("Relatório de Clientes", ["Nome", "WhatsApp", "Nascimento", "Cadastro", "Registros", "Prêmios", "Total Movimentado"], dados, "l");
   };
 
   const relPr = () => {
     const dados = pr.map(p => {
       const cli = cl.find(c=>c.id===p.clientId);
+      const expirado = p.validade && new Date(p.validade) < new Date();
       return [
         fDT(p.data),
-        p.nome,
+        p.nome + (p.status==="redeemed" && p.validade && new Date(p.dataRetirada) > new Date(p.validade) ? " ⚠️ (Vencido)" : ""),
         p.tipo === "relampago" ? "⚡ Relâmpago" : "🏆 Meta",
         cli?.nome || "—",
         p.status === "redeemed" ? "✅ Retirado" : p.status === "approved" ? "⏳ Aguardando" : "❌ Pendente",
-        p.opNomeRetirada || "—"
+        p.opNomeRetirada || "—",
+        p.validade ? fD(p.validade) : "—"
       ];
     });
-    exportPDF("Relatório de Prêmios", ["Data/Hora", "Prêmio", "Tipo", "Cliente", "Status", "Operador (Retirada)"], dados, "l");
+    exportPDF("Relatório de Prêmios", ["Data/Hora", "Prêmio", "Tipo", "Cliente", "Status", "Operador (Retirada)", "Validade"], dados, "l");
   };
 
   const relOps = () => {
@@ -961,8 +972,10 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
 
   const relVis = () => {
     const dados = [];
+    let tot = 0;
     cl.forEach(c => {
       (c.auths||[]).forEach(a => {
+        tot += (a.total||0);
         dados.push([
           fDT(a.data),
           c.nome,
@@ -974,6 +987,7 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
       });
     });
     dados.sort((a,b) => new Date(b[0]) - new Date(a[0]));
+    dados.push(["—", "TOTAL GERAL", `${dados.length} Visitas`, brl(tot), "—", "—"]);
     exportPDF("Relatório Geral de Visitas", ["Data/Hora", "Cliente", "Status", "Valor", "Operador", "Registro"], dados, "l");
   };
 
@@ -1020,7 +1034,10 @@ Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "EN
     setAdminLogs([]);
     setOpPrizes([]);
     
-    alert("✅ Campanha encerrada com sucesso! O relatório final foi salvo no Histórico.");
+    // Gerar PDF final automaticamente para o usuário salvar
+    relVis();
+    
+    alert("✅ Campanha encerrada com sucesso!\n\n1. O relatório final foi salvo no Histórico.\n2. O PDF de visitas foi gerado para seu arquivo.");
   };
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
@@ -1325,6 +1342,10 @@ Deseja ir para a tela de Relatórios agora?`)) {
 
       {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} adminSel={adminSel} />}
       {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:11,color:C.sb,opacity:.7}}>
+        Fluxo de Fidelidade — <strong>Lotérica Central</strong><br/>
+        Desenvolvido por <strong>FluxAI Marketing Digital</strong>
+      </div>
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
   </div>);
@@ -2454,8 +2475,7 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
             <div style={{fontWeight:900,fontSize:17,color:C.tx}}>🔒 Alterar Minhas Senhas</div>
             <button onClick={()=>{setShowM(false);setNovaAcesso("");setNovaMestra("");}} style={{background:"none",border:"none",fontSize:22,cursor:"pointer",color:C.sb}}>✕</button>
           </div>
-          
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
+        <div style={{display:"flex",flexDirection:"column",gap:12}}>
             <div style={{position:"relative"}}>
               <label style={L}>Nova Senha de Acesso</label>
               <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type={showA?"text":"password"} placeholder="Mínimo 4 caracteres" style={{...I,marginTop:5,paddingRight:42}}/>
@@ -2481,15 +2501,6 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
       
       {isMaster && <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Configurações Globais</button>}
     </div>
-    
-    <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
-        {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Registros","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
-        ["🎁","Prêmios",`${pr.length} registros`,()=>csv([["ID","Cliente","Tipo","Nome","Data"],...pr.map(p=>[p.id,cl.find(c=>c.id===p.clientId)?.nome||"",p.tipo,p.nome,fDT(p.data)])],`premios_${hoje()}.csv`)],
-        ["✅","Autenticações","Todos os registros",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
-      ].map(([ic,t,s,fn])=><div key={t} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 12px",background:C.bg,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:7}}><span style={{fontSize:22}}>{ic}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{t}</div><div style={{fontSize:10,color:C.sb}}>{s}</div></div><button onClick={fn} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>⬇️ CSV</button></div>)}
-    </div>
-
   </div>);
 }
 
