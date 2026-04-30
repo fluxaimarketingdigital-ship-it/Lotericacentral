@@ -383,7 +383,7 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
 
 function OpReg({ops,setOps,setOpSel,setRole,setTela}){
   const[nome,setNome]=useState("");const[senha,setSenha]=useState("1234");const[erro,setErro]=useState("");const[nova,setNova]=useState(null);const[v,setV]=useState(false);
-  function cad(){const n=(nome||"").trim();const s=(senha||"").trim();if(!n){setErro("Informe o nome.");return;}if(!s){setErro("Defina uma senha.");return;}if(ops.some(o=>o.nome.toLowerCase()===n.toLowerCase())){setErro("Nome já cadastrado.");return;}const op={id:uidOp(ops),nome:n,senha:s,cadastro:now()};setOps([...ops,op]);setNova(op);setNome("");setSenha("");setErro("");}
+  function cad(){const n=(nome||"").trim();const s=(senha||"").trim();if(!n){setErro("Informe o nome.");return;}if(!s || s.length < 4){setErro("A senha deve ter no mínimo 4 caracteres.");return;}if(ops.some(o=>o.nome.toLowerCase()===n.toLowerCase())){setErro("Nome já cadastrado.");return;}const op={id:uidOp(ops),nome:n,senha:s,cadastro:now()};setOps([...ops,op]);setNova(op);setNome("");setSenha("");setErro("");}
   if(nova)return(<div style={{minHeight:"100vh",background:`linear-gradient(160deg,${C.az},#5b21b6)`,padding:"28px 18px",textAlign:"center"}}>
     <div style={{fontSize:54,animation:"pop .5s",marginBottom:10}}>✅</div>
     <div style={{fontWeight:900,fontSize:22,color:"#fff",marginBottom:6}}>Cadastrada!</div>
@@ -1836,28 +1836,32 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
   const isMaster = adminSel?.role === "master";
 
   async function salvar(){
-    setMsg("⏳ Gravando alterações...");
+    setMsg("⏳ Gravando...");
     try {
+      if((novaAcesso.trim() && novaAcesso.trim().length < 4) || (novaMestra.trim() && novaMestra.trim().length < 4)){
+        setMsg("❌ Erro: Mínimo 4 caracteres.");
+        alert("❌ A senha deve ter no mínimo 4 caracteres (números ou letras).");
+        return;
+      }
+      
       await setCfg({...cfg,appUrl:url.trim(),wts:wts.trim()});
-      let finalMsg = "✅ Configurações do sistema salvas!";
+      let s = "✅ Configurações salvas!";
       
       if(novaAcesso.trim() || novaMestra.trim()){
         const adminAtualizado = {...adminSel};
         if(novaAcesso.trim()) adminAtualizado.senhaAcesso = novaAcesso.trim();
         if(novaMestra.trim()) adminAtualizado.senhaMestra = novaMestra.trim();
-        
         if(typeof setAdmins === "function") {
-          const novosAdmins = (admins||[]).map(a => a.id === adminSel.id ? adminAtualizado : a);
-          await setAdmins(novosAdmins);
+          await setAdmins((admins||[]).map(a => a.id === adminSel.id ? adminAtualizado : a));
         }
         setAdminSel(adminAtualizado);
-        finalMsg = "✅ Senhas alteradas com sucesso!";
+        s = "✅ Senhas alteradas com sucesso!";
       }
       
-      setMsg(finalMsg);
+      setMsg(s);
       setNovaAcesso(""); setNovaMestra("");
       setTimeout(()=>setMsg(""),10000);
-      alert(finalMsg);
+      alert(s);
     } catch(e) {
       setMsg("❌ Erro ao salvar");
       alert("Erro ao salvar: " + e.message);
@@ -1888,17 +1892,17 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
           <div style={{display:"flex",flexDirection:"column",gap:12}}>
             <div style={{position:"relative"}}>
               <label style={L}>Nova Senha de Acesso</label>
-              <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type={showA?"text":"password"} placeholder="Para entrar no sistema" style={{...I,marginTop:5,paddingRight:42}}/>
+              <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type={showA?"text":"password"} placeholder="Mínimo 4 caracteres" style={{...I,marginTop:5,paddingRight:42}}/>
               <button onClick={()=>setShowA(!showA)} style={{position:"absolute",right:10,top:32,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"3px 6px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showA?"Ocultar":"Ver"}</button>
             </div>
 
             <div style={{position:"relative"}}>
               <label style={L}>Nova Senha de Alteração/Exclusão</label>
-              <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={visM?"text":"password"} placeholder="Para autorizar ações" style={{...I,marginTop:5,paddingRight:42}}/>
+              <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={visM?"text":"password"} placeholder="Mínimo 4 caracteres" style={{...I,marginTop:5,paddingRight:42}}/>
               <button onClick={()=>setVisM(!visM)} style={{position:"absolute",right:10,top:32,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"3px 6px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{visM?"Ocultar":"Ver"}</button>
             </div>
 
-            {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd,textAlign:"center"}}>{msg}</div>}
+            {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd,textAlign:"center"}}>{msg}</div>}
             
             <button onClick={salvar} style={{marginTop:10,padding:15,borderRadius:13,border:"none",background:C.az,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>
               Confirmar Alteração de Senhas
@@ -1907,8 +1911,9 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
         </div>
       </div>}
 
-      {msg&&<div style={{padding:"9px 12px",borderRadius:9,marginBottom:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
-      <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Alterações</button>
+      {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd,textAlign:"center",marginBottom:10}}>{msg}</div>}
+      
+      {isMaster && <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Configurações Globais</button>}
     </div>
     
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
