@@ -284,8 +284,9 @@ function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
           style={{width:"100%",padding:14,borderRadius:14,border:`1.5px solid ${C.bd}`,fontFamily:"inherit",fontWeight:800,fontSize:15,cursor:"pointer",background:"#fff",color:C.az}}>
           Já tenho cadastro — Entrar →
         </button>
+        <div style={{textAlign:"center",marginTop:18,fontSize:11,color:C.tx,lineHeight:1.7}}>
           Ao continuar você aceita os termos da promoção.<br/>Dados protegidos pela LGPD.<br/>
-          <span style={{fontWeight:800, fontSize:11}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></span>
+          <span style={{fontWeight:900, fontSize:12, color:C.az}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></span>
         </div>
       </div>
     </div>
@@ -413,7 +414,7 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
           <button onClick={()=>setTela("login")} style={{background:"none",border:"none",fontSize:12,color:C.sb,cursor:"pointer",fontFamily:"inherit"}}>
             Já tenho cadastro — Entrar →
           </button>
-          <div style={{marginTop:20,fontSize:11,fontWeight:700}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
+          <div style={{marginTop:20,fontSize:12,fontWeight:900,color:C.az}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
         </div>
       </div>
     </div>
@@ -487,7 +488,7 @@ function Login({setCli,clients,setTela,opQR}){
             style={{width:"100%",marginTop:12,padding:13,borderRadius:12,background:"#fff",color:C.az,border:`1.5px solid ${C.az}33`,fontFamily:"inherit",fontWeight:800,fontSize:14,cursor:"pointer"}}>
             Não tenho cadastro — Cadastrar
           </button>
-          <div style={{textAlign:"center",marginTop:20,fontSize:11,color:C.sb,fontWeight:700}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
+          <div style={{textAlign:"center",marginTop:20,fontSize:12,color:C.az,fontWeight:900}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
         </div>
       </div>
     </div>
@@ -599,7 +600,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
           {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr} setVoucherVer={setVoucherVer}/>}
         </>
       )}
-      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:11,color:C.sb,fontWeight:700}}>
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:12,color:C.az,fontWeight:900}}>
         Desenvolvido por <strong>FluxAI Marketing Digital</strong>
       </div>
     </div>

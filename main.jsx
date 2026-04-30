@@ -33,6 +33,9 @@ function AppMenu() {
            </div>
         </Link>
       </div>
+      <div style={{ marginTop: '40px', textAlign: 'center', fontSize: '11px', color: '#5a7a96', opacity: 0.8 }}>
+        Desenvolvido por <strong>FluxAI Marketing Digital</strong>
+      </div>
     </div>
   )
 }
@@ -75,6 +78,10 @@ function AccessGate({ children }) {
           >
             Entrar no Sistema
           </button>
+          <div style={{ marginTop: '20px', fontSize: '10px', color: '#5a7a96', opacity: 0.7 }}>
+            Desenvolvido por <strong>FluxAI Marketing Digital</strong>
+          </div>
+        </div>
         </div>
       </div>
     );

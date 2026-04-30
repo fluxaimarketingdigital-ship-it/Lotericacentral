@@ -419,7 +419,7 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
           </div>
         ))}
       </div>
-      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:11,color:C.sb,fontWeight:700}}>
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:12,color:C.az,fontWeight:900}}>
         Desenvolvido por <strong>FluxAI Marketing Digital</strong>
       </div>
     </div>
@@ -644,7 +644,7 @@ function OpQR({op,cfg,minhas,minhasV,hoje_}){
       </div>)}
       {hoje_.length > 15 && <div style={{padding:8, textAlign:"center", fontSize:10, color:C.sb, background:C.bg}}>Exibindo as 15 visitas mais recentes</div>}
     </div>}
-    <div style={{marginTop:20,textAlign:"center",fontSize:11,color:C.sb,fontWeight:700}}>
+    <div style={{marginTop:20,textAlign:"center",fontSize:12,color:C.az,fontWeight:900}}>
       Desenvolvido por <strong>FluxAI Marketing Digital</strong>
     </div>
   </div>);
@@ -1348,7 +1348,7 @@ Deseja ir para a tela de Relatórios agora?`)) {
 
       {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} adminSel={adminSel} />}
       {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
-      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:12,color:C.sb,fontWeight:700}}>
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:13,color:C.az,fontWeight:900}}>
         Fluxo de Fidelidade — <strong>Lotérica Central</strong><br/>
         Desenvolvido por <strong>FluxAI Marketing Digital</strong>
       </div>
