@@ -710,8 +710,8 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
   };
 
   const checkM = (m="Digite sua Senha de Exclusão Pessoal para autorizar:") => {
-    if(!adminSel || adminSel.role !== "master") {
-      alert("❌ Acesso Negado: Apenas o perfil MASTER pode realizar exclusões no sistema.");
+    if(!adminSel) {
+      alert("❌ Acesso Negado: Você precisa estar logado como administrador.");
       return false;
     }
     const p = window.prompt(m);
@@ -1446,8 +1446,8 @@ function CfgAdmins({admins,setAdmins,adminSel}){
   const salvar = () => {
     if(!nome.trim()){setErro("Nome obrigatório");return;}
     if(!senha.trim()){setErro("Senha de acesso obrigatória");return;}
-    if(role==="master" && !senhaMestra.trim()){setErro("Senha de exclusão obrigatória para Master");return;}
-    setAdmins([...(admins||[]),{id:uid(),nome:nome.trim(),senhaAcesso:senha.trim(),role,senhaMestra:senhaMestra.trim()||"",cadastro:new Date().toISOString()}]);
+    if(!senhaMestra.trim()){setErro("Senha de exclusão obrigatória");return;}
+    setAdmins([...(admins||[]),{id:uid(),nome:nome.trim(),senhaAcesso:senha.trim(),role,senhaMestra:senhaMestra.trim(),cadastro:new Date().toISOString()}]);
     setNome("");setSenha("");setSenhaMestra("");setErro("");setRole("gerencia");
   };
   const remover = (id) => {
@@ -1463,7 +1463,7 @@ function CfgAdmins({admins,setAdmins,adminSel}){
           <div style={{flex:1}}><label style={LS}>Senha de Acesso</label><input value={senha} onChange={e=>{setSenha(e.target.value);setErro("");}} type="text" placeholder="Para logar..." style={{width:"100%",marginTop:4,...IS}}/></div>
           <div style={{flex:1}}><label style={LS}>Perfil</label><select value={role} onChange={e=>setRole(e.target.value)} style={{width:"100%",marginTop:4,...IS}}><option value="gerencia">Gerência</option><option value="master">Master</option></select></div>
         </div>
-        {role==="master"&&<div><label style={LS}>Senha de Exclusão Pessoal (Senha Mestra)</label><input value={senhaMestra} onChange={e=>{setSenhaMestra(e.target.value);setErro("");}} type="text" placeholder="Usada para aprovar exclusões..." style={{width:"100%",marginTop:4,...IS}}/></div>}
+        <div><label style={LS}>Senha de Exclusão Pessoal</label><input value={senhaMestra} onChange={e=>{setSenhaMestra(e.target.value);setErro("");}} type="text" placeholder="Usada para aprovar exclusões..." style={{width:"100%",marginTop:4,...IS}}/></div>
         {erro&&<div style={{color:C.rd,fontSize:11,fontWeight:700}}>⚠️ {erro}</div>}
         <button onClick={salvar} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:12,fontWeight:800,cursor:"pointer",fontFamily:"inherit",marginTop:4}}>Salvar Administrador</button>
       </div>
