@@ -529,9 +529,10 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         <div style={{display:"flex", justifyContent:"flex-end", marginBottom:10}}>
           {diasFaltam >= 0 && diasFaltam <= 2 && !encerrada && (
             <div style={{background:C.ou,color:C.az,fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20,animation:"dt 1s infinite"}}>
-              ⚠️ CAMPANHA ENCERRA {diasFaltam===0?"HOJE":`EM ${diasFaltam} DIA${diasFaltam>1?"S":""}`}!
+              ⚠️ CAMPANHA ENCERRA {hoje()===cfg.dataFim?"HOJE":`EM ${diasFaltam} DIA${diasFaltam>1?"S":""}`}!
             </div>
           )}
+
           {encerrada && (
             <div style={{background:C.rd,color:"#fff",fontSize:9,fontWeight:900,padding:"3px 8px",borderRadius:20}}>
               🚫 CAMPANHA ENCERRADA
@@ -585,17 +586,19 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
     </div>
     {/* CONTEÚDO */}
     <div style={{flex:1,padding:"14px 14px 82px"}}>
-      {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba} premios={premios}/>}
-      {aba==="reg" && (encerrada ? (
-        <div style={{padding:30,textAlign:"center",animation:"up .4s"}}>
-          <div style={{fontSize:60,marginBottom:15}}>⌛</div>
-          <div style={{fontWeight:900,fontSize:20,color:C.tx,marginBottom:8}}>Campanha Encerrada</div>
-          <div style={{fontSize:13,color:C.sb,lineHeight:1.6,marginBottom:20}}>Esta campanha chegou ao fim em {fD(dFim)}. Aguarde a nova campanha para registrar suas visitas e pontuar novamente!</div>
-          <button onClick={()=>setAba("ini")} style={{marginTop:20,background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"12px 24px",fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Voltar ao Início</button>
-        </div>
-      ) : <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>)}
-      {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts} setVoucherVer={setVoucherVer}/>}
-      {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
+      {aba!=="ct" && encerrada ? (
+        <CampanhaEncerradaView cfg={cfg} dFim={dFim} setAba={setAba} />
+      ) : (
+        <>
+          {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba} premios={premios}/>}
+          {aba==="reg" && <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>}
+          {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts} setVoucherVer={setVoucherVer}/>}
+          {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
+          {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr} setVoucherVer={setVoucherVer}/>}
+        </>
+      )}
+    </div>
+
       {aba==="ct" &&<Conta c={c} temPr={temPr} meusPr={meusPr} tot={tot} raspa={raspa} cfg={cfg} setCli={setCli} setTela={setTela} clients={clients} setCl={setCl} encerrada={encerrada} dFim={dFim} dIni={dIni} premios={premios} setPr={setPr} setVoucherVer={setVoucherVer}/>}
     </div>
     {/* NAV */}
@@ -610,6 +613,27 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
     </nav>
     {voucherVer && <VoucherCard p={voucherVer} cli={c} cfg={cfg} onClose={()=>setVoucherVer(null)} />}
   </div>);}
+
+function CampanhaEncerradaView({cfg, dFim, setAba}){
+  return(
+    <div style={{padding:"40px 20px", textAlign:"center", animation:"up .5s", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", minHeight:"50vh"}}>
+      <div style={{fontSize:80, marginBottom:20, animation:"pop .6s"}}>⌛</div>
+      <div style={{fontWeight:900, fontSize:24, color:C.tx, marginBottom:10}}>Campanha Encerrada</div>
+      <div style={{background:C.azC, padding:"15px 20px", borderRadius:18, border:`1px solid ${C.bd}`, marginBottom:20, width:"100%"}}>
+        <div style={{fontSize:11, fontWeight:800, color:C.sb, textTransform:"uppercase", marginBottom:4}}>Campanha</div>
+        <div style={{fontSize:18, fontWeight:900, color:C.az}}>{cfg.premioMeta.nome}</div>
+        <div style={{fontSize:11, color:C.sb, marginTop:10}}>Encerrada em: <b>{fD(dFim)}</b></div>
+      </div>
+      <div style={{fontSize:13, color:C.sb, lineHeight:1.7, marginBottom:30}}>
+        Esta campanha chegou ao fim. Todo o seu histórico foi arquivado para dar início a um novo ciclo de prêmios em breve. 🚀
+      </div>
+      <button onClick={()=>setAba("ct")} style={{width:"100%", background:C.az, color:"#fff", border:"none", borderRadius:14, padding:16, fontWeight:900, fontSize:15, cursor:"pointer", fontFamily:"inherit", boxShadow:`0 4px 15px ${C.az}44`}}>
+        Ver meu perfil →
+      </button>
+    </div>
+  );
+}
+
 
 /* ══════════════════════ INÍCIO ══════════════════════ */
 function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
@@ -1387,28 +1411,40 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
           <span>📖 Histórico Detalhado</span>
           {encerrada && <span style={{fontSize:9,background:C.rdC,color:C.rd,padding:"2px 8px",borderRadius:20,fontWeight:900}}>Campanha Encerrada</span>}
         </div>
-        {((c.auths||[]).length===0) && <div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhum registro encontrado ainda.</div>}
         {(() => {
-          const sorted = [...(c.auths||[])].sort((a,b)=>new Date(b.data)-new Date(a.data));
+          const sorted = [...(c.auths||[])]
+            .filter(a => a.data >= dIni) // Mostra apenas histórico da campanha atual
+            .sort((a,b)=>new Date(b.data)-new Date(a.data));
+            
+          if (sorted.length === 0) {
+            return (
+              <div style={{padding:20, textAlign:"center", background:C.bg, color:C.sb, fontSize:12, lineHeight:1.6}}>
+                {encerrada ? (
+                  <>🏁 <b>Campanha Encerrada!</b><br/>O histórico foi arquivado para o novo ciclo.</>
+                ) : (
+                  <>Nenhum registro encontrado ainda.</>
+                )}
+              </div>
+            );
+          }
+          
           const visible = sorted.slice(0, limit);
-          const items = [];
-          let dividerAdded = false;
-          visible.forEach((a, i) => {
-            if (!dividerAdded && a.data < dIni) {
-              items.push(<div key="divider-end" style={{padding:"10px 17px", background:C.bg, color:C.sb, fontSize:10, fontWeight:900, textAlign:"center", textTransform:"uppercase", letterSpacing:1, borderTop:`1px dashed ${C.bd}`, borderBottom:`1px dashed ${C.bd}`}}>
-                🏁 Ciclo Encerrado em {fD(new Date(new Date(dIni).getTime() - 86400000))}
-              </div>);
-              dividerAdded = true;
-            }
-            items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer} premios={premios} setPr={setPr}/>);
-          });
+          const items = visible.map(a => <HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer} premios={premios} setPr={setPr}/>);
+          
           return (
             <>
+              {encerrada && (
+                <div style={{padding:"10px 15px", background:C.rdC, color:C.rd, fontSize:10, fontWeight:800, textAlign:"center", borderBottom:`1px solid ${C.rd}33`}}>
+                  📢 A campanha encerrou, mas seu histórico permanece visível até o início do novo ciclo.
+                </div>
+              )}
               {items}
               <VerMais total={sorted.length} visiveis={limit} setVisiveis={setLimit} />
             </>
           );
         })()}
+
+
       </div>
       {temPr&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:15,padding:"13px 15px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:32}}>🏆</span><div><div style={{fontWeight:900,fontSize:14,color:C.az}}>Cliente Premiado!</div><div style={{fontSize:11,color:C.az,opacity:.8,marginTop:2}}>Notícias e ofertas exclusivas ativas.</div></div></div>}
       <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,borderRadius:16,padding:"17px"}}>

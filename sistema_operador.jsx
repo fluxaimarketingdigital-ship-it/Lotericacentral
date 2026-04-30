@@ -564,7 +564,8 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
       {aba==="qr"   &&<OpQR    op={op} cfg={cfg} minhas={minhas} minhasV={minhasV} hoje_={hoje_} ops={ops}/>}
       {aba==="auths"&&<OpAuths minhasV={minhasV} hoje_={hoje_}/>}
       {aba==="clnts"&&<OpCl    meusCl={meusCl} cfg={cfg}/>}
-      {aba==="voucher"&&<OpVoucher pr={pr} setPr={setPr} cl={cl} op={op} cfg={cfg}/>}
+      {aba==="voucher"&&<OpVoucher pr={pr} setPr={setPr} cl={cl} op={op} cfg={cfg} checkM={checkM}/>}
+
       {aba==="rank" && <OpRank rank={rank} op={op} pos={pos}/>}
       {aba==="reg"  && <OpRegulamento cfg={cfg}/>}
     </div>
@@ -668,7 +669,8 @@ function OpCl({meusCl,cfg}){
     <VerMais total={meusCl.length} visiveis={vis} setVisiveis={setVis} />
 </div>);}
 
-function OpVoucher({pr, setPr, cl, op, cfg}){
+function OpVoucher({pr, setPr, cl, op, cfg, checkM}){
+
   const [cod, setCod] = useState("");
   const [res, setRes] = useState(null);
   
@@ -716,7 +718,22 @@ function OpVoucher({pr, setPr, cl, op, cfg}){
         </div>
 
         {res.pr.status === "approved" && (
-           <button onClick={()=>validar(res.pr)} style={{width:"100%",background:C.vd,color:"#fff",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.vd}44`}}>✅ Registrar Retirada no Balcão</button>
+           <div style={{display:"flex", flexDirection:"column", gap:10}}>
+             <div style={{background:C.bg, padding:10, borderRadius:10, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+               <div>
+                 <div style={{fontSize:10, color:C.sb, fontWeight:800}}>VALIDADE</div>
+                 <div style={{fontWeight:900, color:C.tx}}>{fD(res.pr.validade || new Date(new Date(res.pr.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString())}</div>
+               </div>
+               <button onClick={() => {
+                 const novaV = window.prompt("Digite a nova data de validade (AAAA-MM-DD):", (res.pr.validade || new Date(new Date(res.pr.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString()).slice(0,10));
+                 if(novaV && checkM("Alterar a validade do prêmio? Digite sua Senha de Alteração e Exclusão:")) {
+                   setPr(pr.map(p => p.id === res.pr.id ? {...p, validade: novaV + "T23:59:59Z"} : p));
+                   setRes({...res, pr: {...res.pr, validade: novaV + "T23:59:59Z"}});
+                 }
+               }} style={{background:"none", border:`1px solid ${C.bd}`, borderRadius:8, padding:"4px 8px", fontSize:10, fontWeight:800, cursor:"pointer", color:C.az}}>✏️ Alterar</button>
+             </div>
+             <button onClick={()=>validar(res.pr)} style={{width:"100%",background:C.vd,color:"#fff",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.vd}44`}}>✅ Registrar Retirada no Balcão</button>
+           </div>
         )}
         {res.pr.status === "redeemed" && (
            <div style={{background:C.vdC,color:C.vd,padding:14,borderRadius:12,fontWeight:800,textAlign:"center",border:`1px solid ${C.vd}44`}}>
@@ -733,6 +750,7 @@ function OpVoucher({pr, setPr, cl, op, cfg}){
     )}
   </div>);
 }
+
 
 function OpRank({rank,op,pos}){
   const[vis,setVis]=useState(15);
@@ -1190,6 +1208,22 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,ca
     if(encerrada) return 0;
     return cl.reduce((s,c)=>s+(c.auths?.filter(a=>a.status==="pending").length||0),0);
   },[cl, encerrada]);
+
+  // Auto-finalização sugerida
+  useEffect(() => {
+    if (encerrada && (cl.some(c => (c.auths || []).length > 0) || pr.length > 0)) {
+       const timer = setTimeout(() => {
+         if (window.confirm(`📢 CAMPANHA ENCERRADA!
+A data de término (${fD(cfg.dataFim)}) já passou.
+Deseja gerar o relatório final e limpar os dados da campanha agora?`)) {
+           setAba("rel");
+           // Role relatórios tem o botão de fechar campanha no final
+         }
+       }, 1000);
+       return () => clearTimeout(timer);
+    }
+  }, [encerrada, cl, pr]);
+
   const pendsP = useMemo(()=> {
     if(encerrada) return 0;
     const hj = new Date();
@@ -1202,6 +1236,8 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,ca
       return p.status === "pending" || p.status === "approved";
     }).length;
   }, [pr, cfg, encerrada]);
+
+  const terminaHoje = hoje() === cfg.dataFim;
 
 
 
@@ -1232,10 +1268,25 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,ca
       </div>
     </div>
     <div style={{flex:1,padding:"13px 13px 76px",animation:"up .3s"}}>
-      {aba==="dash"&&<ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus} encerrada={encerrada}/>}
+      {aba==="dash" && (
+        <>
+          {hoje() === cfg.dataFim && (
+            <div style={{background:C.rd, color:"#fff", padding:"12px 16px", borderRadius:14, marginBottom:16, display:"flex", alignItems:"center", gap:12, boxShadow:`0 8px 20px ${C.rd}44`, border:`1px solid rgba(255,255,255,.2)`}}>
+              <span style={{fontSize:24, animation:"dt 1s infinite"}}>🚨</span>
+              <div>
+                <div style={{fontWeight:900, fontSize:14}}>ATENÇÃO: A campanha se encerra HOJE!</div>
+                <div style={{fontSize:11, opacity:.9}}>Verifique se todos os registros pendentes foram auditados antes das 23:59h.</div>
+              </div>
+            </div>
+          )}
+          <ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus} encerrada={encerrada}/>
+        </>
+      )}
+
       {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} adminSel={adminSel} />}
       {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
-      {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} />}
+      {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} checkM={checkM} />}
+
       {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} adminSel={adminSel} />}
       {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
     </div>
@@ -1270,6 +1321,17 @@ function ADash({ops,cl,pr,cfg,setAba,setBus,encerrada}){
   }).sort((a,b)=>b.t-a.t).slice(0,5),[ops,cl,lastReset]);
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="📊" t="Dashboard" s="Visão completa da lotérica"/>
+    
+    {terminaHoje && (
+       <div style={{background:C.rd,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rd}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s",marginBottom:5}}>
+         <span style={{fontSize:24}}>🚨</span>
+         <div style={{flex:1}}>
+            <div style={{fontWeight:900,fontSize:14}}>A campanha se encerra HOJE!</div>
+            <div style={{fontSize:11,opacity:.9}}>Data: {fD(cfg.dataFim)} às 23:59h.</div>
+         </div>
+       </div>
+    )}
+
     {!encerrada && pr.filter(p=>p.tipo==="relampago" && p.status==="pending").length > 0 && (
        <div style={{background:C.rx,color:"#fff",padding:14,borderRadius:13,boxShadow:`0 4px 15px ${C.rx}44`,display:"flex",alignItems:"center",gap:12,animation:"pop .4s",marginBottom:11}}>
          <span style={{fontSize:24}}>⚡</span>
@@ -1718,7 +1780,8 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
   </div>);
 }
 
-function APr({pr, cl, cfg, setPr}){
+function APr({pr, cl, cfg, setPr, checkM}){
+
   const [voucherVer, setVoucherVer] = useState(null);const [vis, setVis] = useState(15);
   const cN=id=>cl.find(c=>c.id===id)?.nome||"—";
   const visPr = pr.filter(p=>p.status!=="rejected" && p.status!=="not_counted");
@@ -1750,18 +1813,33 @@ function APr({pr, cl, cfg, setPr}){
             </div>
           )}
 
-          <div style={{display:"flex",gap:8}}>
+          <div style={{display:"flex",flexDirection:"column", gap:8}}>
             {p.status==="approved" && (
               <>
-                <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>
-                <button onClick={()=>{
-                  if(!window.confirm("Dar baixa manual neste prêmio como Administrador?")) return;
-                  setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:"Administrador", opIdRetirada:"admin"}:x));
-                }} style={{background:C.vd,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1.2,fontFamily:"inherit"}}>✅ Dar Baixa Manual</button>
+                <div style={{background:C.bg, padding:10, borderRadius:10, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
+                  <div>
+                    <div style={{fontSize:10, color:C.sb, fontWeight:800}}>VALIDADE</div>
+                    <div style={{fontWeight:900, color:C.tx}}>{fD(p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString())}</div>
+                  </div>
+                  <button onClick={() => {
+                    const novaV = window.prompt("Digite a nova data de validade (AAAA-MM-DD):", (p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString()).slice(0,10));
+                    if(novaV && checkM("Alterar a validade do prêmio? Digite sua Senha de Alteração e Exclusão:")) {
+                      setPr(pr.map(x => x.id === p.id ? {...x, validade: novaV + "T23:59:59Z"} : x));
+                    }
+                  }} style={{background:"none", border:`1px solid ${C.bd}`, borderRadius:8, padding:"4px 8px", fontSize:10, fontWeight:800, cursor:"pointer", color:C.az}}>✏️ Alterar</button>
+                </div>
+                <div style={{display:"flex", gap:8}}>
+                  <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>
+                  <button onClick={()=>{
+                    if(!window.confirm("Dar baixa manual neste prêmio como Administrador?")) return;
+                    setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:"Administrador", opIdRetirada:"admin"}:x));
+                  }} style={{background:C.vd,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1.2,fontFamily:"inherit"}}>✅ Dar Baixa Manual</button>
+                </div>
               </>
             )}
             {isP && <div style={{fontSize:10,color:C.sb,fontStyle:"italic",textAlign:"center",width:"100%"}}>Aguardando aprovação no Dashboard</div>}
           </div>
+
         </div>);
       })}
     </div>
