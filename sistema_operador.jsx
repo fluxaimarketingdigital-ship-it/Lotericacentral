@@ -802,7 +802,7 @@ function AdminPanel({admins,setAdmins,ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,se
       {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} adminSel={adminSel} />}
       {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
       {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} />}
-      {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
+      {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
   </div>);
@@ -1474,7 +1474,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     </div>
   </div>);}
 
-function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,adminLogs,logAdminAction,reverterAcao}){
+function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,setAdminSel,admins,setAdmins,adminLogs,logAdminAction,reverterAcao}){
   const[sub,setSub]=useState("meta");
   const isMaster = adminSel?.role === "master";
   let SUBS=[{id:"meta",l:"🎯 Meta"},{id:"rl",l:"⚡ Relâmpago"},{id:"form",l:"📝 Formulário"},{id:"reg",l:"📋 Regulamento"},{id:"not",l:"📰 Notícias"},{id:"sis",l:"🔧 Sistema"}];
@@ -1492,7 +1492,7 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,admi
     {sub==="form"&&<CfgForm cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="reg" &&<CfgReg  cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="not" &&<CfgNoticias cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
-    {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} adminSel={adminSel} admins={admins} setAdmins={setAdmins} checkM={checkM}/>}
+    {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} checkM={checkM}/>}
     {sub==="admins" && isMaster && <CfgAdmins admins={admins} setAdmins={setAdmins} adminSel={adminSel} />}
     {sub==="audit" && isMaster && <CfgAuditoria adminLogs={adminLogs} reverterAcao={reverterAcao} />}
   </div>);
@@ -1828,7 +1828,7 @@ function CfgReg({cfg,setCfg,checkM}){
   </div>);
 }
 
-function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
+function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmins,checkM}){
   const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[msg,setMsg]=useState("");
   const[novaAcesso,setNovaAcesso]=useState("");const[novaMestra,setNovaMestra]=useState("");
   const[showM,setShowM]=useState(false);const[showA,setShowA]=useState(false);
