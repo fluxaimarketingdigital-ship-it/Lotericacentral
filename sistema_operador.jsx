@@ -1504,13 +1504,30 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,setAdminSel,admins,se
   const isMaster = adminSel?.role === "master";
   let SUBS=[{id:"meta",l:"🎯 Meta"},{id:"rl",l:"⚡ Relâmpago"},{id:"form",l:"📝 Formulário"},{id:"reg",l:"📋 Regulamento"},{id:"not",l:"📰 Notícias"},{id:"sis",l:"🔧 Sistema"}];
   if(isMaster) {
-    SUBS.push({id:"admins",l:"🛡️ Administradores"});
+    SUBS.push({id:"admins",l:"🛡️ Administrador"});
     SUBS.push({id:"audit",l:"🕵️ Auditoria"});
   }
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <T em="⚙️" t="Configurações" s="Edite prêmios, formulário, notícias e sistema"/>
-    <div style={{display:"flex",gap:5,background:"#fff",borderRadius:12,padding:4,border:`1px solid ${C.bd}`,flexWrap:"wrap"}}>
-      {SUBS.map(s=><button key={s.id} onClick={()=>setSub(s.id)} style={{flex:1,minWidth:58,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:10,background:sub===s.id?C.az:"transparent",color:sub===s.id?"#fff":C.sb,transition:"all .2s"}}>{s.l}</button>)}
+    <div style={{display:"flex",flexDirection:"column",gap:5}}>
+      <div style={{display:"flex",gap:4,background:"#fff",borderRadius:12,padding:4,border:`1px solid ${C.bd}`,flexWrap:"wrap"}}>
+        {SUBS.filter(s=>!["admins","audit"].includes(s.id)).map(s=>(
+          <button key={s.id} onClick={()=>setSub(s.id)} 
+            style={{flex:1,minWidth:58,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:10,background:sub===s.id?C.az:"transparent",color:sub===s.id?"#fff":C.sb,transition:"all .2s"}}>
+            {s.l}
+          </button>
+        ))}
+      </div>
+      {isMaster && (
+        <div style={{display:"flex",gap:4,background:"#fff",borderRadius:12,padding:4,border:`1px solid ${C.bd}`}}>
+          {SUBS.filter(s=>["admins","audit"].includes(s.id)).map(s=>(
+            <button key={s.id} onClick={()=>setSub(s.id)} 
+              style={{flex:1,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:800,fontSize:10,background:sub===s.id?C.az:"transparent",color:sub===s.id?"#fff":C.sb,transition:"all .2s"}}>
+              {s.l}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
     {sub==="meta"&&<CfgMeta cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="rl"  && <CfgRelampagos cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
@@ -1629,7 +1646,7 @@ function CfgAuditoria({adminLogs, reverterAcao}){
 
     <div id="print-audit" style={{background:"#fff",borderRadius:14,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
       {fLogs.length===0&&<div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhum registro encontrado neste período.</div>}
-      {fLogs.map(l=><div key={l.id} style={{padding:"12px 15px",borderBottom:`1px solid ${C.bd}33`,display:"flex",flexDirection:"column",gap:5}}>
+      {fLogs.slice(0,vis).map((l,i)=><div key={l.id} style={{padding:"12px 15px",borderBottom:i<fLogs.slice(0,vis).length-1?`1px solid ${C.bd}33`:"none",display:"flex",flexDirection:"column",gap:5}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontWeight:800,fontSize:12,color:C.tx}}>{l.adminNome} <span style={{color:C.sb,fontWeight:600}}>({l.role})</span></div>
           <div style={{fontSize:10,color:C.sb,fontFamily:"monospace"}}>{new Date(l.data).toLocaleString("pt-BR")}</div>
@@ -1646,6 +1663,7 @@ function CfgAuditoria({adminLogs, reverterAcao}){
         </div>
       </div>)}
     </div>
+    <VerMais total={fLogs.length} visiveis={vis} setVisiveis={setVis} />
   </div>);
 }
 
