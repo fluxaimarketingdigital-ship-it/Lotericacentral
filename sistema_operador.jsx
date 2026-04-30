@@ -1854,37 +1854,32 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
       <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12,background:!isMaster?"#f3f4f6":"#fff",color:!isMaster?C.sb:C.tx}} readOnly={!isMaster}/>
       <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12,background:!isMaster?"#f3f4f6":"#fff",color:!isMaster?C.sb:C.tx}} readOnly={!isMaster}/>
       
-      {isMaster && (
-        <>
-          <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
-          <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
-          <div style={{display:"flex",gap:8,marginBottom:12}}>
-            <div style={{flex:1}}>
-              <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Acesso</label>
-              <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type="text" placeholder="Nova senha para logar" style={{...I,marginTop:4}}/>
-            </div>
-            <div style={{flex:1,position:"relative"}}>
-              <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Alteração e Exclusão</label>
-              <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={showM?"text":"password"} placeholder="Nova senha de exclusões" style={{...I,marginTop:4,paddingRight:45}}/>
-              <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
-            </div>
-          </div>
-        </>
-      )}
+      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
+      <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
+      <div style={{display:"flex",gap:8,marginBottom:12}}>
+        <div style={{flex:1}}>
+          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Acesso</label>
+          <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type="text" placeholder="Nova senha para logar" style={{...I,marginTop:4}}/>
+        </div>
+        <div style={{flex:1,position:"relative"}}>
+          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Alteração e Exclusão</label>
+          <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={showM?"text":"password"} placeholder="Nova senha de exclusões" style={{...I,marginTop:4,paddingRight:45}}/>
+          <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
+        </div>
+      </div>
 
       {msg&&<div style={{padding:"9px 12px",borderRadius:9,marginBottom:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
-      {isMaster && <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Alterações</button>}
+      <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Alterações</button>
     </div>
     
-    {isMaster && (
-      <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
-        <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
-          {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Registros","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
-          ["🎁","Prêmios",`${pr.length} registros`,()=>csv([["ID","Cliente","Tipo","Nome","Data"],...pr.map(p=>[p.id,cl.find(c=>c.id===p.clientId)?.nome||"",p.tipo,p.nome,fDT(p.data)])],`premios_${hoje()}.csv`)],
-          ["✅","Autenticações","Todos os registros",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
-        ].map(([ic,t,s,fn])=><div key={t} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 12px",background:C.bg,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:7}}><span style={{fontSize:22}}>{ic}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{t}</div><div style={{fontSize:10,color:C.sb}}>{s}</div></div><button onClick={fn} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>⬇️ CSV</button></div>)}
-      </div>
-    )}
+    <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
+      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12}}>💾 Exportar Dados</div>
+        {[["👥","Clientes",`${cl.length} registros`,()=>csv([["ID","Nome","WhatsApp","Email","Cadastro","Registros","Pontos","Prêmios"],...cl.map(c=>{const vs=c.auths?.filter(a=>a.valida!==false)||[];return[c.id,c.nome,c.whats,c.email||"",fD(c.cadastro),c.auths?.length||0,vs.length,Math.floor(vs.length/cfg.meta)];})],`clientes_${hoje()}.csv`)],
+        ["🎁","Prêmios",`${pr.length} registros`,()=>csv([["ID","Cliente","Tipo","Nome","Data"],...pr.map(p=>[p.id,cl.find(c=>c.id===p.clientId)?.nome||"",p.tipo,p.nome,fDT(p.data)])],`premios_${hoje()}.csv`)],
+        ["✅","Autenticações","Todos os registros",()=>{const rows=[["Cliente","Operador","Data","Total","Status","Serviços"]];cl.forEach(c=>(c.auths||[]).forEach(a=>rows.push([c.nome,a.opNome||"",fDT(a.data),a.total||0,a.valida!==false?"PONTO":"HISTORICO",(a.selecionados||[]).join(";")])));csv(rows,`auths_${hoje()}.csv`);}],
+      ].map(([ic,t,s,fn])=><div key={t} style={{display:"flex",alignItems:"center",gap:11,padding:"10px 12px",background:C.bg,borderRadius:10,border:`1px solid ${C.bd}`,marginBottom:7}}><span style={{fontSize:22}}>{ic}</span><div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{t}</div><div style={{fontSize:10,color:C.sb}}>{s}</div></div><button onClick={fn} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:10,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>⬇️ CSV</button></div>)}
+    </div>
+
   </div>);
 }
 
