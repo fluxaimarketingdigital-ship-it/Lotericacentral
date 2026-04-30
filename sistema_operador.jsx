@@ -122,14 +122,32 @@ async function getIP() {
 }
 
 const VerMais = ({total, visiveis, setVisiveis}) => {
-  if(visiveis >= total) return null;
+  const temMais = visiveis < total;
   return (
     <div style={{padding:"12px 0", textAlign:"center"}}>
       <button 
+        disabled={!temMais}
         onClick={() => setVisiveis(prev => prev + 15)} 
-        style={{background:C.bg, border:`1.5px solid ${C.bd}`, borderRadius:20, padding:"6px 16px", fontSize:11, fontWeight:800, color:C.az, cursor:"pointer", display:"flex", alignItems:"center", gap:6, margin:"0 auto", transition:".2s", fontFamily:"inherit"}}
+        style={{
+          background: temMais ? C.bg : "#f3f4f6", 
+          border: `1.5px solid ${temMais ? C.bd : "#e5e7eb"}`, 
+          borderRadius: 20, 
+          padding: "6px 16px", 
+          fontSize: 11, 
+          fontWeight: 800, 
+          color: temMais ? C.az : "#9ca3af", 
+          cursor: temMais ? "pointer" : "default", 
+          display: "flex", 
+          alignItems:"center", 
+          gap: 6, 
+          margin: "0 auto", 
+          transition: ".2s", 
+          fontFamily: "inherit",
+          opacity: temMais ? 1 : 0.7
+        }}
       >
-        Ver mais {Math.min(15, total - visiveis)} registros <span style={{fontSize:14}}>↓</span>
+        {temMais ? `Ver mais ${Math.min(15, total - visiveis)} registros` : "Todos os registros exibidos"} 
+        <span style={{fontSize:14, color: temMais ? C.az : "#9ca3af"}}>↓</span>
       </button>
     </div>
   );
@@ -593,6 +611,7 @@ function OpQR({op,cfg,minhas,minhasV,hoje_}){
         <div style={{width:30,height:30,borderRadius:8,background:C.azC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13}}>🏪</div>
         <div style={{flex:1}}><div style={{fontWeight:700,fontSize:12,color:C.tx}}>{a.cn}</div><div style={{fontSize:10,color:C.sb}}>{fDT(a.data)}{a.total>0?` · ${brl(a.total)}`:""}</div></div>
       </div>)}
+      {hoje_.length > 15 && <div style={{padding:8, textAlign:"center", fontSize:10, color:C.sb, background:C.bg}}>Exibindo as 15 visitas mais recentes</div>}
     </div>}
   </div>);
 }

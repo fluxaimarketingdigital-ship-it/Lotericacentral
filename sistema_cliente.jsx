@@ -116,6 +116,69 @@ const I={padding:"13px 15px",fontSize:15,fontWeight:600,fontFamily:"inherit",bor
 const LS={fontSize:11,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5,display:"block",marginBottom:4};
 const BV={background:"rgba(255,255,255,.18)",color:"#fff",border:"none",borderRadius:9,padding:"5px 13px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"};
 
+async function getIP() {
+  try {
+    const res = await fetch("https://api.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip || "Desconhecido";
+  } catch(e) {
+    return "Desconhecido";
+  }
+}
+
+const VerMais = ({total, visiveis, setVisiveis}) => {
+  const temMais = visiveis < total;
+  return (
+    <div style={{padding:"12px 0", textAlign:"center"}}>
+      <button 
+        disabled={!temMais}
+        onClick={() => setVisiveis(prev => prev + 15)} 
+        style={{
+          background: temMais ? C.bg : "#f3f4f6", 
+          border: `1.5px solid ${temMais ? C.bd : "#e5e7eb"}`, 
+          borderRadius: 20, 
+          padding: "6px 16px", 
+          fontSize: 11, 
+          fontWeight: 800, 
+          color: temMais ? C.az : "#9ca3af", 
+          cursor: temMais ? "pointer" : "default", 
+          display: "flex", 
+          alignItems:"center", 
+          gap: 6, 
+          margin: "0 auto", 
+          transition: ".2s", 
+const VerMais = ({total, visiveis, setVisiveis}) => {
+  const temMais = visiveis < total;
+  return (
+    <div style={{padding:"12px 0", textAlign:"center"}}>
+      <button 
+        disabled={!temMais}
+        onClick={() => setVisiveis(prev => prev + 15)} 
+        style={{
+          background: temMais ? C.bg : "#f3f4f6", 
+          border: `1.5px solid ${temMais ? C.bd : "#e5e7eb"}`, 
+          borderRadius: 20, 
+          padding: "6px 16px", 
+          fontSize: 11, 
+          fontWeight: 800, 
+          color: temMais ? C.az : "#9ca3af", 
+          cursor: temMais ? "pointer" : "default", 
+          display: "flex", 
+          alignItems:"center", 
+          gap: 6, 
+          margin: "0 auto", 
+          transition: ".2s", 
+          fontFamily: "inherit",
+          opacity: temMais ? 1 : 0.7
+        }}
+      >
+        {temMais ? `Ver mais ${Math.min(15, total - visiveis)} registros` : "Todos os registros exibidos"} 
+        <span style={{fontSize:14, color: temMais ? C.az : "#9ca3af"}}>↓</span>
+      </button>
+    </div>
+  );
+};
+
 /* ══════════════════════ APP ROOT ══════════════════════ */
 export default function App(){
   const[tela,   setTela]   = useState("splash");
@@ -595,7 +658,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
     </div>
     {tot>0&&<div style={{background:"#fff",borderRadius:14,overflow:"hidden",border:`1.5px solid ${C.bd}`}}>
       <div style={{padding:"11px 14px",borderBottom:`1.5px solid ${C.bd}`,fontWeight:800,fontSize:12,color:C.tx}}>📋 Últimos Registros</div>
-      {[...c.auths].reverse().slice(0,5).map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 14px",borderBottom:i<4?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
+      {[...c.auths].reverse().slice(0,15).map((a,i)=>{const v=a.valida!==false;return(<div key={a.id} style={{padding:"10px 14px",borderBottom:i<14?`1px solid ${C.bd}22`:"none",display:"flex",alignItems:"center",gap:10}}>
         <div style={{width:32,height:32,borderRadius:9,background:v?C.azC:C.bg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:15,flexShrink:0}}>{v?"🏪":"⏳"}</div>
         <div style={{flex:1}}>
           <div style={{fontSize:11,fontWeight:700,color:C.tx}}>{a.opNome||"Registro"} · <span style={{color:a.status==="pending"?C.ou:v?C.vd:C.rd}}>{a.status==="pending"?"Pendente ⏳":v?"Validado ✅":"Abaixo do Mínimo"}</span></div>
@@ -603,6 +666,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios}){
         </div>
         <div style={{fontWeight:900,fontSize:12,color:v?C.az:C.sb}}>{c.auths.length-i}ª</div>
       </div>);})}
+      {(c.auths||[]).length > 15 && <div onClick={()=>setAba("ct")} style={{padding:12, textAlign:"center", fontSize:11, color:C.az, background:C.bg, cursor:"pointer", fontWeight:800}}>Ver histórico completo na aba Conta →</div>}
     </div>}
   </div>);}
 
@@ -1080,7 +1144,9 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
 
 /* ══════════════════════ PRÊMIOS ══════════════════════ */
-function Premios({meusPr,c,wts,setVoucherVer}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+function Premios({meusPr,c,wts,setVoucherVer}){
+  const [vis, setVis] = useState(15);
+  return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
   <Tit em="🎁" t="Meus Prêmios" s="Todos os prêmios conquistados"/>
   {meusPr.length===0&&<Vz em="🎟️" msg="Nenhum prêmio ainda. Continue acumulando e inclua Jogos para o Relâmpago!"/>}
   {[...meusPr].filter(p=>p.status!=="rejected").reverse().map(p=>{
@@ -1102,13 +1168,16 @@ function Premios({meusPr,c,wts,setVoucherVer}){return(<div style={{display:"flex
       
       {isAppr && <button onClick={()=>setVoucherVer(p)} style={{marginTop:10,width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:10,fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🎫 Abrir Cupom Digital</button>}
       
-      <div style={{fontSize:10,color:C.sb,marginTop:8}}>📅 {fDT(p.data)} {isRedeemed && p.redeemedAt && `· Retirado em ${fDT(p.redeemedAt)}`}</div>
+    <div style={{fontSize:10,color:C.sb,marginTop:8}}>📅 {fDT(p.data)} {isRedeemed && p.redeemedAt && `· Retirado em ${fDT(p.redeemedAt)}`}</div>
     </div>
   </div>);})}
+  <VerMais total={meusPr.length} visiveis={vis} setVisiveis={setVis} />
 </div>);}
 
 /* ══════════════════════ NOTÍCIAS ══════════════════════ */
-function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
+function Noticias({noticias,temPr,wts}){
+  const [vis, setVis] = useState(15);
+  return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
   <Tit em="📰" t="Notícias"/>
   {temPr&&<div style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:12,padding:"11px 14px",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:22}}>🌟</span><div><div style={{fontWeight:800,fontSize:12,color:"#fff"}}>Conteúdo exclusivo ativo</div><div style={{fontSize:10,color:"rgba(255,255,255,.7)",marginTop:1}}>Você recebe notícias especiais por ser cliente premiado!</div></div></div>}
   {noticias.map(n=>{const excl=n.tipo==="vip";return(<div key={n.id} style={{background:"#fff",borderRadius:15,overflow:"hidden",border:`1px solid ${excl?C.rx+"44":C.bd}`}}>
@@ -1121,6 +1190,7 @@ function Noticias({noticias,temPr,wts}){return(<div style={{display:"flex",flexD
       <div style={{fontSize:12,color:C.sb,lineHeight:1.8,whiteSpace:"pre-line"}}>{n.corpo}</div>
     </div>
   </div>);})}
+  <VerMais total={noticias.length} visiveis={vis} setVisiveis={setVis} />
   <a href={`https://wa.me/${wts}?text=${encodeURIComponent("Olá! Tenho uma dúvida sobre o programa Fidelizado Premiado.")}`} target="_blank" rel="noreferrer" style={{display:"block",background:"#25D366",color:"#fff",borderRadius:15,padding:"14px",fontWeight:800,fontSize:14,textDecoration:"none",textAlign:"center"}}>📲 Falar com a Lotérica</a>
 </div>);}
 
@@ -1353,15 +1423,13 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
             }
             items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer} premios={premios} setPr={setPr}/>);
           });
-          if (sorted.length > limit) {
-            items.push(
-              <button key="btn-more" onClick={()=>setLimit(limit+15)} style={{width:"100%", padding:"15px", background:"#fff", border:"none", color:C.az, fontWeight:800, fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, borderTop:`1px solid ${C.bd}44`}}>
-                <span>Ver registros anteriores</span>
-                <span style={{fontSize:16}}>↓</span>
-              </button>
-            );
-          }
-          return items;
+          });
+          return (
+            <>
+              {items}
+              <VerMais total={sorted.length} visiveis={limit} setVisiveis={setLimit} />
+            </>
+          );
         })()}
       </div>
       {temPr&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:15,padding:"13px 15px",display:"flex",gap:12,alignItems:"center"}}><span style={{fontSize:32}}>🏆</span><div><div style={{fontWeight:900,fontSize:14,color:C.az}}>Cliente Premiado!</div><div style={{fontSize:11,color:C.az,opacity:.8,marginTop:2}}>Notícias e ofertas exclusivas ativas.</div></div></div>}
