@@ -685,10 +685,14 @@ function OpVoucher({pr, setPr, cl, op, cfg, checkM}){
     setRes({pr: v, c: c});
   }
 
-  function validar(p){
-    if(!window.confirm("Confirmar a retirada deste prêmio no balcão?")) return;
-    setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:op.nome, opIdRetirada:op.id}:x));
-    setRes({...res, pr:{...p, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:op.nome}});
+  function validar(p, expirado=false){
+    if(expirado) {
+      if(!checkM("⚠️ VOUCHER VENCIDO! Para autorizar a entrega deste prêmio fora do prazo, solicite a SENHA DE ALTERAÇÃO do Gerente ou Master:")) return;
+    } else {
+      if(!window.confirm("Confirmar a retirada deste prêmio no balcão?")) return;
+    }
+    setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:op.nome, opIdRetirada:op.id, autorizadoVencido:expirado}:x));
+    setRes({...res, pr:{...p, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:op.nome, autorizadoVencido:expirado}});
     alert("✅ Retirada registrada com sucesso!");
   }
 
@@ -721,17 +725,32 @@ function OpVoucher({pr, setPr, cl, op, cfg, checkM}){
           <div style={{fontSize:11,color:C.sb}}>{res.pr.tipo==="relampago"?"Prêmio Relâmpago":"Prêmio Meta"}</div>
         </div>
 
-        {res.pr.status === "approved" && (
-           <div style={{display:"flex", flexDirection:"column", gap:10}}>
-             <div style={{background:C.bg, padding:10, borderRadius:10, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-               <div>
-                 <div style={{fontSize:10, color:C.sb, fontWeight:800}}>VALIDADE</div>
-                 <div style={{fontWeight:900, color:C.tx}}>{fD(res.pr.validade || new Date(new Date(res.pr.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString())}</div>
+        {res.pr.status === "approved" && (() => {
+           const dVal = res.pr.validade || new Date(new Date(res.pr.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString();
+           const isExp = new Date(dVal) < new Date(hoje() + "T23:59:59");
+           
+           return (
+             <div style={{display:"flex", flexDirection:"column", gap:10}}>
+               <div style={{background:isExp?C.rdC:C.bg, padding:12, borderRadius:10, display:"flex", justifyContent:"space-between", alignItems:"center", border:isExp?`1px solid ${C.rd}44`:"none"}}>
+                 <div>
+                   <div style={{fontSize:10, color:isExp?C.rd:C.sb, fontWeight:800, textTransform:"uppercase"}}>Validade do Prêmio</div>
+                   <div style={{fontWeight:900, color:isExp?C.rd:C.tx, fontSize:15}}>{fD(dVal)}</div>
+                 </div>
+                 {isExp && <div style={{background:C.rd, color:"#fff", fontSize:9, fontWeight:900, padding:"4px 8px", borderRadius:20, animation:"pop .3s"}}>VENCIDO ⚠️</div>}
                </div>
+
+               {isExp && (
+                 <div style={{fontSize:11, color:C.rd, fontWeight:700, textAlign:"center", background:"#fff", padding:8, borderRadius:8, border:`1px dashed ${C.rd}66`}}>
+                   Este voucher expirou. A entrega requer autorização da Gerência.
+                 </div>
+               )}
+
+               <button onClick={()=>validar(res.pr, isExp)} style={{width:"100%",background:isExp?C.rd:C.vd,color:"#fff",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${isExp?C.rd:C.vd}44`}}>
+                 {isExp ? "🔐 Autorizar Entrega Vencida" : "✅ Registrar Retirada no Balcão"}
+               </button>
              </div>
-             <button onClick={()=>validar(res.pr)} style={{width:"100%",background:C.vd,color:"#fff",border:"none",borderRadius:12,padding:14,fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.vd}44`}}>✅ Registrar Retirada no Balcão</button>
-           </div>
-        )}
+           );
+        })()}
         {res.pr.status === "redeemed" && (
            <div style={{background:C.vdC,color:C.vd,padding:14,borderRadius:12,fontWeight:800,textAlign:"center",border:`1px solid ${C.vd}44`}}>
              ✅ Prêmio retirado em {fDT(res.pr.dataRetirada||res.pr.redeemedAt||res.pr.data)}<br/>
