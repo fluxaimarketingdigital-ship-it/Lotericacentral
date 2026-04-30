@@ -81,7 +81,7 @@ const uidOp=(ops=[])=>{
   return cod;
 };
 const limpo = v=>v?v.replace(/\D/g,""):"";
-const now=()=>new Date().toISOString();
+const now=()=>new Date().toLocaleString("sv-SE", {timeZone:"America/Sao_Paulo"}).replace(" ","T")+"Z";
 const fD=d=>new Date(d + (d?.includes("T") ? "" : "T12:00:00")).toLocaleDateString("pt-BR");
 const fDT=d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 const mAno=d=>{
@@ -91,7 +91,7 @@ const mAno=d=>{
 };
 const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtDN = v=>{if(!v)return"—";if(v.length!==8)return v;return`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;};
-const hoje=()=>new Date().toISOString().slice(0,10);
+const hoje=()=>new Date().toLocaleString("sv-SE", {timeZone:"America/Sao_Paulo"}).slice(0,10);
 
 /* ═══════ CSS ═══════ */
 const CSS=`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -898,6 +898,16 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     setPr(pr.filter(p=>p.authId!==a.id));
   };
   const updPrize = (pid, newS) => {
+    if(newS==="approved") {
+      const pObj = pr.find(x=>x.id===pid);
+      if(pObj?.tipo === "raspadinha"){
+        const hasPending = c.auths.some(ax => (ax.status === "pending" || !ax.status) && ax.valida !== false);
+        if(hasPending){
+          alert("⚠️ Não é possível aprovar o PRÊMIO META ainda. Existem Visitas PENDENTES que precisam ser auditadas primeiro.");
+          return;
+        }
+      }
+    }
     if(newS==="rejected" && !window.confirm("Recusar este prêmio?")) return;
     if(newS==="rejected") {
       setPr(pr.map(p=>p.id===pid?{...p, status:"rejected"}:p));

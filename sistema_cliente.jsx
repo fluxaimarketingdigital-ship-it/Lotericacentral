@@ -69,14 +69,14 @@ const NOME = "Lotérica Central";
 const C={az:"#003478",az2:"#004fa8",azC:"#e8f0fb",ou:"#f5a800",ou2:"#d97706",ouC:"#fff8e6",vd:"#00a651",vdC:"#e6f9ef",rx:"#7c3aed",rxC:"#f3eeff",rd:"#e5001e",rdC:"#fff0f0",bg:"#f0f4fb",bd:"#dde6f5",tx:"#0d2137",sb:"#5a7a96"};
 
 const uid  = ()=>Math.random().toString(36).slice(2,9);
-const now  = ()=>new Date().toISOString();
+const now  = ()=>new Date().toLocaleString("sv-SE", {timeZone:"America/Sao_Paulo"}).replace(" ","T")+"Z";
 const fD   = d=>new Date(d + (d?.includes("T") ? "" : "T12:00:00")).toLocaleDateString("pt-BR");
 const fDT  = d=>new Date(d).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"});
 const brl  = v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtW = v=>{if(!v)return"";const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
 const fmtDN = v=>{if(!v)return"";const d=v.replace(/\D/g,"").slice(0,8);if(d.length<=2)return d;if(d.length<=4)return`${d.slice(0,2)}/${d.slice(2)}`;return`${d.slice(0,2)}/${d.slice(2,4)}/${d.slice(4)}`;};
 const limpo = v=>v?v.replace(/\D/g,""):"";
-const hoje  = ()=>new Date().toISOString().slice(0,10);
+const hoje  = ()=>new Date().toLocaleString("sv-SE", {timeZone:"America/Sao_Paulo"}).slice(0,10);
 
 /* DB importado via firebase.js */
 
@@ -766,7 +766,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
     if (conflicto) {
       setStep("form");
-      setErrF(`❌ O número [${controle}] já consta como usado por ${conflicto.cNome} em ${fDT(conflicto.data)}. Use um número diferente.`);
+      setErrF(`❌ O número [${controle}] já consta como usado em ${fDT(conflicto.data)}. Use um número diferente.`);
       return;
     }
 
