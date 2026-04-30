@@ -1902,7 +1902,7 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
               <button onClick={()=>setVisM(!visM)} style={{position:"absolute",right:10,top:32,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"3px 6px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{visM?"Ocultar":"Ver"}</button>
             </div>
 
-            {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd,textAlign:"center"}}>{msg}</div>}
+            {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd:C.rd,textAlign:"center"}}>{msg}</div>}
             
             <button onClick={salvar} style={{marginTop:10,padding:15,borderRadius:13,border:"none",background:C.az,color:"#fff",fontWeight:900,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>
               Confirmar Alteração de Senhas
@@ -1911,7 +1911,7 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,setAdminSel,admins,setAdmi
         </div>
       </div>}
 
-      {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd,textAlign:"center",marginBottom:10}}>{msg}</div>}
+      {msg && <div style={{padding:"10px",borderRadius:10,fontSize:12,fontWeight:700,background:msg.startsWith("✅")?C.vdC:C.rdC,color:msg.startsWith("✅")?C.vd:C.rd,textAlign:"center",marginBottom:10}}>{msg}</div>}
       
       {isMaster && <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar Configurações Globais</button>}
     </div>
