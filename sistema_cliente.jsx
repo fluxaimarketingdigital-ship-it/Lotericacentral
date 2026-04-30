@@ -1319,6 +1319,8 @@ r.readAsDataURL(f);
 
 function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerrada,dFim,dIni,premios,setPr,setVoucherVer}){
   const[sub,setSub]=useState("dados");
+  const[limit,setLimit]=useState(15);
+
   return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
     <Tit em="👤" t="Minha Conta"/>
     <div style={{display:"flex",gap:5,background:"#fff",borderRadius:11,padding:4,border:`1px solid ${C.bd}`}}>{[["dados","Meus Dados"],["reg","Regulamento"]].map(s=><button key={s[0]} onClick={()=>setSub(s[0])} style={{flex:1,padding:"8px",borderRadius:8,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:12,background:sub===s[0]?C.az:"transparent",color:sub===s[0]?"#fff":C.sb,transition:"all .2s"}}>{s[1]}</button>)}</div>
@@ -1339,9 +1341,10 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
         {((c.auths||[]).length===0) && <div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhum registro encontrado ainda.</div>}
         {(() => {
           const sorted = [...(c.auths||[])].sort((a,b)=>new Date(b.data)-new Date(a.data));
+          const visible = sorted.slice(0, limit);
           const items = [];
           let dividerAdded = false;
-          sorted.forEach((a, i) => {
+          visible.forEach((a, i) => {
             if (!dividerAdded && a.data < dIni) {
               items.push(<div key="divider-end" style={{padding:"10px 17px", background:C.bg, color:C.sb, fontSize:10, fontWeight:900, textAlign:"center", textTransform:"uppercase", letterSpacing:1, borderTop:`1px dashed ${C.bd}`, borderBottom:`1px dashed ${C.bd}`}}>
                 🏁 Ciclo Encerrado em {fD(new Date(new Date(dIni).getTime() - 86400000))}
@@ -1350,6 +1353,14 @@ function Conta({c,temPr,meusPr,tot,raspa,cfg,setCli,setTela,clients,setCl,encerr
             }
             items.push(<HistItem key={a.id} a={a} cfg={cfg} c={c} clients={clients} setCl={setCl} setVoucherVer={setVoucherVer} premios={premios} setPr={setPr}/>);
           });
+          if (sorted.length > limit) {
+            items.push(
+              <button key="btn-more" onClick={()=>setLimit(limit+15)} style={{width:"100%", padding:"15px", background:"#fff", border:"none", color:C.az, fontWeight:800, fontSize:13, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", gap:8, borderTop:`1px solid ${C.bd}44`}}>
+                <span>Ver registros anteriores</span>
+                <span style={{fontSize:16}}>↓</span>
+              </button>
+            );
+          }
           return items;
         })()}
       </div>
