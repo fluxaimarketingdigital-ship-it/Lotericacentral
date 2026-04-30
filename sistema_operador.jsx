@@ -1836,7 +1836,6 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
   const isMaster = adminSel?.role === "master";
 
   function salvar(){
-    if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar as Configurações do Sistema:", null, "ALTERACAO")) return;
     setCfg({...cfg,appUrl:url.trim(),wts:wts.trim()});
     if(novaAcesso.trim() || novaMestra.trim()){
       const adminAtualizado = {...adminSel};
@@ -1844,9 +1843,12 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
       if(novaMestra.trim()) adminAtualizado.senhaMestra = novaMestra.trim();
       if(typeof setAdmins === "function") setAdmins(admins.map(a => a.id === adminSel.id ? adminAtualizado : a));
       setAdminSel(adminAtualizado);
+      setMsg("✅ Senha alterada com sucesso!");
+    } else {
+      setMsg("✅ Salvo!");
     }
     setNovaAcesso("");setNovaMestra("");
-    setMsg("✅ Salvo!");setTimeout(()=>setMsg(""),3000);
+    setTimeout(()=>setMsg(""),3000);
   }
   function csv(rows,name){const d=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(d);a.download=name;a.click();}
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
