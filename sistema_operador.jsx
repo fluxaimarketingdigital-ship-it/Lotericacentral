@@ -793,7 +793,7 @@ function OpRegulamento({cfg}){
 function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,setCampanhas,adminLogs,setAdminLogs,checkM}){
   const[aba,setAba]=useState("cli");
   const[vis,setVis]=useState(15);
-  const ABAS=[{id:"cli",l:"👥 Clientes"},{id:"vis",l:"✅ Visitas"},{id:"pr",l:"🎁 Prêmios"},{id:"ops",l:"🏅 Operadores"},{id:"met",l:"📊 Métricas"},{id:"hist",l:"📚 Histórico"}];
+  const ABAS=[{id:"cli",l:"👥 Clientes"},{id:"vis",l:"✅ Visitas"},{id:"pr",l:"🎁 Prêmios"},{id:"ops",l:"🏅 Operadores"},{id:"met",l:"📊 Métricas"},{id:"admLog",l:"🛡️ Auditoria Adm"},{id:"hist",l:"📚 Histórico"}];
 
   // Métricas auxiliares
   const met = useMemo(() => {
@@ -914,6 +914,17 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
     });
     dados.sort((a,b) => new Date(b[0]) - new Date(a[0]));
     exportPDF("Relatório Geral de Visitas", ["Data/Hora", "Cliente", "Status", "Valor", "Operador", "Registro"], dados, "l");
+  };
+
+  const relAdm = () => {
+    const dados = (adminLogs||[]).map(l => [
+      fDT(l.data),
+      l.adminNome + " (" + l.role + ")",
+      l.acao,
+      l.detalhes,
+      l.ip
+    ]);
+    exportPDF("Auditoria de Ações Administrativas", ["Data/Hora", "Administrador", "Ação", "Detalhes", "IP"], dados, "l");
   };
 
   const fecharCampanha = () => {
@@ -1051,7 +1062,19 @@ Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "EN
       <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`,animation:"up .3s"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:15}}>
           <div style={L}>Métricas da Campanha</div>
-          <button onClick={()=>exportPDF("Métricas de Desempenho", ["Categoria/Campo", "Quantidade", "Frequência %"], met.sortedCampos.map(([n,v])=>[n,v,Math.round(v/met.totV*100)+"%"]))} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
+          <button onClick={()=>{
+            const dados = [
+              ["Movimentação Total", brl(met.totVal)],
+              ["Total de Visitas", met.totV],
+              ["Ticket Médio", brl(met.avg)],
+              ["Uso de Boleto/Bancário", met.totBoleto],
+              ["Uso de PIX", met.totPix],
+              ["Uso de Jogos", met.totJogos],
+              ["Uso de Bolões", met.totBolao],
+              ...met.sortedCampos.map(([n,v])=>["Uso de "+n, v])
+            ];
+            exportPDF("Métricas de Desempenho", ["Indicador", "Quantidade/Resultado"], dados);
+          }} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
         </div>
         
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:15}}>
@@ -1074,6 +1097,27 @@ Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "EN
             </div>
           ))}
         </div>
+      </div>
+    )}
+    
+    {aba==="admLog" && (
+      <div style={{background:"#fff",borderRadius:14,padding:16,border:`1px solid ${C.bd}`,animation:"up .3s"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:15}}>
+          <div style={L}>Auditoria Administrativa</div>
+          <button onClick={relAdm} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:800,cursor:"pointer"}}>🖨️ PDF</button>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8}}>
+          {(adminLogs||[]).slice(0,vis).map(l=>(
+            <div key={l.id} style={{fontSize:11, borderBottom:`1px solid ${C.bd}22`, paddingBottom:6}}>
+              <div style={{display:"flex",justifyContent:"space-between"}}>
+                <span style={{fontWeight:800}}>{l.adminNome} ({l.role})</span>
+                <span style={{color:C.sb}}>{fDT(l.data)}</span>
+              </div>
+              <div style={{marginTop:3}}><span style={{fontWeight:800,color:l.acao==="EXCLUSAO"?C.rd:C.az}}>[{l.acao}]</span> {l.detalhes}</div>
+            </div>
+          ))}
+        </div>
+        <VerMais total={(adminLogs||[]).length} visiveis={vis} setVisiveis={setVis} />
       </div>
     )}
 
