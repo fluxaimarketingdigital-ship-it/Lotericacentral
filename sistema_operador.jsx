@@ -1835,20 +1835,21 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
 
   const isMaster = adminSel?.role === "master";
 
-  function salvar(){
-    setCfg({...cfg,appUrl:url.trim(),wts:wts.trim()});
+  async function salvar(){
+    await setCfg({...cfg,appUrl:url.trim(),wts:wts.trim()});
+    let s = "✅ Configurações salvas!";
     if(novaAcesso.trim() || novaMestra.trim()){
       const adminAtualizado = {...adminSel};
       if(novaAcesso.trim()) adminAtualizado.senhaAcesso = novaAcesso.trim();
       if(novaMestra.trim()) adminAtualizado.senhaMestra = novaMestra.trim();
-      if(typeof setAdmins === "function") setAdmins(admins.map(a => a.id === adminSel.id ? adminAtualizado : a));
+      if(typeof setAdmins === "function") await setAdmins(admins.map(a => a.id === adminSel.id ? adminAtualizado : a));
       setAdminSel(adminAtualizado);
-      setMsg("✅ Senha alterada com sucesso!");
-    } else {
-      setMsg("✅ Salvo!");
+      s = "✅ Senhas alteradas com sucesso!";
     }
+    setMsg(s);
     setNovaAcesso("");setNovaMestra("");
-    setTimeout(()=>setMsg(""),3000);
+    setTimeout(()=>setMsg(""),5000);
+    alert(s);
   }
   function csv(rows,name){const d=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(d);a.download=name;a.click();}
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
