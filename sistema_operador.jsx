@@ -66,6 +66,7 @@ Destinado a clientes que realizarem transações na unidade. A participação é
       { id:"out_jg",   nome:"Outros Jogos", emoji:"🎮", cat:"jg", comValor:false, triggerRelampago:true, ativo:true, obrigatorio:false },
     ],
   },
+  senhaMestra: "123456",
 };
 
 /* ═══════ CORES ═══════ */
@@ -298,6 +299,12 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole}){
   const op = ops.find(o => o.id === opSel?.id) || opSel;
   const idx = Math.max(0, ops.findIndex(o => o.id === op?.id));
   const lastReset = cfg.lastReset || "2000-01-01";
+  const checkM = (m="Digite a SENHA MESTRA para autorizar esta exclusão:") => {
+    const p = window.prompt(m);
+    if(p === (cfg.senhaMestra||"123456")) return true;
+    if(p !== null) alert("❌ Senha Mestra incorreta!");
+    return false;
+  };
   const minhas = useMemo(() => {
     let all = [];
     cl.forEach(c => {
@@ -827,7 +834,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
     {rank.length > 0 && (
       <div style={{background:C.az,borderRadius:14,padding:16,display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,boxShadow:`0 4px 12px ${C.az}44`}}>
         <div><div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase"}}>Ciclo Mensal Atual</div><div style={{color:"#fff",fontWeight:900,fontSize:14}}>Desde {fD(lastReset)}</div></div>
-        <button onClick={encerrarCiclo} style={{background:C.ou,color:C.az,border:"none",borderRadius:9,padding:"8px 14px",fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🏆 Encerrar Ciclo</button>
+        <button onClick={()=>{if(checkM("Encerrar o ciclo mensal? Esta ação zerará o ranking atual. Digite a senha:")) encerrarCiclo();}} style={{background:C.ou,color:C.az,border:"none",borderRadius:9,padding:"8px 14px",fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🏆 Encerrar Ciclo</button>
       </div>
     )}
 
@@ -836,7 +843,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
         <div style={{flex:1}}>
           {eId===r.op.id?<div style={{display:"flex",gap:5}}><input value={eN} onChange={e=>setEN(e.target.value)} style={{flex:1,...I,padding:"5px 9px",fontSize:12}}/><button onClick={()=>{setOps(ops.map(o=>o.id===r.op.id?{...o,nome:eN}:o));setEId(null);}} style={{background:C.vd,color:"#fff",border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✓</button><button onClick={()=>setEId(null)} style={{background:"#f3f4f6",color:C.sb,border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button></div>
-          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>🏆 Dia 05</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(window.confirm(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(window.confirm(`Remover operadora ${r.op.nome}?`)) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
+          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:r.op.id===op.id?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{r.op.id===op.id?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}?`)) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
           <div style={{fontSize:10,color:C.sb,marginTop:2}}>Desde {fD(r.op.cadastro)}</div>
         </div>
       </div>
@@ -855,7 +862,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes}){
                 <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Ciclo {p.periodo}</div>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   <div style={{background:p.status==="paid"?C.vdC:C.ouC,color:p.status==="paid"?C.vd:C.ou2,fontSize:9,fontWeight:900,padding:"2px 8px",borderRadius:20}}>{p.status==="paid"?"✅ PAGO":"⏳ PENDENTE"}</div>
-                  <button onClick={()=>{if(window.confirm("Remover este registro do histórico?")) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
+                  <button onClick={()=>{if(checkM("Remover este registro do histórico de prêmios?")) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
                 </div>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -896,7 +903,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer})
     }
   };
   const excluirAuth = () => {
-    if(!window.confirm("Tem certeza que deseja EXCLUIR esta autenticação?")) return;
+    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente?")) return;
     setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
     setPr(pr.filter(p=>p.authId!==a.id));
   };
@@ -1110,7 +1117,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus}){
                 <span>{c.nome}</span>
                 {(c.auths?.some(a=>a.status==="pending") || pr.some(p=>p.clientId===c.id && p.status==="pending")) && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
               </div>
-              <div onClick={(e)=>{e.stopPropagation(); if(window.confirm(`Excluir o cliente ${c.nome} permanentemente?`)) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
+              <div onClick={(e)=>{e.stopPropagation(); if(checkM(`Excluir o cliente ${c.nome} permanentemente?`)) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
             </div>
             <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} registros · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
@@ -1513,7 +1520,7 @@ function CfgRl({cfg,setCfg}){
         <div style={{display:"flex",gap:8}}><div style={{flex:1}}><label style={L}>Emoji</label><input value={r.emoji} onChange={e=>upd(r.id,"emoji",e.target.value)} style={{width:"100%",marginTop:4,padding:"8px",border:`1.5px solid ${C.bd}`,borderRadius:9,fontSize:18,textAlign:"center",fontFamily:"inherit",outline:"none"}}/></div><div style={{flex:1}}><label style={L}>Prob. (%)</label><input value={r.prob} onChange={e=>upd(r.id,"prob",e.target.value)} type="number" min="0.1" max="100" step="0.1" style={{width:"100%",marginTop:4,...I}}/></div></div>
         <div><label style={L}>Nome *</label><input value={r.nome} onChange={e=>upd(r.id,"nome",e.target.value)} style={{width:"100%",marginTop:4,...I}} placeholder="Ex: Raspadinha Bônus"/></div>
         <div><label style={L}>Descrição</label><textarea value={r.desc} onChange={e=>upd(r.id,"desc",e.target.value)} rows={2} style={{width:"100%",marginTop:4,...I,resize:"vertical"}} placeholder="Mensagem para o cliente…"/></div>
-        <button onClick={()=>remover(r.id)} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
+        <button onClick={()=>{if(checkM("Remover este prêmio relâmpago?")) remover(r.id);}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
       </div>}
     </div>)}
     <button onClick={addNovo} style={{background:C.rxC,color:C.rx,border:`1.5px dashed ${C.rx}55`,borderRadius:12,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>➕ Adicionar Novo Prêmio Relâmpago</button>
@@ -1552,16 +1559,18 @@ function CfgReg({cfg,setCfg}){
 }
 
 function CfgSis({cfg,setCfg,ops,setOps,cl,pr}){
-  const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[msg,setMsg]=useState("");
-  function salvar(){setCfg({...cfg,appUrl:url.trim(),wts:wts.trim()});setMsg("✅ Salvo!");setTimeout(()=>setMsg(""),3000);}
+  const[url,setUrl]=useState(cfg.appUrl||"");const[wts,setWts]=useState(cfg.wts||"");const[mst,setMst]=useState(cfg.senhaMestra||"123456");const[msg,setMsg]=useState("");
+  function salvar(){setCfg({...cfg,appUrl:url.trim(),wts:wts.trim(),senhaMestra:mst.trim()});setMsg("✅ Salvo!");setTimeout(()=>setMsg(""),3000);}
   function csv(rows,name){const d=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href="data:text/csv;charset=utf-8,"+encodeURIComponent(d);a.download=name;a.click();}
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:10}}>🌐 URL do Aplicativo Cliente</div>
       <div style={{fontSize:11,color:C.sb,marginBottom:8,lineHeight:1.7}}>URL pública do portal do cliente (ex: <code>https://meuapp.vercel.app</code>). Necessária para os QR Codes funcionarem no celular.</div>
       <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12}}/>
-      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:8}}>📱 WhatsApp da Lotérica</div>
       <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12}}/>
+      <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:8}}>🔒 Senha Mestra de Exclusão</div>
+      <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Senha exigida para excluir clientes, operadoras ou registros.</div>
+      <input value={mst} onChange={e=>setMst(e.target.value)} type="password" style={{...I,marginBottom:12}}/>
       {msg&&<div style={{padding:"9px 12px",borderRadius:9,marginBottom:10,fontSize:12,fontWeight:700,background:C.vdC,color:C.vd}}>{msg}</div>}
       <button onClick={salvar} style={{width:"100%",padding:13,borderRadius:11,border:"none",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",fontWeight:800,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>✅ Salvar</button>
     </div>
@@ -1588,7 +1597,7 @@ function CfgNoticias({cfg,setCfg}){
   const uid2=()=>Math.random().toString(36).slice(2,9);
 
   function upd(id,k,v){ setLista(l=>l.map(n=>n.id===id?{...n,[k]:v}:n)); }
-  function remover(id){ if(!window.confirm("Remover esta notícia?"))return; setLista(l=>l.filter(n=>n.id!==id)); setEditId(null); }
+  function remover(id){ if(!checkM("Remover esta notícia?"))return; setLista(l=>l.filter(n=>n.id!==id)); setEditId(null); }
   function addNova(){
     if(!nova.titulo.trim()){setMsg("❌ Informe o título da notícia.");return;}
     if(!nova.corpo.trim()) {setMsg("❌ Informe o conteúdo da notícia.");return;}
