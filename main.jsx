@@ -78,10 +78,9 @@ function AccessGate({ children }) {
           >
             Entrar no Sistema
           </button>
-          <div style={{ marginTop: '20px', fontSize: '10px', color: '#5a7a96', opacity: 0.7 }}>
+          <div style={{ marginTop: '20px', fontSize: '11px', color: '#003478', fontWeight: 900 }}>
             Desenvolvido por <strong>FluxAI Marketing Digital</strong>
           </div>
-        </div>
         </div>
       </div>
     );
