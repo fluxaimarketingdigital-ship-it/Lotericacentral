@@ -1601,6 +1601,7 @@ function CfgAdmins({admins,setAdmins,adminSel}){
 function CfgAuditoria({adminLogs, reverterAcao}){
   const [dI, setDI] = useState("");
   const [dF, setDF] = useState("");
+  const [vis, setVis] = useState(15);
 
   const fLogs = (adminLogs||[]).filter(l => {
     if(!dI && !dF) return true;
