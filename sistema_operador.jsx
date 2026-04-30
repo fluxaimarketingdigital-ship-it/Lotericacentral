@@ -1843,6 +1843,7 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins,checkM}){
       if(novaAcesso.trim()) adminAtualizado.senhaAcesso = novaAcesso.trim();
       if(novaMestra.trim()) adminAtualizado.senhaMestra = novaMestra.trim();
       if(typeof setAdmins === "function") setAdmins(admins.map(a => a.id === adminSel.id ? adminAtualizado : a));
+      setAdminSel(adminAtualizado);
     }
     setNovaAcesso("");setNovaMestra("");
     setMsg("✅ Salvo!");setTimeout(()=>setMsg(""),3000);
