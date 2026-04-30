@@ -204,13 +204,14 @@ function Home({ops,admins,cl,pr,setRole,setOpSel,setAdminSel,setTela}){
     if(!adminLogin) return;
     if(adminLogin.senhaAcesso === senha || !adminLogin.senhaAcesso){
       let finalAdmin = {...adminLogin};
-      if(adminLogin.senhaAcesso === "123456" || !adminLogin.senhaAcesso || !adminLogin.senhaMestra) {
+      if(adminLogin.primeiroAcesso !== false && (adminLogin.senhaAcesso === "123456" || !adminLogin.senhaAcesso || !adminLogin.senhaMestra)) {
         const nAcesso = window.prompt(`[PRIMEIRO ACESSO] Defina sua NOVA SENHA DE ACESSO (para logar):`, "");
         if(!nAcesso) return alert("Você precisa definir uma senha de acesso!");
-        const nMestra = window.prompt(`[PRIMEIRO ACESSO] Defina sua NOVA SENHA DE EXCLUSÃO PESSOAL (para autorizar ações):`, "");
-        if(!nMestra) return alert("Você precisa definir uma senha de exclusão!");
+        const nMestra = window.prompt(`[PRIMEIRO ACESSO] Defina sua NOVA SENHA DE ALTERAÇÃO E EXCLUSÃO (para autorizar modificações do sistema):`, "");
+        if(!nMestra) return alert("Você precisa definir uma senha de alteração e exclusão!");
         finalAdmin.senhaAcesso = nAcesso.trim();
         finalAdmin.senhaMestra = nMestra.trim();
+        finalAdmin.primeiroAcesso = false;
         const updatedAdmins = admins.map(a => a.id === finalAdmin.id ? finalAdmin : a);
         if(typeof setAdmins === "function") setAdmins(updatedAdmins);
         alert("Senhas configuradas com sucesso! Bem-vindo(a).");
@@ -705,7 +706,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       return p.status === "pending" || p.status === "approved";
     }).length;
   }, [pr, cfg, encerrada]);
-  const logAdminAction = async (acao, detalhes="") => {
+  const logAdminAction = async (acao, detalhes="", payload=null) => {
     if(!adminSel) return;
     const ip = await getIP();
     const log = {
@@ -715,24 +716,64 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       role: adminSel.role,
       acao,
       detalhes,
+      payload,
+      reverted: false,
       data: new Date().toISOString(),
       ip
     };
     setAdminLogs([log, ...(adminLogs||[])].slice(0, 500)); // Keep last 500 logs
   };
 
-  const checkM = (m="Digite sua Senha de Exclusão Pessoal para autorizar:") => {
+  const checkM = (m="Digite sua Senha de Alteração e Exclusão para autorizar:", payload=null, acaoNome="EXCLUSAO") => {
     if(!adminSel) {
       alert("❌ Acesso Negado: Você precisa estar logado como administrador.");
       return false;
     }
     const p = window.prompt(m);
     if(p === (adminSel.senhaMestra||"123456")) {
-      logAdminAction("EXCLUSAO", m);
+      logAdminAction(acaoNome, m, payload);
       return true;
     }
     if(p !== null) alert("❌ Senha incorreta!");
     return false;
+  };
+
+  const reverterAcao = (logId) => {
+    const log = adminLogs?.find(l => l.id === logId);
+    if(!log || !log.payload) {
+      alert("❌ Dados de restauração não encontrados ou incompatíveis.");
+      return;
+    }
+    if(log.reverted) {
+      alert("⚠️ Esta ação já foi revertida anteriormente.");
+      return;
+    }
+    if(!window.confirm("Deseja realmente REVERTER esta ação e restaurar os dados excluídos?")) return;
+    
+    try {
+      const p = log.payload;
+      if(p.tipo === "cliente") {
+        setCl([...cl, p.dado]);
+      } else if(p.tipo === "auth") {
+        setCl(cl.map(c => c.id === p.clientId ? {...c, auths: [...(c.auths||[]), p.dado]} : c));
+      } else if(p.tipo === "operadora") {
+        setOps([...ops, p.dado]);
+      } else if(p.tipo === "opPrize") {
+        setOpPrizes([...(opPrizes||[]), p.dado]);
+      } else if(p.tipo === "relampago") {
+        setCfg({...cfg, relampagos: [...cfg.relampagos, p.dado]});
+      } else if(p.tipo === "noticia") {
+        setCfg({...cfg, noticias: [...cfg.noticias, p.dado]});
+      } else {
+         alert("Tipo de dado desconhecido para reversão.");
+         return;
+      }
+      
+      setAdminLogs(adminLogs.map(l => l.id === logId ? {...l, reverted: true, detalhes: l.detalhes + " (REVERTIDO)"} : l));
+      alert("✅ Ação revertida com sucesso! O registro voltou ao sistema.");
+    } catch(e) {
+      alert("Erro ao reverter: " + e.message);
+    }
   };
   const ABAS=[{id:"dash",emoji:"📊",label:"Painel"},{id:"ops",emoji:"🏅",label:"Operadoras"},{id:"cl",emoji:"👥",label:"Clientes",badge:pendsG},{id:"pr",emoji:"🎁",label:"Prêmios",badge:pendsP},{id:"cfg",emoji:"⚙️",label:"Ajustes"}];
   return(<div style={{minHeight:"100vh",display:"flex",flexDirection:"column",background:C.bg}}>
@@ -756,7 +797,7 @@ function AdminPanel({ops,setOps,cl,setCl,pr,setPr,cfg,setCfg,setTela,setRole,opP
       {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} />}
       {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
       {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} />}
-      {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} />}
+      {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
     </div>
     <Nav abas={ABAS} aba={aba} setAba={setAba} cor={C.az}/>
   </div>);
@@ -933,7 +974,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM}){
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
         <div style={{flex:1}}>
           {eId===r.op.id?<div style={{display:"flex",gap:5}}><input value={eN} onChange={e=>setEN(e.target.value)} style={{flex:1,...I,padding:"5px 9px",fontSize:12}}/><button onClick={()=>{setOps(ops.map(o=>o.id===r.op.id?{...o,nome:eN}:o));setEId(null);}} style={{background:C.vd,color:"#fff",border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✓</button><button onClick={()=>setEId(null)} style={{background:"#f3f4f6",color:C.sb,border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button></div>
-          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:(op && r.op.id===op.id)?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{(op && r.op.id===op.id)?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}?`)) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
+          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:(op && r.op.id===op.id)?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{(op && r.op.id===op.id)?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}><div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div><button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234?`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}?`, {tipo: 'operadora', dado: r.op})) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
           <div style={{fontSize:10,color:C.sb,marginTop:2}}>Desde {fD(r.op.cadastro)}</div>
         </div>
       </div>
@@ -952,7 +993,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM}){
                 <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Ciclo {p.periodo}</div>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   <div style={{background:p.status==="paid"?C.vdC:C.ouC,color:p.status==="paid"?C.vd:C.ou2,fontSize:9,fontWeight:900,padding:"2px 8px",borderRadius:20}}>{p.status==="paid"?"✅ PAGO":"⏳ PENDENTE"}</div>
-                  <button onClick={()=>{if(checkM("Remover este registro do histórico de prêmios?")) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
+                  <button onClick={()=>{if(checkM("Remover este registro do histórico de prêmios?", {tipo: 'opPrize', dado: p})) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
                 </div>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -993,7 +1034,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
     }
   };
   const excluirAuth = () => {
-    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente?")) return;
+    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente?", {tipo: 'auth', clientId: c.id, dado: a})) return;
     setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
     setPr(pr.filter(p=>p.authId!==a.id));
   };
@@ -1207,7 +1248,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
                 <span>{c.nome}</span>
                 {(c.auths?.some(a=>a.status==="pending") || pr.some(p=>p.clientId===c.id && p.status==="pending")) && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
               </div>
-              <div onClick={(e)=>{e.stopPropagation(); if(checkM(`Excluir o cliente ${c.nome} permanentemente?`)) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
+              <div onClick={(e)=>{e.stopPropagation(); if(checkM(`Excluir o cliente ${c.nome} permanentemente?`, {tipo: 'cliente', dado: c})) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
             </div>
             <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} registros · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
@@ -1428,7 +1469,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     </div>
   </div>);}
 
-function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,adminLogs,logAdminAction}){
+function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,adminLogs,logAdminAction,reverterAcao}){
   const[sub,setSub]=useState("meta");
   const isMaster = adminSel?.role === "master";
   let SUBS=[{id:"meta",l:"🎯 Meta"},{id:"rl",l:"⚡ Relâmpago"},{id:"form",l:"📝 Formulário"},{id:"reg",l:"📋 Regulamento"},{id:"not",l:"📰 Notícias"},{id:"sis",l:"🔧 Sistema"}];
@@ -1441,14 +1482,14 @@ function ACfg({cfg,setCfg,ops,setOps,cl,pr,checkM,adminSel,admins,setAdmins,admi
     <div style={{display:"flex",gap:5,background:"#fff",borderRadius:12,padding:4,border:`1px solid ${C.bd}`,flexWrap:"wrap"}}>
       {SUBS.map(s=><button key={s.id} onClick={()=>setSub(s.id)} style={{flex:1,minWidth:58,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontFamily:"inherit",fontWeight:700,fontSize:10,background:sub===s.id?C.az:"transparent",color:sub===s.id?"#fff":C.sb,transition:"all .2s"}}>{s.l}</button>)}
     </div>
-    {sub==="meta"&&<CfgMeta cfg={cfg} setCfg={setCfg}/>}
+    {sub==="meta"&&<CfgMeta cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="rl"  && <CfgRelampagos cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
-    {sub==="form"&&<CfgForm cfg={cfg} setCfg={setCfg}/>}
-    {sub==="reg" &&<CfgReg  cfg={cfg} setCfg={setCfg}/>}
+    {sub==="form"&&<CfgForm cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
+    {sub==="reg" &&<CfgReg  cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="not" &&<CfgNoticias cfg={cfg} setCfg={setCfg} checkM={checkM}/>}
     {sub==="sis" &&<CfgSis  cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} adminSel={adminSel} admins={admins} setAdmins={setAdmins}/>}
     {sub==="admins" && isMaster && <CfgAdmins admins={admins} setAdmins={setAdmins} adminSel={adminSel} />}
-    {sub==="audit" && isMaster && <CfgAuditoria adminLogs={adminLogs} />}
+    {sub==="audit" && isMaster && <CfgAuditoria adminLogs={adminLogs} reverterAcao={reverterAcao} />}
   </div>);
 }
 
@@ -1471,7 +1512,7 @@ function CfgAdmins({admins,setAdmins,adminSel}){
       <div style={{display:"flex",flexDirection:"column",gap:9}}>
         <div><label style={LS}>Nome</label><input value={nome} onChange={e=>{setNome(e.target.value);setErro("");}} style={{width:"100%",marginTop:4,...IS}}/></div>
         <div><label style={LS}>Perfil</label><select value={role} onChange={e=>setRole(e.target.value)} style={{width:"100%",marginTop:4,...IS}}><option value="gerencia">Gerência</option><option value="master">Master</option></select></div>
-        <div style={{fontSize:11,color:C.sb,background:C.bg,padding:10,borderRadius:8,lineHeight:1.4}}>⚠️ A senha padrão de acesso será <strong>123456</strong>. No primeiro login, o administrador será forçado a criar suas próprias senhas de acesso e de exclusão.</div>
+        <div style={{fontSize:11,color:C.sb,background:C.bg,padding:10,borderRadius:8,lineHeight:1.4}}>⚠️ A senha padrão de acesso será <strong>123456</strong>. No primeiro login, o administrador será forçado a criar suas próprias senhas de acesso e de alteração e exclusão.</div>
         {erro&&<div style={{color:C.rd,fontSize:11,fontWeight:700}}>⚠️ {erro}</div>}
         <button onClick={salvar} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:12,fontWeight:800,cursor:"pointer",fontFamily:"inherit",marginTop:4}}>Salvar Administrador</button>
       </div>
@@ -1489,21 +1530,89 @@ function CfgAdmins({admins,setAdmins,adminSel}){
   </div>);
 }
 
-function CfgAuditoria({adminLogs}){
+function CfgAuditoria({adminLogs, reverterAcao}){
+  const [dI, setDI] = useState("");
+  const [dF, setDF] = useState("");
+
+  const fLogs = (adminLogs||[]).filter(l => {
+    if(!dI && !dF) return true;
+    const d = new Date(l.data);
+    const ini = dI ? new Date(dI+"T00:00:00") : new Date(0);
+    const fim = dF ? new Date(dF+"T23:59:59") : new Date();
+    return d >= ini && d <= fim;
+  });
+
+  const exportarPDF = () => {
+    const el = document.getElementById("print-audit");
+    if(!el) return;
+    const w = window.open("", "_blank");
+    w.document.write(`
+      <html><head><title>Auditoria do Sistema</title>
+      <style>
+        body { font-family: 'Inter', sans-serif; padding: 40px; color: #1f2937; }
+        h1 { color: #003478; border-bottom: 2px solid #003478; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        th { background: #f3f4f6; color: #4b5563; font-weight: 800; }
+        .rd { color: #dc2626; font-weight: 700; }
+        .ip { font-family: monospace; background: #f3f4f6; padding: 2px 5px; border-radius: 4px; }
+      </style></head><body>
+        <h1>Relatório de Auditoria</h1>
+        <p><strong>Período:</strong> ${dI ? dI.split("-").reverse().join("/") : "Início"} até ${dF ? dF.split("-").reverse().join("/") : "Hoje"}</p>
+        <p><strong>Gerado em:</strong> ${new Date().toLocaleString("pt-BR")}</p>
+        <table>
+          <thead><tr><th>Data/Hora</th><th>Admin / Perfil</th><th>Ação</th><th>Detalhes</th><th>IP</th></tr></thead>
+          <tbody>
+            ${fLogs.map(l => `<tr>
+              <td>${new Date(l.data).toLocaleString("pt-BR")}</td>
+              <td>${l.adminNome} (${l.role})</td>
+              <td class="${l.acao==='EXCLUSAO'?'rd':''}">${l.acao}</td>
+              <td>${l.detalhes}</td>
+              <td class="ip">${l.ip}</td>
+            </tr>`).join("")}
+          </tbody>
+        </table>
+        <script>window.print(); setTimeout(window.close, 500);</script>
+      </body></html>
+    `);
+    w.document.close();
+  };
+
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     <div style={{background:C.azC,padding:14,borderRadius:12,border:`1px solid ${C.az}33`,fontSize:11,color:C.az,lineHeight:1.5}}>
       <strong>Auditoria do Sistema</strong><br/>Este log registra todas as exclusões ou ações críticas feitas pelos administradores, capturando data, hora e endereço de IP da máquina que realizou o comando.
     </div>
-    <div style={{background:"#fff",borderRadius:14,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
-      {(!adminLogs||adminLogs.length===0)&&<div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhum registro de auditoria encontrado.</div>}
-      {(adminLogs||[]).map(l=><div key={l.id} style={{padding:"12px 15px",borderBottom:`1px solid ${C.bd}33`,display:"flex",flexDirection:"column",gap:5}}>
+
+    <div style={{display:"flex",gap:10,background:"#fff",padding:14,borderRadius:12,border:`1px solid ${C.bd}`,alignItems:"center",flexWrap:"wrap"}}>
+      <div style={{display:"flex",flexDirection:"column",flex:1,minWidth:120}}>
+        <label style={{fontSize:10,fontWeight:800,color:C.sb,marginBottom:4}}>Data Inicial</label>
+        <input type="date" value={dI} onChange={e=>setDI(e.target.value)} style={{...IS,width:"100%"}}/>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",flex:1,minWidth:120}}>
+        <label style={{fontSize:10,fontWeight:800,color:C.sb,marginBottom:4}}>Data Final</label>
+        <input type="date" value={dF} onChange={e=>setDF(e.target.value)} style={{...IS,width:"100%"}}/>
+      </div>
+      <button onClick={exportarPDF} style={{padding:"10px 16px",marginTop:16,background:C.tx,color:"#fff",border:"none",borderRadius:9,fontWeight:800,fontSize:12,cursor:"pointer",display:"flex",alignItems:"center",gap:6,fontFamily:"inherit"}}>
+        🖨️ Exportar PDF
+      </button>
+    </div>
+
+    <div id="print-audit" style={{background:"#fff",borderRadius:14,border:`1px solid ${C.bd}`,overflow:"hidden"}}>
+      {fLogs.length===0&&<div style={{padding:20,textAlign:"center",color:C.sb,fontSize:12}}>Nenhum registro encontrado neste período.</div>}
+      {fLogs.map(l=><div key={l.id} style={{padding:"12px 15px",borderBottom:`1px solid ${C.bd}33`,display:"flex",flexDirection:"column",gap:5}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
           <div style={{fontWeight:800,fontSize:12,color:C.tx}}>{l.adminNome} <span style={{color:C.sb,fontWeight:600}}>({l.role})</span></div>
           <div style={{fontSize:10,color:C.sb,fontFamily:"monospace"}}>{new Date(l.data).toLocaleString("pt-BR")}</div>
         </div>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
-          <div style={{fontSize:11,color:C.tx}}><span style={{fontWeight:800,color:C.rd}}>[{l.acao}]</span> {l.detalhes}</div>
-          <div style={{fontSize:9,color:C.sb,fontFamily:"monospace",background:C.bg,padding:"2px 6px",borderRadius:4,border:`1px solid ${C.bd}`}}>IP: {l.ip}</div>
+          <div style={{fontSize:11,color:C.tx,flex:1}}><span style={{fontWeight:800,color:l.acao==="EXCLUSAO"?C.rd:C.az}}>[{l.acao}]</span> {l.detalhes}</div>
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            {l.acao === "EXCLUSAO" && l.payload && !l.reverted && (
+              <button onClick={()=>reverterAcao(l.id)} style={{background:C.ouC,color:C.ou2,border:`1px solid ${C.ou}55`,padding:"4px 8px",borderRadius:6,fontSize:9,fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>↩️ REVERTER</button>
+            )}
+            {l.reverted && <span style={{background:C.bg,color:C.sb,padding:"4px 8px",borderRadius:6,fontSize:9,fontWeight:800,border:`1px solid ${C.bd}`}}>REVERTIDO</span>}
+            <div style={{fontSize:9,color:C.sb,fontFamily:"monospace",background:C.bg,padding:"2px 6px",borderRadius:4,border:`1px solid ${C.bd}`}}>IP: {l.ip}</div>
+          </div>
         </div>
       </div>)}
     </div>
@@ -1528,7 +1637,7 @@ function CfgForm({cfg,setCfg}){
   const addCampo=()=>{if(!novaC.nome.trim()){setMsg("❌ Informe o nome do campo.");return;}if(!novaC.cat){setMsg("❌ Selecione uma categoria.");return;}const c={...novaC,id:uid(),ativo:true};setCampos(l=>[...l,c]);setNovaC({nome:"",emoji:"📦",cat:cats[0]?.id||"",comValor:true,triggerRelampago:false,obrigatorio:false});setShowNC(false);setMsg("");}
   const addCat=()=>{if(!novaG.nome.trim()){setMsg("❌ Informe o nome da categoria.");return;}setCats(l=>[...l,{id:uid(),nome:novaG.nome.trim(),cor:novaG.cor}]);setNovaG({nome:"",cor:"#003478"});setShowNG(false);setMsg("");}
   const removeCat=(id)=>{if(!window.confirm("Remover categoria?"))return;setCats(l=>l.filter(c=>c.id!==id));}
-  const salvar=()=>{ setCfg({...cfg,formulario:{cats,campos}}); DB.save("lc-cfg",{...cfg,formulario:{cats,campos}}); setMsg("✅ Salvo!"); setTimeout(()=>setMsg(""),4000); }
+  const salvar=()=>{ if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar o Formulário:", null, "ALTERACAO")) return; setCfg({...cfg,formulario:{cats,campos}}); DB.save("lc-cfg",{...cfg,formulario:{cats,campos}}); setMsg("✅ Salvo!"); setTimeout(()=>setMsg(""),4000); }
   const abas=[{id:"campos",l:"📋 Campos"},{id:"cats",l:"🏷️ Categorias"},{id:"preview",l:"👁️ Preview"}];
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
@@ -1598,7 +1707,7 @@ function CfgMeta({cfg,setCfg}){
   const[nome,setNome]=useState(cfg.premioMeta.nome);
   const[desc,setDesc]=useState(cfg.premioMeta.desc);
   const[msg,setMsg]=useState("");
-  function salvar(){const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,minVisita:parseFloat(minV),validadeDias:parseInt(valDias)||30,premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
+  function salvar(){if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar a Meta:", null, "ALTERACAO")) return; const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,minVisita:parseFloat(minV),validadeDias:parseInt(valDias)||30,premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
   return(<div style={{background:"#fff",borderRadius:16,padding:18,border:`1px solid ${C.bd}`}}>
     <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:14}}>🎯 Prêmio a cada N autenticações</div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
@@ -1652,7 +1761,7 @@ function CfgRelampagos({cfg,setCfg,checkM}){
   const upd=(id,k,v)=>setLista(l=>l.map(r=>r.id===id?{...r,[k]:v}:r));
   function addNovo(){setLista(l=>[...l,{id:uid(),ativo:true,emoji:"🎁",nome:"Novo Prêmio",prob:5,desc:"Você ganhou um prêmio surpresa! Retire no balcão."}]);}
   function remover(id){if(lista.length<=1){setMsg("❌ Mínimo 1 prêmio.");return;}setLista(l=>l.filter(r=>r.id!==id));}
-  function salvar(){const inv=lista.filter(r=>!r.nome.trim()||!(parseFloat(r.prob)>0));if(inv.length){setMsg("❌ Todos precisam de nome e probabilidade > 0.");return;}setCfg({...cfg,minRelampago:parseFloat(minR),relampagos:lista.map(r=>({...r,prob:parseFloat(r.prob)||0}))});setMsg("✅ Prêmios relâmpago salvos!");setTimeout(()=>setMsg(""),3000);}
+  function salvar(){if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar os Relâmpagos:", null, "ALTERACAO")) return; const inv=lista.filter(r=>!r.nome.trim()||!(parseFloat(r.prob)>0));if(inv.length){setMsg("❌ Todos precisam de nome e probabilidade > 0.");return;}setCfg({...cfg,minRelampago:parseFloat(minR),relampagos:lista.map(r=>({...r,prob:parseFloat(r.prob)||0}))});setMsg("✅ Prêmios relâmpago salvos!");setTimeout(()=>setMsg(""),3000);}
   return(<div style={{display:"flex",flexDirection:"column",gap:10}}>
     <div style={{background:"#fff",borderRadius:13,padding:"12px 14px",border:`1px solid ${C.bd}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
       <label style={L}>Mínimo em Jogos (R$)</label>
@@ -1675,7 +1784,7 @@ function CfgRelampagos({cfg,setCfg,checkM}){
         <div style={{display:"flex",gap:8}}><div style={{flex:1}}><label style={L}>Emoji</label><input value={r.emoji} onChange={e=>upd(r.id,"emoji",e.target.value)} style={{width:"100%",marginTop:4,padding:"8px",border:`1.5px solid ${C.bd}`,borderRadius:9,fontSize:18,textAlign:"center",fontFamily:"inherit",outline:"none"}}/></div><div style={{flex:1}}><label style={L}>Prob. (%)</label><input value={r.prob} onChange={e=>upd(r.id,"prob",e.target.value)} type="number" min="0.1" max="100" step="0.1" style={{width:"100%",marginTop:4,...I}}/></div></div>
         <div><label style={L}>Nome *</label><input value={r.nome} onChange={e=>upd(r.id,"nome",e.target.value)} style={{width:"100%",marginTop:4,...I}} placeholder="Ex: Raspadinha Bônus"/></div>
         <div><label style={L}>Descrição</label><textarea value={r.desc} onChange={e=>upd(r.id,"desc",e.target.value)} rows={2} style={{width:"100%",marginTop:4,...I,resize:"vertical"}} placeholder="Mensagem para o cliente…"/></div>
-        <button onClick={()=>{if(checkM("Remover este prêmio relâmpago?")) remover(r.id);}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
+        <button onClick={()=>{if(checkM("Remover este prêmio relâmpago?", {tipo: 'relampago', dado: r})) remover(r.id);}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
       </div>}
     </div>)}
     <button onClick={addNovo} style={{background:C.rxC,color:C.rx,border:`1.5px dashed ${C.rx}55`,borderRadius:12,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>➕ Adicionar Novo Prêmio Relâmpago</button>
@@ -1690,6 +1799,7 @@ function CfgReg({cfg,setCfg}){
   const[fim,setFim]=useState(cfg.dataFim||"2026-12-31");
   const[msg,setMsg]=useState("");
   function salvar(){
+    if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar o Regulamento:", null, "ALTERACAO")) return;
     if(!txt.trim()){setMsg("❌ Regulamento não pode estar vazio.");return;}
     setCfg({...cfg,regulamento:txt,dataInicio:ini,dataFim:fim});
     setMsg("✅ Regulamento e Vigência atualizados!");
@@ -1732,9 +1842,9 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins}){
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
     <div style={{background:"#fff",borderRadius:14,padding:"15px",border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:10}}>🌐 URL do Aplicativo Cliente</div>
-      <div style={{fontSize:11,color:C.sb,marginBottom:8,lineHeight:1.7}}>URL pública do portal do cliente (ex: <code>https://meuapp.vercel.app</code>). Necessária para os QR Codes funcionarem no celular.</div>
-      <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12}}/>
-      <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12}}/>
+      <div style={{fontSize:11,color:C.sb,marginBottom:8,lineHeight:1.7}}>URL pública do portal do cliente (ex: <code>https://meuapp.vercel.app</code>). Necessária para os QR Codes funcionarem no celular. {adminSel?.role !== "master" && "(Apenas Master pode alterar)"}</div>
+      <input value={url} onChange={e=>setUrl(e.target.value)} placeholder="https://meuapp.vercel.app" style={{...I,marginBottom:12,background:adminSel?.role!=="master"?"#f3f4f6":"#fff",color:adminSel?.role!=="master"?C.sb:C.tx}} readOnly={adminSel?.role!=="master"}/>
+      <input value={wts} onChange={e=>setWts(e.target.value)} placeholder="5575999990000" style={{...I,marginBottom:12,background:adminSel?.role!=="master"?"#f3f4f6":"#fff",color:adminSel?.role!=="master"?C.sb:C.tx}} readOnly={adminSel?.role!=="master"}/>
       <div style={{fontWeight:800,fontSize:13,color:C.tx,marginTop:10,marginBottom:8}}>🔒 Meu Perfil: Alterar Senhas</div>
       <div style={{fontSize:10,color:C.sb,marginBottom:8}}>Deixe em branco caso não queira alterar.</div>
       <div style={{display:"flex",gap:8,marginBottom:12}}>
@@ -1743,7 +1853,7 @@ function CfgSis({cfg,setCfg,ops,setOps,cl,pr,adminSel,admins,setAdmins}){
           <input value={novaAcesso} onChange={e=>setNovaAcesso(e.target.value)} type="text" placeholder="Nova senha para logar" style={{...I,marginTop:4}}/>
         </div>
         <div style={{flex:1,position:"relative"}}>
-          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Exclusão</label>
+          <label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase"}}>Senha de Alteração e Exclusão</label>
           <input value={novaMestra} onChange={e=>setNovaMestra(e.target.value)} type={showM?"text":"password"} placeholder="Nova senha de exclusões" style={{...I,marginTop:4,paddingRight:45}}/>
           <button onClick={()=>setShowM(!showM)} style={{position:"absolute",right:10,top:26,background:C.bg,border:`1px solid ${C.bd}`,borderRadius:7,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{showM?"Ocultar":"Ver"}</button>
         </div>
@@ -1774,7 +1884,11 @@ function CfgNoticias({cfg,setCfg,checkM}){
   const uid2=()=>Math.random().toString(36).slice(2,9);
 
   function upd(id,k,v){ setLista(l=>l.map(n=>n.id===id?{...n,[k]:v}:n)); }
-  function remover(id){ if(!checkM("Remover esta notícia?"))return; setLista(l=>l.filter(n=>n.id!==id)); setEditId(null); }
+  function remover(id){
+    const n = lista.find(x=>x.id===id);
+    if(!checkM("Remover esta notícia?", {tipo: 'noticia', dado: n})) return; 
+    setLista(l=>l.filter(x=>x.id!==id)); setEditId(null); 
+  }
   function addNova(){
     if(!nova.titulo.trim()){setMsg("❌ Informe o título da notícia.");return;}
     if(!nova.corpo.trim()) {setMsg("❌ Informe o conteúdo da notícia.");return;}
@@ -1783,6 +1897,7 @@ function CfgNoticias({cfg,setCfg,checkM}){
     setShowNew(false);setMsg("");
   }
   function salvar(){
+    if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar Notícias:", null, "ALTERACAO")) return;
     const invalidas=lista.filter(n=>!n.titulo.trim()||!n.corpo.trim());
     if(invalidas.length){setMsg("❌ Todas as notícias precisam de título e conteúdo.");return;}
     setCfg({...cfg,noticias:lista});
