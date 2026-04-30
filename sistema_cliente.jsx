@@ -147,27 +147,6 @@ const VerMais = ({total, visiveis, setVisiveis}) => {
           gap: 6, 
           margin: "0 auto", 
           transition: ".2s", 
-const VerMais = ({total, visiveis, setVisiveis}) => {
-  const temMais = visiveis < total;
-  return (
-    <div style={{padding:"12px 0", textAlign:"center"}}>
-      <button 
-        disabled={!temMais}
-        onClick={() => setVisiveis(prev => prev + 15)} 
-        style={{
-          background: temMais ? C.bg : "#f3f4f6", 
-          border: `1.5px solid ${temMais ? C.bd : "#e5e7eb"}`, 
-          borderRadius: 20, 
-          padding: "6px 16px", 
-          fontSize: 11, 
-          fontWeight: 800, 
-          color: temMais ? C.az : "#9ca3af", 
-          cursor: temMais ? "pointer" : "default", 
-          display: "flex", 
-          alignItems:"center", 
-          gap: 6, 
-          margin: "0 auto", 
-          transition: ".2s", 
           fontFamily: "inherit",
           opacity: temMais ? 1 : 0.7
         }}
@@ -189,8 +168,8 @@ export default function App(){
   const[cfg,    setCfg_]   = useState(CFG0);
   const[opQR,   setOpQR]   = useState(null);
   const[relamp, setRelamp] = useState(null);
-  const setCl = d=>{setCl_(d); return DB.save("lc-cl",d);};
-  const setPr = d=>{setPr_(d); return DB.save("lc-pr",d);};
+  const setCl = d=>{ if(typeof d==="function"){ setCl_(p=>{const n=d(p);DB.save("lc-cl",n);return n;}); } else { setCl_(d); return DB.save("lc-cl",d); } };
+  const setPr = d=>{ if(typeof d==="function"){ setPr_(p=>{const n=d(p);DB.save("lc-pr",n);return n;}); } else { setPr_(d); return DB.save("lc-pr",d); } };
   const cliAtual = cli?(clients.find(c=>c.id===cli.id)||cli):null;
 
   useEffect(()=>{(async()=>{
