@@ -96,6 +96,7 @@ const mAno=d=>{
 };
 const brl=v=>Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const fmtDN = v=>{if(!v)return"—";if(v.length!==8)return v;return`${v.slice(0,2)}/${v.slice(2,4)}/${v.slice(4)}`;};
+const fmtW = v=>{if(!v)return"";const d=v.replace(/\D/g,"").slice(0,11);if(d.length<=2)return d;if(d.length<=7)return`(${d.slice(0,2)}) ${d.slice(2)}`;return`(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`;};
 const hoje=()=>new Date().toLocaleString("sv-SE", {timeZone:"America/Sao_Paulo"}).slice(0,10);
 
 /* ═══════ CSS ═══════ */
@@ -1029,13 +1030,14 @@ Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "EN
     setCampanhas(prev => [summary, ...(prev||[])]);
     
     // Limpar dados sazonais conforme solicitado
+    // 1. Gerar PDF final automaticamente para o usuário salvar ANTES de apagar
+    relVis();
+    
+    // 2. Limpar dados sazonais
     setCl(prev => prev.map(c => ({...c, auths: []})));
     setPr([]);
     setAdminLogs([]);
     setOpPrizes([]);
-    
-    // Gerar PDF final automaticamente para o usuário salvar
-    relVis();
     
     alert("✅ Campanha encerrada com sucesso!\n\n1. O relatório final foi salvo no Histórico.\n2. O PDF de visitas foi gerado para seu arquivo.");
   };
