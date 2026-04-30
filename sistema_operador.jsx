@@ -140,6 +140,7 @@ export default function App(){
   const setPr=d=>{setPr_(d); return DB.save("lc-pr",d);};
   const setCfg=d=>{setCfg_(d); return DB.save("lc-cfg",d);};
   const setOpPrizes=d=>{setOpPrizes_(d); return DB.save("lc-op-prizes",d);};
+  const setAdminLogs=d=>{setAdminLogs_(d); return DB.save("lc-admin-logs",d);};
   const logAdminAction = async (acao, detalhes="", payload=null) => {
     if(!adminSel) return;
     const ip = await getIP();
