@@ -232,6 +232,7 @@ function Splash(){return(
       <div style={{display:"flex",gap:9,justifyContent:"center",marginTop:28}}>
         {[0,1,2].map(i=><div key={i} style={{width:10,height:10,borderRadius:"50%",background:C.ou,animation:`dt 1.1s ${i*.22}s infinite`}}/>)}
       </div>
+      <div style={{marginTop:30,textAlign:"center",fontSize:10,color:"rgba(255,255,255,.4)"}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
     </div>
   </div>
 );}
@@ -284,8 +285,8 @@ function BoasVindas({setTela,clients,setCli,cfg,ops,setOpQR}){
           style={{width:"100%",padding:14,borderRadius:14,border:`1.5px solid ${C.bd}`,fontFamily:"inherit",fontWeight:800,fontSize:15,cursor:"pointer",background:"#fff",color:C.az}}>
           Já tenho cadastro — Entrar →
         </button>
-        <div style={{textAlign:"center",marginTop:18,fontSize:11,color:C.sb,lineHeight:1.7}}>
-          Ao continuar você aceita os termos da promoção.<br/>Dados protegidos pela LGPD.
+          Ao continuar você aceita os termos da promoção.<br/>Dados protegidos pela LGPD.<br/>
+          <span style={{opacity:.6, fontSize:10}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></span>
         </div>
       </div>
     </div>
@@ -413,6 +414,7 @@ function Cadastro({setCli,clients,setCl,setTela,cfg}){
           <button onClick={()=>setTela("login")} style={{background:"none",border:"none",fontSize:12,color:C.sb,cursor:"pointer",fontFamily:"inherit"}}>
             Já tenho cadastro — Entrar →
           </button>
+          <div style={{marginTop:20,fontSize:10,opacity:.6}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
         </div>
       </div>
     </div>
@@ -486,6 +488,7 @@ function Login({setCli,clients,setTela,opQR}){
             style={{width:"100%",marginTop:12,padding:13,borderRadius:12,background:"#fff",color:C.az,border:`1.5px solid ${C.az}33`,fontFamily:"inherit",fontWeight:800,fontSize:14,cursor:"pointer"}}>
             Não tenho cadastro — Cadastrar
           </button>
+          <div style={{textAlign:"center",marginTop:20,fontSize:10,color:C.sb,opacity:.6}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
         </div>
       </div>
     </div>

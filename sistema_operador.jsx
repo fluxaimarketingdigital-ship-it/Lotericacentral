@@ -285,6 +285,7 @@ function Splash(){return(<div style={{minHeight:"100vh",background:`linear-gradi
       <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
     </div>
     <div style={{fontWeight:700,fontSize:11,color:C.ou,marginTop:2,letterSpacing:3,textTransform:"uppercase"}}>Sistema de Gestão</div>
+    <div style={{marginTop:30,textAlign:"center",fontSize:10,color:"rgba(255,255,255,.4)"}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
   </div>
 </div>);}
 
@@ -417,6 +418,9 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
             <div style={{fontSize:9,color:C.sb,textTransform:"uppercase",letterSpacing:.5,marginTop:2}}>{l}</div>
           </div>
         ))}
+      </div>
+      <div style={{marginTop:20,paddingBottom:20,textAlign:"center",fontSize:10,color:C.sb,opacity:.7}}>
+        Desenvolvido por <strong>FluxAI Marketing Digital</strong>
       </div>
     </div>
   </div>);
