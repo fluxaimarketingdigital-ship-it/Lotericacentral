@@ -175,6 +175,7 @@ export default function App(){
   const[cfg,    setCfg_]   = useState(CFG0);
   const[opQR,   setOpQR]   = useState(null);
   const[relamp, setRelamp] = useState(null);
+  const[showTutorial, setShowTutorial] = useState(false);
   const setCl = d=>{ if(typeof d==="function"){ setCl_(p=>{const n=d(p);DB.save("lc-cl",n);return n;}); } else { setCl_(d); return DB.save("lc-cl",d); } };
   const setPr = d=>{ if(typeof d==="function"){ setPr_(p=>{const n=d(p);DB.save("lc-pr",n);return n;}); } else { setPr_(d); return DB.save("lc-pr",d); } };
   const cliAtual = cli?(clients.find(c=>c.id===cli.id)||cli):null;
@@ -212,7 +213,7 @@ export default function App(){
     setTimeout(()=>setTela("boas_vindas"),1500);
   })();},[]);
 
-  const ctx={tela,setTela,cliente:cliAtual,setCli:setCli_,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,relamp,setRelamp};
+  const ctx={tela,setTela,cliente:cliAtual,setCli:setCli_,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,relamp,setRelamp,setShowTutorial};
 
   return(<><style>{CSS}</style>
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:480,margin:"0 auto",fontSize:13,color:C.tx,position:"relative"}}>
@@ -223,6 +224,7 @@ export default function App(){
       {tela==="login"       && <Login {...ctx}/>}
       {tela==="painel"      && <Painel {...ctx}/>}
       {relamp && <PremioOvl relamp={relamp} setRelamp={setRelamp} cli={cliAtual} wts={cfg.wts||CFG0.wts}/>}
+      {showTutorial && <PassoAPasso onClose={()=>setShowTutorial(false)}/>}
     </div>
   </>);
 }
@@ -602,7 +604,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
         <CampanhaEncerradaView cfg={cfg} dFim={dFim} setAba={setAba} />
       ) : (
         <>
-          {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba} premios={premios} encerrada={encerrada}/>}
+          {aba==="ini"&&<Inicio c={c} cfg={cfg} meusPr={meusPr} temPr={temPr} nBadge={nBadge} setAba={setAba} premios={premios} encerrada={encerrada} setTuto={setShowTutorial}/>}
           {aba==="reg" && <FormAuth c={c} clients={clients} setCl={setCl} premios={premios} setPr={setPr} cfg={cfg} ops={ops} opQR={opQR} setOpQR={setOpQR} setRelamp={setRelamp} setAba={setAba} setCli={setCli}/>}
           {aba==="pr" &&<Premios meusPr={meusPr} c={c} wts={cfg.wts||CFG0.wts} setVoucherVer={setVoucherVer}/>}
           {aba==="not"&&<Noticias noticias={noticias} temPr={temPr} wts={cfg.wts||CFG0.wts}/>}
@@ -649,7 +651,7 @@ function CampanhaEncerradaView({cfg, dFim, setAba}){
 
 
 /* ══════════════════════ INÍCIO ══════════════════════ */
-function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada}){
+function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada,setTuto}){
   const authsValidas = (c.auths||[]).filter(a=>a.valida!==false && a.status !== "rejected");
   const tot=c.auths?.length||0;const totV=authsValidas.length;
   const raspa=Math.floor(totV/cfg.meta);const prog=totV%cfg.meta;
@@ -658,6 +660,12 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada}){
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     <div style={{height:4}}/>
 
+    
+    <div onClick={()=>setTuto(true)} style={{textAlign:"center", marginTop:10, marginBottom:16}}>
+      <span style={{fontSize:12, fontWeight:800, color:C.az, cursor:"pointer", textDecoration:"underline", display:"flex", alignItems:"center", justifyContent:"center", gap:5}}>
+        ❓ Como funciona o programa? Veja o passo a passo
+      </span>
+    </div>
     <button onClick={()=>encerrada?alert("🚫 A campanha atual já foi encerrada. Aguarde o início do novo ciclo!"):setAba("reg")} style={{background:encerrada?C.bd:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:encerrada?"not-allowed":"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:encerrada?"none":"glw 2.5s infinite",boxShadow:encerrada?"none":`0 6px 22px ${C.az}44`}}>
       <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:encerrada?"#fff":C.ou}}>{encerrada?"Campanha Encerrada":"Comprovante em mãos?"}</div><div style={{fontSize:18,fontWeight:900}}>{encerrada?"🔒 Registro Suspenso":"📷 Escanear Comprovante"}</div></div>
       <span style={{fontSize:38}}>{encerrada?"🚫":"📄"}</span>
@@ -1627,3 +1635,57 @@ function Vz({em,msg}){return(<div style={{padding:"26px 20px",textAlign:"center"
 function Alerta({msg}){return(<div style={{background:C.rdC,color:C.rd,padding:12,borderRadius:11,fontSize:12,fontWeight:700,textAlign:"center",border:`1px solid ${C.rd}33`}}>{msg}</div>);}
 function Cp({label,value,onChange,placeholder,type="text",sub,ativo}){return(<div style={{marginBottom:12}}><label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{width:"100%",padding:12,marginTop:5,borderRadius:11,border:`2px solid ${ativo?C.az:C.bd}`,background:ativo?C.azC:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",color:C.tx}}/>{sub&&<div style={{fontSize:10,color:C.sb,marginTop:4}}>{sub}</div>}</div>);}
 function Sp({label}){return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><div style={{width:16,height:16,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin 1s linear infinite"}}/><span>{label}</span></div>);}
+
+/* ══════════════════════ PASSO A PASSO ══════════════════════ */
+function PassoAPasso({onClose}){
+  const [passo, setPasso] = useState(0);
+  const passos = [
+    {
+      t: "1. Vá à Lotérica Central",
+      d: "Realize qualquer transação (pagamentos, depósitos ou jogos) e guarde seu comprovante físico.",
+      img: "./step1.png"
+    },
+    {
+      t: "2. Escaneie seu Cupom",
+      d: "Use a câmera do seu celular para escanear o código ou digite os dados manualmente no app.",
+      img: "./step2.png"
+    },
+    {
+      t: "3. Junte Pontos",
+      d: "Cada visita válida preenche seu cartão. Fique de olho na meta para ganhar o prêmio principal!",
+      img: "./step3.png"
+    },
+    {
+      t: "4. Resgate seu Prêmio",
+      d: "Assim que completar a meta ou ganhar um prêmio relâmpago, você recebe o voucher no WhatsApp!",
+      img: "./step4.png"
+    }
+  ];
+
+  return (
+    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,.85)", zIndex:10000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, animation:"pop .3s"}}>
+      <div style={{background:"#fff", borderRadius:24, width:"100%", maxWidth:360, overflow:"hidden", position:"relative", boxShadow:"0 20px 50px rgba(0,0,0,0.5)"}}>
+        <button onClick={onClose} style={{position:"absolute", top:15, right:15, background:"rgba(0,0,0,0.3)", color:"#fff", border:"none", borderRadius:"50%", width:30, height:30, fontWeight:900, cursor:"pointer", zIndex:10, display:"flex", alignItems:"center", justifyContent:"center"}}>✕</button>
+        
+        <div style={{height:240, overflow:"hidden", position:"relative"}}>
+          <img src={passos[passo].img} style={{width:"100%", height:"100%", objectFit:"cover"}} alt="passo"/>
+          <div style={{position:"absolute", bottom:0, left:0, width:"100%", height:80, background:"linear-gradient(to top, #fff, transparent)"}}/>
+        </div>
+
+        <div style={{padding:25, textAlign:"center"}}>
+          <div style={{fontWeight:900, fontSize:20, color:C.az, marginBottom:10}}>{passos[passo].t}</div>
+          <div style={{fontSize:14, color:C.sb, lineHeight:1.6, minHeight:60}}>{passos[passo].d}</div>
+          
+          <div style={{display:"flex", gap:6, justifyContent:"center", margin:"20px 0"}}>
+            {passos.map((_,i)=><div key={i} style={{width:i===passo?20:8, height:8, borderRadius:4, background:i===passo?C.az:C.bd, transition:"all .3s"}}/>)}
+          </div>
+
+          <button onClick={()=>passo<3?setPasso(p=>p+1):onClose()} 
+            style={{width:"100%", padding:16, borderRadius:14, border:"none", fontWeight:900, background:C.az, color:"#fff", cursor:"pointer", fontSize:16, boxShadow:"0 4px 15px rgba(0,52,120,0.3)"}}>
+            {passo<3 ? "Próximo Passo →" : "Entendi, vamos lá!"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
