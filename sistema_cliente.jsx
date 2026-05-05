@@ -1515,29 +1515,35 @@ function Alerta({msg}){return(<div style={{background:C.rdC,color:C.rd,padding:1
 function Cp({label,value,onChange,placeholder,type="text",sub,ativo}){return(<div style={{marginBottom:12}}><label style={{fontSize:10,fontWeight:800,color:C.sb,textTransform:"uppercase",letterSpacing:.5}}>{label}</label><input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder} style={{width:"100%",padding:12,marginTop:5,borderRadius:11,border:`2px solid ${ativo?C.az:C.bd}`,background:ativo?C.azC:"#fff",fontSize:14,fontFamily:"inherit",outline:"none",color:C.tx}}/>{sub&&<div style={{fontSize:10,color:C.sb,marginTop:4}}>{sub}</div>}</div>);}
 function Sp({label}){return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><div style={{width:16,height:16,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"#fff",borderRadius:"50%",animation:"spin 1s linear infinite"}}/><span>{label}</span></div>);}
 
+
 /* ══════════════════════ PASSO A PASSO ══════════════════════ */
 function PassoAPasso({onClose}){
   const [passo, setPasso] = useState(0);
   const passos = [
     {
-      t: "1. Vá à Lotérica Central",
+      t: "1. Vá à Lotérica",
       d: "Realize qualquer transação (pagamentos, depósitos ou jogos) e guarde seu comprovante físico.",
-      img: "./step1.png"
+      img: "/step1.png"
     },
     {
       t: "2. Envie seu Cupom",
-      d: "Tire uma foto nítida do seu comprovante ou selecione uma imagem da sua galeria.",
-      img: "./step2.png"
+      d: "Tire uma foto nítida do seu comprovante ou selecione uma imagem da sua galeria para registrar.",
+      img: "/step2.png"
     },
     {
       t: "3. Junte Pontos",
-      d: "Cada visita válida preenche seu cartão. Fique de olho na meta para ganhar o prêmio principal!",
-      img: "./step3.png"
+      d: "Fique de olho na barra de progresso ao preencher! Veja se sua operação atingiu o valor mínimo para pontuar.",
+      img: "/step3.png"
     },
     {
-      t: "4. Resgate seu Prêmio",
-      d: "Assim que completar a meta ou ganhar um prêmio relâmpago, você recebe o voucher no WhatsApp!",
-      img: "./step4.png"
+      t: "4. Acompanhe o Progresso",
+      d: "Consulte seu histórico na aba 'Conta'. Todos os registros são auditados pela nossa equipe para sua segurança.",
+      img: "/step4.png"
+    },
+    {
+      t: "5. Prêmios e Resgate",
+      d: "Ganhou? O voucher vai para o seu WhatsApp e aba 'Prêmios' após a auditoria. Fique atento ao prazo de validade!",
+      img: "/step5.png"
     }
   ];
 
@@ -1559,9 +1565,9 @@ function PassoAPasso({onClose}){
             {passos.map((_,i)=><div key={i} style={{width:i===passo?20:8, height:8, borderRadius:4, background:i===passo?C.az:C.bd, transition:"all .3s"}}/>)}
           </div>
 
-          <button onClick={()=>passo<3?setPasso(p=>p+1):onClose()} 
+          <button onClick={()=>passo < passos.length - 1 ? setPasso(p=>p+1) : onClose()} 
             style={{width:"100%", padding:16, borderRadius:14, border:"none", fontWeight:900, background:C.az, color:"#fff", cursor:"pointer", fontSize:16, boxShadow:"0 4px 15px rgba(0,52,120,0.3)"}}>
-            {passo<3 ? "Próximo Passo →" : "Entendi, vamos lá!"}
+            {passo < passos.length - 1 ? "Próximo Passo →" : "Entendi, vamos lá!"}
           </button>
         </div>
       </div>
