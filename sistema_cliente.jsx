@@ -507,7 +507,7 @@ function Login({setCli,clients,setTela,opQR}){
 }
 
 /* ══════════════════════ PAINEL ══════════════════════ */
-function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRelamp,setCli,setTela}){
+function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRelamp,setCli,setTela,setShowTutorial}){
   const[aba,setAba]=useState(()=>opQR?"reg":"ini");
   useEffect(()=>{if(opQR)setAba("reg");},[opQR]);
 
@@ -667,7 +667,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada,setTuto}){
       </span>
     </div>
     <button onClick={()=>encerrada?alert("🚫 A campanha atual já foi encerrada. Aguarde o início do novo ciclo!"):setAba("reg")} style={{background:encerrada?C.bd:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:encerrada?"not-allowed":"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:encerrada?"none":"glw 2.5s infinite",boxShadow:encerrada?"none":`0 6px 22px ${C.az}44`}}>
-      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:encerrada?"#fff":C.ou}}>{encerrada?"Campanha Encerrada":"Comprovante em mãos?"}</div><div style={{fontSize:18,fontWeight:900}}>{encerrada?"🔒 Registro Suspenso":"📷 Escanear Comprovante"}</div></div>
+      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:encerrada?"#fff":C.ou}}>{encerrada?"Campanha Encerrada":"Comprovante em mãos?"}</div><div style={{fontSize:18,fontWeight:900}}>{encerrada?"🔒 Registro Suspenso":"📷 Enviar Foto do Cupom"}</div></div>
       <span style={{fontSize:38}}>{encerrada?"🚫":"📄"}</span>
     </button>
     {temPr&&nBadge>0&&<div onClick={()=>setAba("not")} style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:16,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
@@ -709,22 +709,17 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
   const[sub, setSub]      = useState(false);
 
   // OCR States
-  const [camAtiva, setCamAtiva] = useState(false);
-  const [scanProg, setScanProg] = useState(0);
-  const [validando, setValidando] = useState(false);
+
+
+
   const [errQR, setErrQR] = useState("");
   const fileInputRef = useRef(null);
 
   function processImage(file) {
-    setCamAtiva(true);
-    setValidando(true);
-    setScanProg(0);
     const url = URL.createObjectURL(file);
-    
-    Tesseract.recognize(
-      url,
-      'por',
-      { logger: m => { if(m.status === 'recognizing text') setScanProg(m.progress); } }
+    setFoto(url);
+    setStep("form");
+  }
     ).then(({ data: { text } }) => {
       setValidando(false);
       setCamAtiva(false);
@@ -1646,8 +1641,8 @@ function PassoAPasso({onClose}){
       img: "./step1.png"
     },
     {
-      t: "2. Escaneie seu Cupom",
-      d: "Use a câmera do seu celular para escanear o código ou digite os dados manualmente no app.",
+      t: "2. Envie seu Cupom",
+      d: "Tire uma foto nítida do seu comprovante ou selecione uma imagem da sua galeria.",
       img: "./step2.png"
     },
     {
