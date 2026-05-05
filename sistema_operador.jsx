@@ -102,7 +102,10 @@ const hoje=()=>new Date().toLocaleString("sv-SE", {timeZone:"America/Sao_Paulo"}
 /* ═══════ CSS ═══════ */
 const CSS=`@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:#f0f4fb;font-family:'Nunito',sans-serif;}
+body{background:#f0f4fb;font-family:'Nunito',sans-serif;user-select:none;}
+input, textarea { user-select: auto !important; }
+button{cursor:pointer;transition:transform .1s active;user-select:none;}
+button:active{transform:scale(0.96);}
 @keyframes up {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes dt {0%,100%{opacity:.25;transform:scale(.65)}50%{opacity:1;transform:scale(1.2)}}
@@ -158,6 +161,45 @@ const VerMais = ({total, visiveis, setVisiveis}) => {
   );
 };
 
+/* ═══════ COMPONENTES GLOBAIS ═══════ */
+const PromptModal = ({ data, onClose }) => {
+  const [val, setVal] = useState("");
+  const [vis, setVis] = useState(false);
+  if (!data) return null;
+  const submit = (e) => { e?.preventDefault(); data.resolve(data.type === "confirm" ? true : val); onClose(); };
+  const cancel = () => { data.resolve(data.type === "confirm" ? false : null); onClose(); };
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:20, backdropFilter:"blur(4px)"}}>
+      <div style={{background:"#fff",borderRadius:24,width:"100%",maxWidth:400,padding:24,boxShadow:"0 20px 50px rgba(0,0,0,.3)",animation:"pop .3s ease"}}>
+        <div style={{fontSize:40,marginBottom:15,textAlign:"center"}}>{data.emoji || (data.type === "confirm" ? "❓" : "🔒")}</div>
+        <div style={{fontWeight:900,fontSize:18,color:C.tx,textAlign:"center",marginBottom:10}}>{data.title || (data.type === "confirm" ? "Confirmar Ação" : "Autorização Necessária")}</div>
+        <div style={{fontSize:13,color:C.sb,textAlign:"center",marginBottom:20,lineHeight:1.6}}>{data.message}</div>
+        <form onSubmit={submit}>
+          {data.type !== "confirm" && (
+            <div style={{position:"relative", marginBottom:20}}>
+              <input 
+                autoFocus 
+                value={val} 
+                onChange={e=>setVal(e.target.value)} 
+                type={vis?"text":"password"} 
+                placeholder={data.placeholder || "Digite a senha..."} 
+                style={{...I, paddingRight:42, border:`2px solid ${C.az}22` }}
+              />
+              <button type="button" onClick={()=>setVis(!vis)} style={{position:"absolute",right:11,top:"50%",transform:"translateY(-50%)",background:C.bg,border:`1px solid ${C.bd}`,borderRadius:6,padding:"3px 6px",fontSize:9,fontWeight:800,cursor:"pointer",color:C.sb}}>{vis?"Ocultar":"Ver"}</button>
+            </div>
+          )}
+          <div style={{display:"flex",gap:10}}>
+            <button type="button" onClick={cancel} style={{flex:1,padding:14,borderRadius:12,border:`1.5px solid ${C.bd}`,background:"#fff",color:C.sb,fontWeight:800,fontSize:14,cursor:"pointer"}}>Cancelar</button>
+            <button type="submit" style={{flex:1,padding:14,borderRadius:12,border:"none",background:data.type === "confirm" ? C.vd : C.az,color:"#fff",fontWeight:900,fontSize:14,cursor:"pointer",boxShadow:`0 4px 12px ${data.type === "confirm" ? C.vd : C.az}33`}}>
+              {data.confirmLabel || "Confirmar"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 /* ═══════ APP ROOT ═══════ */
 export default function App(){
   const[tela,setTela]=useState("splash");
@@ -172,6 +214,9 @@ export default function App(){
   const[opPrizes,setOpPrizes_]=useState([]);
   const[adminLogs,setAdminLogs_]=useState([]);
   const[campanhas,setCampanhas_]=useState([]);
+  
+  const [promptData, setPromptData] = useState(null);
+  
   const setOps=d=>{ if(typeof d==="function") { setOps_(prev=>{const n=d(prev);DB.save("lc-ops",n);return n;}); } else { setOps_(d); return DB.save("lc-ops",d); } };
   const setAdmins=d=>{ if(typeof d==="function") { setAdmins_(prev=>{const n=d(prev);DB.save("lc-admins",n);return n;}); } else { setAdmins_(d); return DB.save("lc-admins",d); } };
   const setCl=d=>{ if(typeof d==="function") { setCl_(prev=>{const n=d(prev);DB.save("lc-cl",n);return n;}); } else { setCl_(d); return DB.save("lc-cl",d); } };
@@ -208,7 +253,7 @@ export default function App(){
       alert("⚠️ Esta ação já foi revertida anteriormente.");
       return;
     }
-    if(!window.confirm("Deseja realmente REVERTER esta ação e restaurar os dados excluídos?")) return;
+    if(!(await customConfirm("Reverter Ação", "Deseja realmente REVERTER esta ação e restaurar os dados excluídos?", "↩️", "Reverter Agora"))) return;
     
     try {
       const p = log.payload;
@@ -256,25 +301,54 @@ export default function App(){
 
 
   const checkM = (m="Digite sua Senha de Alteração e Exclusão para autorizar:", payload=null, acaoNome="EXCLUSAO") => {
-    if(!adminSel) {
-      alert("❌ Acesso Negado: Você precisa estar logado como administrador.");
-      return false;
-    }
-    const p = window.prompt(m);
-    if(p === (adminSel.senhaMestra||"123456")) {
-      logAdminAction(acaoNome, m, payload);
-      return true;
-    }
-    if(p !== null) alert("❌ Senha incorreta!");
-    return false;
+    return new Promise(resolve => {
+      if(!adminSel) {
+        alert("❌ Acesso Negado: Você precisa estar logado como administrador.");
+        resolve(false); return;
+      }
+      setPromptData({
+        message: m,
+        title: acaoNome === "EXCLUSAO" ? "Confirmar Exclusão" : "Autorização Gerencial",
+        emoji: acaoNome === "EXCLUSAO" ? "🗑️" : "🔒",
+        resolve: (p) => {
+          if (p === null) { resolve(false); return; }
+          if (p === (adminSel.senhaMestra || "123456")) {
+            logAdminAction(acaoNome, m, payload);
+            resolve(true);
+          } else {
+            alert("❌ Senha incorreta!");
+            resolve(false);
+          }
+        }
+      });
+    });
   };
 
-  const ctx={tela,setTela,role,setRole,opSel,setOpSel,adminSel,setAdminSel,ops,setOps,admins,setAdmins,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes,adminLogs,setAdminLogs,campanhas,setCampanhas,logAdminAction,reverterAcao,checkM};
+  const customPrompt = (title, message, emoji="💬", placeholder="") => {
+    return new Promise(resolve => {
+      setPromptData({
+        title, message, emoji, placeholder,
+        resolve: (p) => resolve(p)
+      });
+    });
+  };
+
+  const customConfirm = (title, message, emoji="❓", confirmLabel="Sim, Confirmar") => {
+    return new Promise(resolve => {
+      setPromptData({
+        type: "confirm", title, message, emoji, confirmLabel,
+        resolve: (v) => resolve(!!v)
+      });
+    });
+  };
+
+  const ctx={tela,setTela,role,setRole,opSel,setOpSel,adminSel,setAdminSel,ops,setOps,admins,setAdmins,cl,setCl,pr,setPr,cfg,setCfg,opPrizes,setOpPrizes,adminLogs,setAdminLogs,campanhas,setCampanhas,logAdminAction,reverterAcao,checkM,customPrompt,customConfirm};
   return(<><style>{CSS}</style>
     <div style={{minHeight:"100vh",background:C.bg,fontFamily:"'Nunito',sans-serif",maxWidth:520,margin:"0 auto",fontSize:13,color:C.tx}}>
       {tela==="splash"&&<Splash/>}{tela==="home"&&<Home{...ctx}/>}{tela==="opreg"&&<OpReg{...ctx}/>}
       {tela==="op"&&<OpPanel{...ctx}/>}{tela==="admin"&&<AdminPanel{...ctx}/>}
     </div>
+    <PromptModal data={promptData} onClose={() => setPromptData(null)} />
   </>);
 }
 
@@ -311,14 +385,14 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
       setTela("admin");
     }else setErroS("Senha incorreta.");
   }
-  function entrarAdminNovo(){
+  async function entrarAdminNovo(){
     if(!adminLogin) return;
     if(adminLogin.senhaAcesso === senha || !adminLogin.senhaAcesso){
       let finalAdmin = {...adminLogin};
       if(adminLogin.primeiroAcesso !== false && (adminLogin.senhaAcesso === "123456" || !adminLogin.senhaAcesso || !adminLogin.senhaMestra)) {
-        const nAcesso = window.prompt(`[PRIMEIRO ACESSO] Defina sua NOVA SENHA DE ACESSO (para logar):`, "");
+        const nAcesso = await customPrompt("[PRIMEIRO ACESSO]", "Defina sua NOVA SENHA DE ACESSO (para logar):", "🔑", "Nova senha de acesso...");
         if(!nAcesso) return alert("Você precisa definir uma senha de acesso!");
-        const nMestra = window.prompt(`[PRIMEIRO ACESSO] Defina sua NOVA SENHA DE ALTERAÇÃO E EXCLUSÃO (para autorizar modificações do sistema):`, "");
+        const nMestra = await customPrompt("[PRIMEIRO ACESSO]", "Defina sua NOVA SENHA DE ALTERAÇÃO E EXCLUSÃO (para autorizar modificações do sistema):", "🔒", "Senha mestra/gerência...");
         if(!nMestra) return alert("Você precisa definir uma senha de alteração e exclusão!");
         finalAdmin.senhaAcesso = nAcesso.trim();
         finalAdmin.senhaMestra = nMestra.trim();
@@ -475,27 +549,29 @@ function OpPanel({opSel,setOpSel,ops,setOps,cl,pr,setPr,cfg,setTela,setRole,logA
   const lastReset = cfg.lastReset || "2000-01-01";
   if(!op) return(<div style={{padding:40,textAlign:"center",color:C.sb}}><div style={{fontSize:40,marginBottom:15}}>⚠️</div><div>Sessão não encontrada ou expirada.</div><button onClick={()=>{setRole(null);setOpSel(null);setTela("home");}} style={{marginTop:20,padding:"10px 20px",background:C.az,color:"#fff",border:"none",borderRadius:10,fontWeight:800,cursor:"pointer",fontFamily:"inherit"}}>Fazer Login</button></div>);
   const checkM = (m="Digite a SENHA MESTRA para autorizar:", payload=null, acaoNome="AUTORIZACAO_LOCAL") => {
-    const p = window.prompt(m);
-    if(p === (cfg.senhaMestra||"123456")) {
-      if(typeof logAdminAction === "function") {
-        // Logar como autorização master local, pois não há admin logado no painel do operador
-        const log = {
-          id: uid(),
-          adminId: "master_local",
-          adminNome: "Gerência/Master",
-          role: "master",
-          acao: acaoNome,
-          detalhes: m,
-          payload: payload,
-          data: new Date().toISOString(),
-          ip: "Local (Operador)"
-        };
-        setAdminLogs(prev => [log, ...(prev||[])].slice(0, 500));
+    return new Promise(async resolve => {
+      const p = await customPrompt("Autorização Necessária", m, "🔒", "Digite a senha mestra...");
+      if(p === (cfg.senhaMestra||"123456")) {
+        if(typeof logAdminAction === "function") {
+          const log = {
+            id: uid(),
+            adminId: "master_local",
+            adminNome: "Gerência/Master",
+            role: "master",
+            acao: acaoNome,
+            detalhes: m,
+            payload: payload,
+            data: new Date().toISOString(),
+            ip: "Local (Operador)"
+          };
+          setAdminLogs(prev => [log, ...(prev||[])].slice(0, 500));
+        }
+        resolve(true);
+      } else {
+        if(p !== null) alert("❌ Senha incorreta!");
+        resolve(false);
       }
-      return true;
-    }
-    if(p !== null) alert("❌ Senha incorreta!");
-    return false;
+    });
   };
   const minhas = useMemo(() => {
     let all = [];
@@ -710,9 +786,9 @@ function OpVoucher({pr, setPr, cl, op, cfg, checkM}){
     setRes({pr: v, c: c});
   }
 
-  function validar(p, expirado=false){
+  async function validar(p, expirado=false){
     if(expirado) {
-      if(!checkM("⚠️ VOUCHER VENCIDO! Para autorizar a entrega deste prêmio (" + p.nome + "), digite a SENHA DE ALTERAÇÃO:", {id: p.id, cliente: res.c?.nome, acao: "entrega_vencido"}, "ENTREGA_VENCIDO")) return;
+      if(!(await checkM("⚠️ VOUCHER VENCIDO! Para autorizar a entrega deste prêmio (" + p.nome + "), digite a SENHA DE ALTERAÇÃO:", {id: p.id, cliente: res.c?.nome, acao: "entrega_vencido"}, "ENTREGA_VENCIDO"))) return;
     } else {
       if(!window.confirm("Confirmar a retirada deste prêmio no balcão?")) return;
     }
@@ -1007,11 +1083,11 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
     exportPDF("Auditoria de Ações Administrativas", ["Data/Hora", "Administrador", "Ação", "Detalhes", "IP"], dados, "l");
   };
 
-  const fecharCampanha = () => {
-    if(!checkM(`⚠️ ATENÇÃO: Esta ação irá ENCERRAR a campanha "${cfg.premioMeta.nome}".
+  const fecharCampanha = async () => {
+    if(!(await checkM(`⚠️ ATENÇÃO: Esta ação irá ENCERRAR a campanha "${cfg.premioMeta.nome}".
 Um relatório final será gerado e salvo no histórico.
 Os dados de visitas e prêmios da campanha atual serão APAGADOS para iniciar um novo ciclo.
-Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "ENCERRAMENTO_CAMPANHA")) return;
+Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "ENCERRAMENTO_CAMPANHA"))) return;
 
     const summary = {
       id: uid(),
@@ -1521,7 +1597,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}
     {rank.length > 0 && (
       <div style={{background:C.az,borderRadius:14,padding:16,display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6,boxShadow:`0 4px 12px ${C.az}44`}}>
         <div><div style={{fontSize:10,color:"rgba(255,255,255,.6)",fontWeight:800,textTransform:"uppercase"}}>Ciclo Mensal Atual</div><div style={{color:"#fff",fontWeight:900,fontSize:14}}>Desde {fD(lastReset)}</div></div>
-        <button onClick={()=>{if(checkM("Encerrar o ciclo mensal? Esta ação zerará o ranking atual. Digite sua Senha de Alteração e Exclusão:")) encerrarCiclo();}} style={{background:C.ou,color:C.az,border:"none",borderRadius:9,padding:"8px 14px",fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🏆 Encerrar Ciclo</button>
+        <button onClick={async ()=>{if(await checkM("Encerrar o ciclo mensal? Esta ação zerará o ranking atual. Digite sua Senha de Alteração e Exclusão:")) await encerrarCiclo();}} style={{background:C.ou,color:C.az,border:"none",borderRadius:9,padding:"8px 14px",fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🏆 Encerrar Ciclo</button>
       </div>
     )}
 
@@ -1530,7 +1606,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}
         <div style={{width:36,height:36,borderRadius:"50%",background:oc(r.i),display:"flex",alignItems:"center",justifyContent:"center",fontWeight:900,fontSize:15,color:"#fff",flexShrink:0}}>{i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</div>
         <div style={{flex:1}}>
           {eId===r.op.id?<div style={{display:"flex",gap:5}}><input value={eN} onChange={e=>setEN(e.target.value)} style={{flex:1,...I,padding:"5px 9px",fontSize:12}}/><button onClick={()=>{setOps(ops.map(o=>o.id===r.op.id?{...o,nome:eN}:o));setEId(null);}} style={{background:C.vd,color:"#fff",border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,fontWeight:700,cursor:"pointer",fontFamily:"inherit"}}>✓</button><button onClick={()=>setEId(null)} style={{background:"#f3f4f6",color:C.sb,border:"none",borderRadius:7,padding:"5px 10px",fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>✕</button></div>
-          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:(op && r.op.id===op.id)?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{(op && r.op.id===op.id)?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}>{adminSel?.role==="master" && <div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div>}<button onClick={()=>{if(checkM(`Resetar senha de ${r.op.nome} para 1234? Digite sua Senha de Alteração e Exclusão:`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={()=>{if(checkM(`Remover operadora ${r.op.nome}? Digite sua Senha de Alteração e Exclusão:`, {tipo: 'operadora', dado: r.op})) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
+          :<div style={{display:"flex",gap:6,alignItems:"center"}}><div style={{fontWeight:800,fontSize:14,color:C.tx}}>{r.op.nome}</div>{i<2&&<span style={{background:C.ouC,color:(op && r.op.id===op.id)?C.vd:C.ou2,fontSize:9,fontWeight:800,padding:"2px 7px",borderRadius:20}}>{(op && r.op.id===op.id)?"VOCÊ":"🏆 Dia 05"}</span>}<div style={{marginLeft:"auto",display:"flex",gap:10}}>{adminSel?.role==="master" && <div style={{fontSize:11,fontFamily:"monospace",fontWeight:800,color:C.az,background:C.azC,padding:"2px 6px",borderRadius:6,border:`1px solid ${C.bd}`}} title="Senha atual">{r.op.senha||"1234"}</div>}<button onClick={async ()=>{if(await checkM(`Resetar senha de ${r.op.nome} para 1234? Digite sua Senha de Alteração e Exclusão:`)) setOps(ops.map(o=>o.id===r.op.id?{...o,senha:"1234"}:o));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}} title="Resetar para 1234">🔄</button><button onClick={()=>{setEId(r.op.id);setEN(r.op.nome);}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>✏️</button><button onClick={async ()=>{if(await checkM(`Remover operadora ${r.op.nome}? Digite sua Senha de Alteração e Exclusão:`, {tipo: 'operadora', dado: r.op})) setOps(ops.filter(o=>o.id!==r.op.id));}} style={{background:"none",border:"none",fontSize:14,cursor:"pointer"}}>🗑️</button></div></div>}
           <div style={{fontSize:10,color:C.sb,marginTop:2}}>Desde {fD(r.op.cadastro)}</div>
         </div>
       </div>
@@ -1550,7 +1626,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}
                 <div style={{fontWeight:800,fontSize:13,color:C.tx}}>Ciclo {p.periodo}</div>
                 <div style={{display:"flex",gap:8,alignItems:"center"}}>
                   <div style={{background:p.status==="paid"?C.vdC:C.ouC,color:p.status==="paid"?C.vd:C.ou2,fontSize:9,fontWeight:900,padding:"2px 8px",borderRadius:20}}>{p.status==="paid"?"✅ PAGO":"⏳ PENDENTE"}</div>
-                  <button onClick={()=>{if(checkM("Remover este registro do histórico de prêmios? Digite sua Senha de Alteração e Exclusão:", {tipo: 'opPrize', dado: p})) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
+                  <button onClick={async ()=>{if(await checkM("Remover este registro do histórico de prêmios? Digite sua Senha de Alteração e Exclusão:", {tipo: 'opPrize', dado: p})) setOpPrizes(opPrizes.filter(x=>x.id!==p.id));}} style={{background:"none",border:"none",cursor:"pointer",fontSize:12,opacity:.6}}>🗑️</button>
                 </div>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
@@ -1583,17 +1659,17 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
   useEffect(()=>{ if(edit) setFEdit(a.detalhes||{}); },[edit, a.detalhes]);
   
   const s = a.status || (a.valida!==false?"approved":"rejected");
-  const updateStatus = (newS) => {
-    if(newS==="rejected" && !window.confirm("Recusar esta autenticação?")) return;
+  const updateStatus = async (newS) => {
+    if(newS==="rejected" && !(await customConfirm("Recusar Autenticação", "Deseja realmente RECUSAR esta autenticação?", "❌", "Sim, Recusar"))) return;
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, modificado:false, obsAdmin:newS==="rejected"?"Recusado":""}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
     if(newS==="rejected"){
       setPr(pr.map(p=>p.authId===a.id && p.status !== "redeemed" ? {...p,status:"rejected"}:p));
     }
   };
-  const excluirAuth = () => {
+  const excluirAuth = async () => {
     const associatedPrize = pr.find(p=>p.authId===a.id);
-    if(!checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente? Digite sua Senha de Alteração e Exclusão:", {tipo: 'auth', clientId: c.id, dado: a, prize: associatedPrize})) return;
+    if(!(await checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente? Digite sua Senha de Alteração e Exclusão:", {tipo: 'auth', clientId: c.id, dado: a, prize: associatedPrize}))) return;
     setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
     setPr(pr.filter(p=>p.authId!==a.id));
   };
@@ -1754,7 +1830,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
                   </div>
                 ) : px.status==="approved" ? (
                   <div style={{display:"flex",gap:5,marginTop:5}}>
-                    <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:10,fontWeight:800,cursor:"pointer"}}>🎫 Ver Cupom</button>
+                    <button onClick={()=>setVoucherVer(px)} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 14px",fontSize:12,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>🎫 Ver Cupom</button>
                   </div>
                  ) : null}
                </div>
@@ -1762,9 +1838,9 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
          ))}
          
          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
-            {a.valida !== false && s!=="approved" && <button onClick={()=>updateStatus("approved")} style={{flex:1,minWidth:"30%",background:C.vd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Autenticação</button>}
-            {a.valida !== false && s!=="rejected" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,minWidth:"30%",background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>❌ Recusar Autenticação</button>}
-            <button onClick={excluirAuth} style={{flex:1,minWidth:"30%",background:"#374151",color:"#fff",border:"none",borderRadius:8,padding:8,fontSize:10,fontWeight:800,cursor:"pointer"}}>🗑️ Excluir Autenticação</button>
+            {a.valida !== false && s!=="approved" && <button onClick={()=>updateStatus("approved")} style={{flex:1,minWidth:"35%",background:C.vd,color:"#fff",border:"none",borderRadius:10,padding:"10px 8px",fontSize:12,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Autenticação</button>}
+            {a.valida !== false && s!=="rejected" && <button onClick={()=>updateStatus("rejected")} style={{flex:1,minWidth:"35%",background:C.rd,color:"#fff",border:"none",borderRadius:10,padding:"10px 8px",fontSize:12,fontWeight:800,cursor:"pointer"}}>❌ Recusar Autenticação</button>}
+            <button onClick={excluirAuth} style={{flex:1,minWidth:"35%",background:"#374151",color:"#fff",border:"none",borderRadius:10,padding:"10px 8px",fontSize:12,fontWeight:800,cursor:"pointer"}}>🗑️ Excluir Autenticação</button>
          </div>
       </div>}
     </div>
@@ -1807,7 +1883,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
                 <span>{c.nome}</span>
                 {(c.auths?.some(a=>a.status==="pending") || pr.some(p=>p.clientId===c.id && p.status==="pending")) && <span style={{background:C.ou,color:"#fff",fontSize:8,padding:"2px 5px",borderRadius:5,fontWeight:900}}>⏳ PENDENTE</span>}
               </div>
-              <div onClick={(e)=>{e.stopPropagation(); if(checkM(`Excluir o cliente ${c.nome} permanentemente? Digite sua Senha de Alteração e Exclusão:`, {tipo: 'cliente', dado: c})) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
+              <div onClick={async (e)=>{e.stopPropagation(); if(await checkM(`Excluir o cliente ${c.nome} permanentemente? Digite sua Senha de Alteração e Exclusão:`, {tipo: 'cliente', dado: c})) setCl(cl.filter(x=>x.id!==c.id));}} style={{width:24,height:24,borderRadius:6,background:C.rdC,color:C.rd,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,cursor:"pointer"}}>🗑️</div>
             </div>
             <div onClick={()=>setExp(exp===c.id?null:c.id)} style={{fontSize:10,color:C.sb}}>{c.auths?.length||0} registros · Faltam {cfg.meta - ((c.auths?.filter(a=>a.valida!==false && a.status==="approved").length||0)%cfg.meta)}</div>
           </div>
@@ -1874,17 +1950,17 @@ function APr({pr, cl, cfg, setPr, checkM}){
                     <div style={{fontSize:10, color:C.sb, fontWeight:800}}>VALIDADE</div>
                     <div style={{fontWeight:900, color:C.tx}}>{fD(p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString())}</div>
                   </div>
-                  <button onClick={() => {
-                    const novaV = window.prompt("Digite a nova data de validade (AAAA-MM-DD):", (p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString()).slice(0,10));
-                    if(novaV && checkM(`Alterar validade de ${p.nome} (${cli?.nome||"?"}) para ${fD(novaV)}?`, {id: p.id, nova: novaV, antiga: p.validade}, "ALTERACAO_VALIDADE")) {
+                  <button onClick={async () => {
+                    const novaV = await customPrompt("Alterar Validade", "Digite a nova data de validade (AAAA-MM-DD):", "📅", (p.validade || new Date(new Date(p.data).getTime() + (cfg.validadeDias||30)*86400000).toISOString()).slice(0,10));
+                    if(novaV && (await checkM(`Alterar validade de ${p.nome} (${cli?.nome||"?"}) para ${fD(novaV)}?`, {id: p.id, nova: novaV, antiga: p.validade}, "ALTERACAO_VALIDADE"))) {
                       setPr(pr.map(x => x.id === p.id ? {...x, validade: novaV + "T23:59:59Z"} : x));
                     }
                   }} style={{background:"none", border:`1px solid ${C.bd}`, borderRadius:8, padding:"4px 8px", fontSize:10, fontWeight:800, cursor:"pointer", color:C.az}}>✏️ Alterar</button>
                 </div>
                 <div style={{display:"flex", gap:8}}>
-                  <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px",fontSize:11,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit"}}>🎫 Ver Cupom</button>
-                  <button onClick={()=>{
-                    if(checkM(`Dar baixa manual no prêmio ${p.nome} (${cli?.nome||"?"})?`, {id: p.id, acao: "baixa_manual_admin"}, "BAIXA_MANUAL_ADMIN")) {
+                  <button onClick={()=>setVoucherVer(p)} style={{background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"12px 14px",fontSize:13,fontWeight:800,cursor:"pointer",flex:1,fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>🎫 Ver Cupom</button>
+                  <button onClick={async ()=>{
+                    if(await checkM(`Dar baixa manual no prêmio ${p.nome} (${cli?.nome||"?"})?`, {id: p.id, acao: "baixa_manual_admin"}, "BAIXA_MANUAL_ADMIN")) {
                       setPr(pr.map(x=>x.id===p.id?{...x, status:"redeemed", dataRetirada:new Date().toISOString(), opNomeRetirada:"Administrador", opIdRetirada:"admin"}:x));
                       alert("✅ Baixa manual realizada e registrada no log.");
                     }
@@ -1962,7 +2038,7 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     setTimeout(() => setCopiado(false), 2000);
   }
 
-  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:10,backdropFilter:"blur(5px)"}} onClick={(e)=>{ if(e.target === e.currentTarget) onClose(); }}>
     {/* CAPTURA (ESCONDIDO) */}
     <div style={{position:"fixed", left: "-9999px", top: 0}}>
       <div id="cupom-capture-admin" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
@@ -1998,8 +2074,9 @@ function OpVoucherCard({p, cli, cfg, onClose}){
     </div>
 
     {/* PREVIEW */}
-    <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
+    <div style={{background:"#fff",width:"100%",maxWidth:380,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 15px",position:"relative", display: "flex", alignItems:"center", gap:15, justifyContent:"center"}}>
+        <button onClick={onClose} style={{position:"absolute",top:10,right:10,background:"rgba(255,255,255,0.2)",border:"none",width:32,height:32,borderRadius:"50%",color:"#fff",fontSize:18,fontWeight:900,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",zIndex:10}}>✕</button>
         <div style={{background:"#fff",width:80,height:80,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",padding:4,boxShadow:"0 8px 20px rgba(0,0,0,.2)",flexShrink:0}}>
           <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
         </div>
@@ -2042,8 +2119,8 @@ function OpVoucherCard({p, cli, cfg, onClose}){
         </button>
       </div>
 
-      <div style={{background:C.bg,padding:12,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
-        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar Cupom</button>
+      <div style={{background:C.bg,padding:16,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
+        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:800,fontSize:15,cursor:"pointer",width:"100%",padding:8,fontFamily:"inherit"}}>Fechar Cupom</button>
       </div>
     </div>
   </div>);}
@@ -2098,10 +2175,13 @@ function CfgAdmins({admins,setAdmins,adminSel}){
     setNome("");setErro("");setRole("gerencia");
     alert("Administrador criado! A senha de acesso padrão é 123456. No primeiro login, o sistema exigirá a configuração das senhas.");
   };
-  const remover = (id) => {
-    if(id===adminSel.id){alert("Não pode remover a si mesmo!");return;}
-    if(window.confirm("Remover este administrador?")) setAdmins(admins.filter(a=>a.id!==id));
+  const resetSenha = (a) => {
+    if(!window.confirm(`Deseja resetar as senhas de ${a.nome}? \n\nA senha de acesso voltará a ser 123456 e ele terá que configurar novas senhas no próximo login.`)) return;
+    const updated = admins.map(x => x.id === a.id ? { ...x, senhaAcesso: "123456", senhaMestra: "", primeiroAcesso: true } : x);
+    setAdmins(updated);
+    alert("✅ Senhas resetadas com sucesso!");
   };
+
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
     <div style={{background:"#fff",borderRadius:15,padding:14,border:`1px solid ${C.bd}`}}>
       <div style={{fontWeight:800,fontSize:14,marginBottom:11,color:C.az}}>➕ Novo Administrador</div>
@@ -2120,7 +2200,14 @@ function CfgAdmins({admins,setAdmins,adminSel}){
           <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{a.nome} {a.id===adminSel.id&&<span style={{color:C.vd,fontSize:10,fontWeight:800}}>(Você)</span>}</div>
           <div style={{fontSize:10,color:C.sb}}>{a.role==="master"?"Acesso Master":"Gerência"}</div>
         </div>
-        {a.id!==adminSel.id&&<button onClick={()=>remover(a.id)} style={{background:C.rdC,color:C.rd,border:"none",borderRadius:8,padding:"7px",fontSize:12,cursor:"pointer"}}>🗑️</button>}
+        <div style={{display:"flex",gap:6}}>
+          {a.id!==adminSel.id && (
+            <button onClick={()=>resetSenha(a)} style={{background:C.bg,color:C.az,border:`1px solid ${C.bd}`,borderRadius:8,padding:"7px",fontSize:12,cursor:"pointer"}} title="Resetar Senhas">🔄</button>
+          )}
+          {a.id!==adminSel.id && (
+            <button onClick={()=>remover(a.id)} style={{background:C.rdC,color:C.rd,border:"none",borderRadius:8,padding:"7px",fontSize:12,cursor:"pointer"}} title="Remover">🗑️</button>
+          )}
+        </div>
       </div>)}
     </div>
   </div>);
@@ -2235,7 +2322,7 @@ function CfgForm({cfg,setCfg,checkM}){
   const addCampo=()=>{if(!novaC.nome.trim()){setMsg("❌ Informe o nome do campo.");return;}if(!novaC.cat){setMsg("❌ Selecione uma categoria.");return;}const c={...novaC,id:uid(),ativo:true};setCampos(l=>[...l,c]);setNovaC({nome:"",emoji:"📦",cat:cats[0]?.id||"",comValor:true,triggerRelampago:false,obrigatorio:false});setShowNC(false);setMsg("");}
   const addCat=()=>{if(!novaG.nome.trim()){setMsg("❌ Informe o nome da categoria.");return;}setCats(l=>[...l,{id:uid(),nome:novaG.nome.trim(),cor:novaG.cor}]);setNovaG({nome:"",cor:"#003478"});setShowNG(false);setMsg("");}
   const removeCat=(id)=>{if(!window.confirm("Remover categoria?"))return;setCats(l=>l.filter(c=>c.id!==id));}
-  const salvar=()=>{ if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar o Formulário:", null, "ALTERACAO")) return; setCfg({...cfg,formulario:{cats,campos}}); DB.save("lc-cfg",{...cfg,formulario:{cats,campos}}); setMsg("✅ Salvo!"); setTimeout(()=>setMsg(""),4000); }
+  const salvar=async()=>{ if(!(await checkM("Digite sua Senha de Alteração e Exclusão para salvar o Formulário:", null, "ALTERACAO"))) return; setCfg({...cfg,formulario:{cats,campos}}); DB.save("lc-cfg",{...cfg,formulario:{cats,campos}}); setMsg("✅ Salvo!"); setTimeout(()=>setMsg(""),4000); }
   const abas=[{id:"campos",l:"📋 Campos"},{id:"cats",l:"🏷️ Categorias"},{id:"preview",l:"👁️ Preview"}];
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11}}>
@@ -2305,7 +2392,7 @@ function CfgMeta({cfg,setCfg,checkM}){
   const[nome,setNome]=useState(cfg.premioMeta.nome);
   const[desc,setDesc]=useState(cfg.premioMeta.desc);
   const[msg,setMsg]=useState("");
-  function salvar(){if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar a Meta:", null, "ALTERACAO")) return; const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,minVisita:parseFloat(minV),validadeDias:parseInt(valDias)||30,premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
+  async function salvar(){if(!(await checkM("Digite sua Senha de Alteração e Exclusão para salvar a Meta:", null, "ALTERACAO"))) return; const m=parseInt(meta,10);if(!m||m<1||m>100){setMsg("❌ Meta deve ser entre 1 e 100.");return;}if(!nome.trim()){setMsg("❌ Informe o nome do prêmio.");return;}setCfg({...cfg,meta:m,minVisita:parseFloat(minV),validadeDias:parseInt(valDias)||30,premioMeta:{nome:nome.trim(),emoji,desc}});setMsg("✅ Meta salva!");setTimeout(()=>setMsg(""),3000);}
   return(<div style={{background:"#fff",borderRadius:16,padding:18,border:`1px solid ${C.bd}`}}>
     <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:14}}>🎯 Prêmio a cada N autenticações</div>
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
@@ -2382,7 +2469,7 @@ function CfgRelampagos({cfg,setCfg,checkM}){
         <div style={{display:"flex",gap:8}}><div style={{flex:1}}><label style={L}>Emoji</label><input value={r.emoji} onChange={e=>upd(r.id,"emoji",e.target.value)} style={{width:"100%",marginTop:4,padding:"8px",border:`1.5px solid ${C.bd}`,borderRadius:9,fontSize:18,textAlign:"center",fontFamily:"inherit",outline:"none"}}/></div><div style={{flex:1}}><label style={L}>Prob. (%)</label><input value={r.prob} onChange={e=>upd(r.id,"prob",e.target.value)} type="number" min="0.1" max="100" step="0.1" style={{width:"100%",marginTop:4,...I}}/></div></div>
         <div><label style={L}>Nome *</label><input value={r.nome} onChange={e=>upd(r.id,"nome",e.target.value)} style={{width:"100%",marginTop:4,...I}} placeholder="Ex: Raspadinha Bônus"/></div>
         <div><label style={L}>Descrição</label><textarea value={r.desc} onChange={e=>upd(r.id,"desc",e.target.value)} rows={2} style={{width:"100%",marginTop:4,...I,resize:"vertical"}} placeholder="Mensagem para o cliente…"/></div>
-        <button onClick={()=>{if(checkM("Remover este prêmio relâmpago? Digite sua Senha de Alteração e Exclusão:", {tipo: 'relampago', dado: r})) remover(r.id);}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
+        <button onClick={async ()=>{if(await checkM("Remover este prêmio relâmpago? Digite sua Senha de Alteração e Exclusão:", {tipo: 'relampago', dado: r})) remover(r.id);}} style={{background:C.rdC,color:C.rd,border:`1px solid ${C.rd}33`,borderRadius:9,padding:"8px",fontWeight:700,fontSize:11,cursor:"pointer",fontFamily:"inherit"}}>🗑️ Remover este prêmio</button>
       </div>}
     </div>)}
     <button onClick={addNovo} style={{background:C.rxC,color:C.rx,border:`1.5px dashed ${C.rx}55`,borderRadius:12,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>➕ Adicionar Novo Prêmio Relâmpago</button>
@@ -2396,8 +2483,8 @@ function CfgReg({cfg,setCfg,checkM}){
   const[ini,setIni]=useState(cfg.dataInicio||"2026-04-01");
   const[fim,setFim]=useState(cfg.dataFim||"2026-12-31");
   const[msg,setMsg]=useState("");
-  function salvar(){
-    if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar o Regulamento:", null, "ALTERACAO")) return;
+  async function salvar(){
+    if(!(await checkM("Digite sua Senha de Alteração e Exclusão para salvar o Regulamento:", null, "ALTERACAO"))) return;
     if(!txt.trim()){setMsg("❌ Regulamento não pode estar vazio.");return;}
     setCfg({...cfg,regulamento:txt,dataInicio:ini,dataFim:fim});
     setMsg("✅ Regulamento e Vigência atualizados!");
@@ -2523,9 +2610,9 @@ function CfgNoticias({cfg,setCfg,checkM}){
   const uid2=()=>Math.random().toString(36).slice(2,9);
 
   function upd(id,k,v){ setLista(l=>l.map(n=>n.id===id?{...n,[k]:v}:n)); }
-  function remover(id){
+  async function remover(id){
     const n = lista.find(x=>x.id===id);
-    if(!checkM("Remover esta notícia?", {tipo: 'noticia', dado: n})) return; 
+    if(!(await checkM("Remover esta notícia?", {tipo: 'noticia', dado: n}))) return; 
     setLista(l=>l.filter(x=>x.id!==id)); setEditId(null); 
   }
   function addNova(){
@@ -2535,8 +2622,8 @@ function CfgNoticias({cfg,setCfg,checkM}){
     setNova({tipo:"geral",emoji:"📢",titulo:"",corpo:"",data:""});
     setShowNew(false);setMsg("");
   }
-  function salvar(){
-    if(!checkM("Digite sua Senha de Alteração e Exclusão para salvar Notícias:", null, "ALTERACAO")) return;
+  async function salvar(){
+    if(!(await checkM("Digite sua Senha de Alteração e Exclusão para salvar Notícias:", null, "ALTERACAO"))) return;
     const invalidas=lista.filter(n=>!n.titulo.trim()||!n.corpo.trim());
     if(invalidas.length){setMsg("❌ Todas as notícias precisam de título e conteúdo.");return;}
     setCfg({...cfg,noticias:lista});
@@ -2723,10 +2810,10 @@ function CfgNoticias({cfg,setCfg,checkM}){
 function T({em,t,s}){return(<div style={{marginBottom:4}}><div style={{fontWeight:900,fontSize:19,color:C.tx}}>{em} {t}</div>{s&&<div style={{fontSize:11,color:C.sb,marginTop:2}}>{s}</div>}</div>);}
 function V({em,msg}){return(<div style={{padding:"26px 20px",textAlign:"center",color:C.sb}}><div style={{fontSize:40,marginBottom:8,opacity:.4}}>{em}</div><div style={{fontSize:12,lineHeight:1.7}}>{msg}</div></div>);}
 function Pts(){return(<div style={{display:"flex",gap:8,justifyContent:"center",marginTop:6}}>{[0,1,2].map(i=><div key={i} style={{width:9,height:9,borderRadius:"50%",background:C.ou,animation:`dt 1.1s ${i*.22}s infinite`}}/>)}</div>);}
-function Nav({abas,aba,setAba,cor}){return(<nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:520,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,0,0,.08)",zIndex:100}}>
-  {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"8px 2px 10px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?"#f0f4fb":"#fff",borderTop:`2.5px solid ${aba===a.id?cor:"transparent"}`,transition:"all .2s",position:"relative"}}>
-    {a.badge>0 && <div style={{position:"absolute",top:3,right:"15%",background:C.rd,color:"#fff",fontSize:8,fontWeight:900,padding:"1px 4px",borderRadius:10}}>{a.badge}</div>}
-    <div style={{fontSize:16,marginBottom:2}}>{a.emoji}</div><div style={{fontSize:8,fontWeight:aba===a.id?800:600,color:aba===a.id?cor:C.sb,lineHeight:1}}>{a.label}</div>
+function Nav({abas,aba,setAba,cor}){return(<nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:520,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,0,0,.08)",zIndex:1000}}>
+  {abas.map(a=><button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"10px 2px 12px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?"#f0f4fb":"#fff",borderTop:`3px solid ${aba===a.id?cor:"transparent"}`,transition:"all .2s",position:"relative"}}>
+    {a.badge>0 && <div style={{position:"absolute",top:3,right:"15%",background:C.rd,color:"#fff",fontSize:9,fontWeight:900,padding:"1px 4px",borderRadius:10}}>{a.badge}</div>}
+    <div style={{fontSize:18,marginBottom:3}}>{a.emoji}</div><div style={{fontSize:10,fontWeight:aba===a.id?900:700,color:aba===a.id?cor:C.sb,lineHeight:1}}>{a.label}</div>
   </button>)}
 </nav>);}
 function Sp({label}){return(<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><div style={{width:16,height:16,border:"2px solid rgba(0,0,0,.1)",borderTopColor:C.az,borderRadius:"50%",animation:"up .8s linear infinite"}}/><span>{label}</span></div>);}

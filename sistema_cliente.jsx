@@ -102,7 +102,10 @@ const N_VIP=[
 const CSS=`
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{background:#f0f4fb;font-family:'Nunito',sans-serif;}
+body{background:#f0f4fb;font-family:'Nunito',sans-serif;user-select:none;}
+input, textarea { user-select: auto !important; }
+button{cursor:pointer;transition:transform .1s active;user-select:none;}
+button:active{transform:scale(0.96);}
 @keyframes up  {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes pop {from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes dt  {0%,100%{opacity:.25;transform:scale(.65)}50%{opacity:1;transform:scale(1.2)}}
@@ -129,22 +132,23 @@ async function getIP() {
 const VerMais = ({total, visiveis, setVisiveis}) => {
   const temMais = visiveis < total;
   return (
-    <div style={{padding:"12px 0", textAlign:"center"}}>
+    <div style={{ padding: "0 14px 14px", textAlign: "center" }}>
       <button 
         disabled={!temMais}
         onClick={() => setVisiveis(prev => prev + 15)} 
         style={{
-          background: temMais ? C.bg : "#f3f4f6", 
-          border: `1.5px solid ${temMais ? C.bd : "#e5e7eb"}`, 
-          borderRadius: 20, 
-          padding: "6px 16px", 
-          fontSize: 11, 
+          width: "100%", 
+          padding: "16px", 
+          background: temMais ? "#fff" : C.bg, 
+          border: `1.5px solid ${temMais ? C.az : C.bd}`, 
+          borderRadius: 14, 
+          color: temMais ? C.az : C.sb, 
           fontWeight: 800, 
-          color: temMais ? C.az : "#9ca3af", 
-          cursor: temMais ? "pointer" : "default", 
+          fontSize: 14, 
           display: "flex", 
-          alignItems:"center", 
-          gap: 6, 
+          alignItems: "center", 
+          justifyContent: "center", 
+          gap: 8, 
           margin: "0 auto", 
           transition: ".2s", 
           fontFamily: "inherit",
@@ -608,12 +612,12 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
     </div>
 
     {/* NAV */}
-    <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:100}}>
+    <nav style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:480,background:"#fff",borderTop:`1px solid ${C.bd}`,display:"flex",boxShadow:"0 -4px 20px rgba(0,52,120,.09)",zIndex:1000}}>
       {ABAS.map(a=>{const badge=a.id==="not"&&temPr&&nBadge>0;const isReg=a.id==="reg";return(
-        <button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"9px 3px 11px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?C.azC:"#fff",borderTop:`2.5px solid ${aba===a.id?C.az:"transparent"}`,transition:"all .2s",position:"relative"}}>
-          {badge&&<div style={{position:"absolute",top:6,right:"50%",transform:"translateX(10px)",width:16,height:16,borderRadius:"50%",background:C.rd,color:"#fff",fontSize:9,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>{nBadge}</div>}
-          <div style={{fontSize:18,marginBottom:2}}>{isReg?<span style={{display:"inline-flex",width:34,height:34,borderRadius:"50%",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,alignItems:"center",justifyContent:"center",fontSize:17,boxShadow:`0 2px 10px ${C.ou}55`,animation:opQR?"glw 1.5s infinite":"none"}}>{a.em}</span>:a.em}</div>
-          <div style={{fontSize:9,fontWeight:aba===a.id?800:600,color:aba===a.id?C.az:C.sb,lineHeight:1}}>{a.l}</div>
+        <button key={a.id} onClick={()=>setAba(a.id)} style={{flex:1,padding:"10px 3px 12px",border:"none",cursor:"pointer",fontFamily:"inherit",background:aba===a.id?C.azC:"#fff",borderTop:`3px solid ${aba===a.id?C.az:"transparent"}`,transition:"all .2s",position:"relative"}}>
+          {badge&&<div style={{position:"absolute",top:6,right:"50%",transform:"translateX(10px)",width:18,height:18,borderRadius:"50%",background:C.rd,color:"#fff",fontSize:10,fontWeight:900,display:"flex",alignItems:"center",justifyContent:"center"}}>{nBadge}</div>}
+          <div style={{fontSize:20,marginBottom:3}}>{isReg?<span style={{display:"inline-flex",width:38,height:38,borderRadius:"50%",background:`linear-gradient(135deg,${C.ou},${C.ou2})`,alignItems:"center",justifyContent:"center",fontSize:20,boxShadow:`0 2px 10px ${C.ou}55`,animation:opQR?"glw 1.5s infinite":"none"}}>{a.em}</span>:a.em}</div>
+          <div style={{fontSize:11,fontWeight:aba===a.id?900:700,color:aba===a.id?C.az:C.sb,lineHeight:1}}>{a.l}</div>
         </button>
       );})}
     </nav>
@@ -1175,7 +1179,7 @@ function Premios({meusPr,c,wts,setVoucherVer}){
         {isRedeemed ? "Você já retirou este prêmio no balcão da Lotérica." : (isPend ? "Aguardando o administrador verificar os comprovantes desta etapa." : (isAppr ? "✅ Auditoria concluída! Seu prêmio está liberado. Abra o cupom abaixo e apresente no balcão." : p.desc))}
       </div>
       
-      {isAppr && <button onClick={()=>setVoucherVer(p)} style={{marginTop:10,width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:10,padding:10,fontWeight:900,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>🎫 Abrir Cupom Digital</button>}
+      {isAppr && <button onClick={()=>setVoucherVer(p)} style={{marginTop:12,width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:14,padding:16,fontWeight:900,fontSize:14,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>🎫 Abrir Cupom Digital</button>}
       
     <div style={{fontSize:10,color:C.sb,marginTop:8}}>📅 {fDT(p.data)} {isRedeemed && p.redeemedAt && `· Retirado em ${fDT(p.redeemedAt)}`}</div>
     </div>
@@ -1370,7 +1374,7 @@ r.readAsDataURL(f);
                }
              </div>
              {a.data <= (cfg.dataFim || "2100-01-01") && (
-               <button onClick={()=>setIsEditing(true)} style={{display:"inline-block",marginTop:8,background:C.rd,color:"#fff",border:"none",borderRadius:8,padding:"8px 12px",fontSize:10,fontWeight:800,cursor:"pointer",boxShadow:`0 2px 6px ${C.rd}55`,fontFamily:"inherit"}}>
+               <button onClick={()=>setIsEditing(true)} style={{display:"inline-block",marginTop:10,background:C.rd,color:"#fff",border:"none",borderRadius:12,padding:"14px 16px",fontSize:13,fontWeight:900,cursor:"pointer",boxShadow:`0 4px 10px ${C.rd}44`,fontFamily:"inherit"}}>
                  ✏️ Corrigir Informações
                </button>
              )}
@@ -1383,7 +1387,7 @@ r.readAsDataURL(f);
           return (
             <>
               {pLink.status==="approved" && (
-                <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pLink);}} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:8,padding:"8px",fontWeight:800,fontSize:10,cursor:"pointer",marginTop:8}}>🎫 Visualizar Cupom Digital</button>
+                <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pLink);}} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"14px",fontWeight:900,fontSize:13,cursor:"pointer",marginTop:10,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>🎫 Visualizar Cupom Digital</button>
               )}
               {pLink.status==="redeemed" && (
                 <div style={{background:C.bg,padding:8,borderRadius:8,textAlign:"center",color:C.sb,fontSize:10,fontWeight:700,marginTop:8}}>✅ Prêmio Retirado</div>
@@ -1527,7 +1531,7 @@ function VoucherCard({p, cli, cfg, onClose}){
     setTimeout(() => setCopiado(false), 2000);
   }
 
-  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:20,backdropFilter:"blur(5px)"}} onClick={onClose}>
+  return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:10,backdropFilter:"blur(5px)"}} onClick={(e)=>{ if(e.target === e.currentTarget) onClose(); }}>
     {/* CAPTURA (ESCONDIDO) */}
     <div style={{position:"fixed", left: "-9999px", top: 0}}>
       <div id="cupom-certificado-cliente" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
@@ -1563,8 +1567,9 @@ function VoucherCard({p, cli, cfg, onClose}){
     </div>
 
     {/* PREVIEW */}
-    <div style={{background:"#fff",width:"100%",maxWidth:360,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
+    <div style={{background:"#fff",width:"100%",maxWidth:380,borderRadius:24,overflow:"hidden",boxShadow:"0 30px 60px rgba(0,0,0,.5)",animation:"pop .4s ease"}} onClick={e=>e.stopPropagation()}>
       <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"20px 15px",position:"relative", display: "flex", alignItems:"center", gap:15, justifyContent:"center"}}>
+        <button onClick={onClose} style={{position:"absolute",top:10,right:10,background:"rgba(255,255,255,0.2)",border:"none",width:32,height:32,borderRadius:"50%",color:"#fff",fontSize:18,fontWeight:900,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",zIndex:10}}>✕</button>
         <div style={{background:"#fff",width:80,height:80,borderRadius:18,display:"flex",alignItems:"center",justifyContent:"center",padding:4,boxShadow:"0 8px 20px rgba(0,0,0,.2)",flexShrink:0}}>
           <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
         </div>
@@ -1607,8 +1612,8 @@ function VoucherCard({p, cli, cfg, onClose}){
         </button>
       </div>
 
-      <div style={{background:C.bg,padding:12,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
-        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:700,fontSize:13,cursor:"pointer",width:"100%",fontFamily:"inherit"}}>Fechar Cupom</button>
+      <div style={{background:C.bg,padding:16,textAlign:"center",borderTop:`1px solid ${C.bd}`}}>
+        <button onClick={onClose} style={{background:"none",color:C.sb,border:"none",fontWeight:800,fontSize:15,cursor:"pointer",width:"100%",padding:8,fontFamily:"inherit"}}>Fechar Cupom</button>
       </div>
     </div>
   </div>);}

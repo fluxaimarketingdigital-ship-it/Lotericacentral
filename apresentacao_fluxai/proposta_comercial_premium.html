@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposta Premium - FluxAI Marketing Digital</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+        :root {
+            --primary: #6d7a46; /* Darker green from logo */
+            --primary-light: #8b9a5e;
+            --secondary: #ff8c33; /* Orange from logo */
+            --accent: #00a651;
+            --text: #2c331a;
+            --text-light: #5a7a96;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --gradient: linear-gradient(135deg, #6d7a46 0%, #2c331a 100%);
+            --shadow: 0 10px 30px rgba(109, 122, 70, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--secondary);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: var(--gradient);
+            border-radius: 30px;
+            padding: 60px;
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 52, 120, 0.2);
+            margin-bottom: 60px;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: var(--secondary);
+            opacity: 0.1;
+            border-radius: 50%;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 600px;
+        }
+
+        .hero h1 {
+            font-size: 42px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .hero-image {
+            position: absolute;
+            right: 40px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 300px;
+            height: 300px;
+            border-radius: 20px;
+            object-fit: cover;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            display: none; /* Hidden on small screens */
+        }
+
+        @media (min-width: 900px) {
+            .hero-image {
+                display: block;
+            }
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 80px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title h2 {
+            font-size: 32px;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .section-title .divider {
+            width: 60px;
+            height: 4px;
+            background: var(--secondary);
+            margin: 0 auto;
+            border-radius: 2px;
+        }
+
+        /* Features Grid */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .feature-card p {
+            color: var(--text-light);
+            font-size: 15px;
+        }
+
+        /* Image Text Split */
+        .split {
+            display: flex;
+            align-items: center;
+            gap: 50px;
+            margin-bottom: 80px;
+        }
+
+        .split.reverse {
+            flex-direction: row-reverse;
+        }
+
+        .split-image {
+            flex: 1;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .split-image img {
+            width: 100%;
+            display: block;
+        }
+
+        .split-text {
+            flex: 1;
+        }
+
+        .split-text h3 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .split-text p {
+            font-size: 16px;
+            color: var(--text-light);
+            margin-bottom: 20px;
+        }
+
+        /* Stats Bar */
+        .stats {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 24px;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            box-shadow: var(--shadow);
+            margin-bottom: 60px;
+        }
+
+        .stat-item h4 {
+            font-size: 36px;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-item p {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-light);
+            font-weight: 700;
+        }
+
+        /* Mockup Gallery */
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .gallery-item {
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            background: #eee;
+            aspect-ratio: 16/9;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-caption {
+            padding: 15px;
+            background: var(--white);
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        /* Footer CTA */
+        .cta {
+            background: var(--text);
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            color: var(--white);
+        }
+
+        .cta h2 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        .cta p {
+            opacity: 0.8;
+            margin-bottom: 40px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--secondary);
+            color: var(--primary);
+            padding: 16px 40px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 18px;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(245, 168, 0, 0.3);
+        }
+
+        /* Print optimization */
+        /* Print & PDF Optimization */
+        @media print {
+            :root {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            @page {
+                size: A4;
+                margin: 0;
+            }
+            body {
+                background: white;
+                -webkit-print-color-adjust: exact !important;
+            }
+            .container {
+                max-width: 100%;
+                padding: 0;
+                margin: 0;
+            }
+            section, .hero, .cta, .split, .stats {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .hero {
+                border-radius: 0;
+                padding: 40px;
+                min-height: 400px;
+                display: flex !important;
+                flex-direction: row !important;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .hero-content {
+                width: 60% !important;
+                max-width: none !important;
+            }
+            .hero-image {
+                display: block !important;
+                width: 280px !important;
+                height: 280px !important;
+                position: static !important;
+                transform: none !important;
+                margin-left: 20px;
+            }
+            .split {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 30px !important;
+                padding: 40px !important;
+            }
+            .split.reverse {
+                flex-direction: row-reverse !important;
+            }
+            .split-image, .split-text {
+                width: 50% !important;
+                flex: none !important;
+            }
+            .gallery {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 15px !important;
+                padding: 20px !important;
+            }
+            .features {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 20px !important;
+                padding: 20px !important;
+            }
+            .feature-card {
+                padding: 20px !important;
+            }
+            .btn {
+                display: inline-block !important;
+                background: var(--secondary) !important;
+                color: var(--primary) !important;
+                padding: 12px 30px !important;
+            }
+            header, section, div, .stats {
+                padding-left: 40px !important;
+                padding-right: 40px !important;
+            }
+            .cta {
+                border-radius: 0;
+                margin-bottom: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .split { flex-direction: column; }
+            .split.reverse { flex-direction: column; }
+            .gallery { grid-template-columns: 1fr; }
+            .hero { padding: 40px 30px; }
+            .hero h1 { font-size: 32px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <div class="logo">
+                <img src="logo_fluxai.png" alt="FluxAI Marketing Digital" style="height: 120px;">
+            </div>
+            <div style="font-size: 14px; font-weight: 800; color: var(--text-light); text-align: right;">
+                PROPOSTA COMERCIAL PREMIUM<br>
+                <span style="color: var(--secondary); font-size: 12px;">EXCLUSIVO PARA LOTÉRICAS</span>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <div class="hero">
+            <div class="hero-content">
+                <h1>Transforme sua Lotérica em um Ímã de Clientes.</h1>
+                <p>O primeiro sistema de fidelidade digital desenhado exclusivamente para aumentar o fluxo físico na sua loja e combater a evasão para o digital.</p>
+                <div style="display: flex; gap: 15px;">
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 12px; font-size: 13px; font-weight: 600;">
+                        ✓ Validação Presencial
+                    </div>
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px 15px; border-radius: 12px; font-size: 13px; font-weight: 600;">
+                        ✓ Dados de Clientes
+                    </div>
+                </div>
+            </div>
+            <img src="banner_premium.png" alt="Sistema de Fidelidade" class="hero-image">
+        </div>
+
+        <!-- The Problem -->
+        <section>
+            <div class="section-title">
+                <h2>O Desafio do Varejo Lotérico</h2>
+                <div class="divider"></div>
+            </div>
+            <div class="features">
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Fuga para o Digital</h3>
+                    <p>Aplicativos de apostas e pagamentos online estão retirando o cliente da sua loja física. Como trazê-lo de volta?</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>Cartões de Papel Inúteis</h3>
+                    <p>Cartões de carimbo são perdidos, fraudados e não geram NENHUM dado sobre quem é o seu cliente.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📉</div>
+                    <h3>Falta de Recorrência</h3>
+                    <p>Sem um motivo extra para voltar, o cliente escolhe a lotérica por conveniência, não por lealdade.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- The Solution Split -->
+        <div class="split">
+            <div class="split-image">
+                <img src="interacao_caixa.png" alt="Interação no Caixa">
+            </div>
+            <div class="split-text">
+                <h3>O "Pulo do Gato":<br>Validação Obrigatória</h3>
+                <p>Nosso sistema inverte a lógica do digital. O cliente usa o App para acompanhar os pontos, mas a <strong>pontuação só acontece na sua loja.</strong></p>
+                <p>Ao finalizar um pagamento ou compra de jogo, o operador fornece um código exclusivo. O cliente digita no App e a mágica acontece. Ele precisa estar lá, na frente do seu caixa.</p>
+                <ul style="list-style: none; margin-top: 20px;">
+                    <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--accent); font-weight: 800;">✓</span> 100% à prova de fraudes
+                    </li>
+                    <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--accent); font-weight: 800;">✓</span> Integração visual com sua marca
+                    </li>
+                    <li style="margin-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+                        <span style="color: var(--accent); font-weight: 800;">✓</span> Sem necessidade de baixar Apps pesados
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- System Stats -->
+        <div class="stats">
+            <div class="stat-item">
+                <h4>+40%</h4>
+                <p>Retenção de Clientes</p>
+            </div>
+            <div class="stat-item" style="border-left: 1px solid #eee; border-right: 1px solid #eee; padding: 0 40px;">
+                <h4>100%</h4>
+                <p>Captura de WhatsApp</p>
+            </div>
+            <div class="stat-item">
+                <h4>+25%</h4>
+                <p>Ticket Médio (Bolões)</p>
+            </div>
+        </div>
+
+        <!-- Growth Section -->
+        <div class="split reverse">
+            <div class="split-image">
+                <img src="crescimento_vendas.png" alt="Crescimento de Vendas">
+            </div>
+            <div class="split-text">
+                <h3>Venda mais Bolões com o "Prêmio Relâmpago"</h3>
+                <p>O sistema identifica automaticamente quando um cliente compra um Bolão ou Jogo de valor elevado e ativa o <strong>Sorteio Instantâneo.</strong></p>
+                <p>O cliente recebe um aviso visual imediato de que ganhou um prêmio bônus (como uma Raspadinha ou desconto), incentivando-o a aumentar o valor da compra no exato momento do atendimento.</p>
+            </div>
+        </div>
+
+        <!-- The Interface -->
+        <section>
+            <div class="section-title">
+                <h2>Tecnologia de Ponta</h2>
+                <p style="color: var(--text-light); max-width: 600px; margin: 10px auto;">Uma experiência completa para o cliente, o operador e você, o gestor.</p>
+                <div class="divider"></div>
+            </div>
+            
+            <div class="gallery">
+                <div class="gallery-item" style="height: auto;">
+                    <img src="mockup_app_cliente_1777585588385.png" alt="App Cliente">
+                    <div class="gallery-caption">Interface do Cliente (Gamificada)</div>
+                </div>
+                <div class="gallery-item" style="height: auto;">
+                    <img src="fluxai_interaction_mockup_1777585623308.png" alt="Painel Operador">
+                    <div class="gallery-caption">Painel do Operador (Ágil)</div>
+                </div>
+                <div class="gallery-item" style="height: auto;">
+                    <img src="dashboard_adm_mockup_1777585604697.png" alt="Painel Administrativo">
+                    <div class="gallery-caption">Dashboard Administrativo</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Features List -->
+        <section style="background: var(--white); padding: 60px; border-radius: 30px; box-shadow: var(--shadow);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px;">
+                <div>
+                    <h3 style="color: var(--primary); margin-bottom: 20px;">Para sua Lotérica</h3>
+                    <ul style="list-style: none;">
+                        <li style="margin-bottom: 15px; color: var(--text-light);">• <strong>Base de Dados:</strong> Lista exportável de contatos (WhatsApp) para marketing.</li>
+                        <li style="margin-bottom: 15px; color: var(--text-light);">• <strong>Ranking de Equipe:</strong> Saiba qual operador mais fideliza e premie sua equipe.</li>
+                        <li style="margin-bottom: 15px; color: var(--text-light);">• <strong>Auditoria Real:</strong> Controle total de prêmios entregues e validações.</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color: var(--primary); margin-bottom: 20px;">Para o Cliente</h3>
+                    <ul style="list-style: none;">
+                        <li style="margin-bottom: 15px; color: var(--text-light);">• <strong>Vouchers Digitais:</strong> Cupom de prêmio direto no celular.</li>
+                        <li style="margin-bottom: 15px; color: var(--text-light);">• <strong>Notícias VIP:</strong> Informe sobre prêmios acumulados e horários especiais.</li>
+                        <li style="margin-bottom: 15px; color: var(--text-light);">• <strong>Transparência:</strong> Ele vê o progresso em tempo real.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Final CTA -->
+        <div class="cta">
+            <h2>Pronto para digitalizar sua fidelidade?</h2>
+            <p>Leve a tecnologia FluxAI para o seu balcão e transforme visitantes casuais em clientes recorrentes e apaixonados pela sua marca.</p>
+            <a href="https://wa.me/5571981114694" class="btn" target="_blank">Solicitar Demonstração</a>
+            <div style="margin-top: 40px; font-size: 14px; font-weight: 600; opacity: 0.9;">
+                <img src="logo_fluxai.png" alt="FluxAI" style="height: 80px; margin-bottom: 20px;"><br>
+                <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                    <a href="https://www.fluxaidigital.com.br" target="_blank" style="color: white; text-decoration: none;">🌐 www.fluxaidigital.com.br</a>
+                    <a href="https://instagram.com/fluxai.mark" target="_blank" style="color: white; text-decoration: none;">📸 @fluxai.mark</a>
+                    <a href="https://wa.me/5571981114694" target="_blank" style="color: white; text-decoration: none;">💬 (71) 98111-4694</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
