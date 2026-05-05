@@ -1548,47 +1548,25 @@ function PassoAPasso({onClose}){
   ];
 
   return (
-    <div style={{position:"fixed", inset:0, background:"rgba(0,10,30,0.92)", zIndex:10000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(8px)", animation:"pop .4s cubic-bezier(0.175, 0.885, 0.32, 1.275)"}}>
-      <div style={{background:"#fff", borderRadius:32, width:"100%", maxWidth:380, overflow:"hidden", position:"relative", boxShadow:"0 30px 70px rgba(0,0,0,0.6)", border:"1px solid rgba(255,255,255,0.1)"}}>
-        <button onClick={onClose} style={{position:"absolute", top:20, right:20, background:"rgba(255,255,255,0.9)", color:"#000", border:"none", borderRadius:"50%", width:34, height:34, fontWeight:900, cursor:"pointer", zIndex:20, display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 10px rgba(0,0,0,0.2)"}}>✕</button>
+    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,.85)", zIndex:10000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, animation:"pop .3s"}}>
+      <div style={{background:"#fff", borderRadius:24, width:"100%", maxWidth:380, overflow:"hidden", position:"relative", boxShadow:"0 20px 50px rgba(0,0,0,0.5)"}}>
+        <button onClick={onClose} style={{position:"absolute", top:15, right:15, background:"rgba(0,0,0,0.3)", color:"#fff", border:"none", borderRadius:"50%", width:30, height:30, fontWeight:900, cursor:"pointer", zIndex:10, display:"flex", alignItems:"center", justifyContent:"center"}}>✕</button>
         
-        <div style={{height:280, overflow:"hidden", position:"relative", background:"#000", display:"flex", alignItems:"center", justifyContent:"center"}}>
-          <div style={{
-            position:"absolute", 
-            inset:0, 
-            backgroundImage:`url(${passos[passo].img})`, 
-            backgroundSize:"cover", 
-            backgroundPosition:"center",
-            filter:"blur(25px) brightness(0.7)",
-            opacity:0.8,
-            transform:"scale(1.2)",
-            transition:"background-image 0.5s ease"
-          }}/>
-          
-          <img src={passos[passo].img} style={{
-            maxWidth:"90%", 
-            maxHeight:"85%", 
-            objectFit:"contain", 
-            position:"relative", 
-            zIndex:10,
-            borderRadius:12,
-            boxShadow:"0 15px 35px rgba(0,0,0,0.4)",
-            animation: "fadeIn .5s"
-          }} alt="passo"/>
-          
-          <div style={{position:"absolute", bottom:0, left:0, width:"100%", height:60, background:"linear-gradient(to top, rgba(0,0,0,0.4), transparent)", zIndex:11}}/>
+        <div style={{height:280, overflow:"hidden", position:"relative", background:"#f0f0f0"}}>
+          <img src={passos[passo].img} style={{width:"100%", height:"100%", objectFit:"cover"}} alt="passo"/>
+          <div style={{position:"absolute", bottom:0, left:0, width:"100%", height:80, background:"linear-gradient(to top, #fff, transparent)"}}/>
         </div>
 
-        <div style={{padding:30, textAlign:"center", background:"#fff", borderTop:"4px solid " + C.az}}>
-          <div style={{fontWeight:900, fontSize:22, color:C.az, marginBottom:12, letterSpacing:"-0.5px"}}>{passos[passo].t}</div>
-          <div style={{fontSize:15, color:C.sb, lineHeight:1.7, minHeight:75}}>{passos[passo].d}</div>
+        <div style={{padding:25, textAlign:"center"}}>
+          <div style={{fontWeight:900, fontSize:20, color:C.az, marginBottom:10}}>{passos[passo].t}</div>
+          <div style={{fontSize:14, color:C.sb, lineHeight:1.6, minHeight:60}}>{passos[passo].d}</div>
           
-          <div style={{display:"flex", gap:8, justifyContent:"center", margin:"25px 0"}}>
-            {passos.map((_,i)=><div key={i} style={{width:i===passo?24:10, height:10, borderRadius:5, background:i===passo?C.az:C.bd, transition:"all .4s cubic-bezier(0.4, 0, 0.2, 1)"}}/>)}
+          <div style={{display:"flex", gap:6, justifyContent:"center", margin:"20px 0"}}>
+            {passos.map((_,i)=><div key={i} style={{width:i===passo?20:8, height:8, borderRadius:4, background:i===passo?C.az:C.bd, transition:"all .3s"}}/>)}
           </div>
 
           <button onClick={()=>passo < passos.length - 1 ? setPasso(p=>p+1) : onClose()} 
-            style={{width:"100%", padding:18, borderRadius:16, border:"none", fontWeight:900, background:C.az, color:"#fff", cursor:"pointer", fontSize:17, boxShadow:"0 8px 25px rgba(0,52,120,0.4)"}}>
+            style={{width:"100%", padding:16, borderRadius:14, border:"none", fontWeight:900, background:C.az, color:"#fff", cursor:"pointer", fontSize:16, boxShadow:"0 4px 15px rgba(0,52,120,0.3)"}}>
             {passo < passos.length - 1 ? "Próximo Passo →" : "Entendi, vamos lá!"}
           </button>
         </div>
