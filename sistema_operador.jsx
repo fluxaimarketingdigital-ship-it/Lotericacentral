@@ -166,11 +166,19 @@ const PromptModal = ({ data, onClose }) => {
   const [val, setVal] = useState("");
   const [vis, setVis] = useState(false);
   if (!data) return null;
-  const submit = (e) => { e?.preventDefault(); data.resolve(data.type === "confirm" ? true : val); onClose(); };
-  const cancel = () => { data.resolve(data.type === "confirm" ? false : null); onClose(); };
+  const submit = (e) => { 
+    e?.preventDefault(); 
+    console.log("Modal Submitted:", data.type, val);
+    data.resolve(data.type === "confirm" ? true : val); 
+    onClose(); 
+  };
+  const cancel = () => { 
+    data.resolve(data.type === "confirm" ? false : null); 
+    onClose(); 
+  };
   return (
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.7)",zIndex:10000,display:"flex",alignItems:"center",justifyContent:"center",padding:20, backdropFilter:"blur(4px)"}}>
-      <div style={{background:"#fff",borderRadius:24,width:"100%",maxWidth:400,padding:24,boxShadow:"0 20px 50px rgba(0,0,0,.3)",animation:"pop .3s ease"}}>
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:99999,display:"flex",alignItems:"center",justifyContent:"center",padding:20, backdropFilter:"blur(8px)"}}>
+      <div style={{background:"#fff",borderRadius:28,width:"100%",maxWidth:380,padding:30,boxShadow:"0 25px 60px rgba(0,0,0,.5)",animation:"pop .3s cubic-bezier(0.34, 1.56, 0.64, 1)"}}>
         <div style={{fontSize:40,marginBottom:15,textAlign:"center"}}>{data.emoji || (data.type === "confirm" ? "❓" : "🔒")}</div>
         <div style={{fontWeight:900,fontSize:18,color:C.tx,textAlign:"center",marginBottom:10}}>{data.title || (data.type === "confirm" ? "Confirmar Ação" : "Autorização Necessária")}</div>
         <div style={{fontSize:13,color:C.sb,textAlign:"center",marginBottom:20,lineHeight:1.6}}>{data.message}</div>
@@ -1389,8 +1397,11 @@ Deseja ir para a tela de Relatórios agora?`)) {
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <button onClick={()=>{setRole(null);setTela("home");}} style={BV}>← Sair</button>
-      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:"rgba(255,255,255,.2)",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v2.1-MOBILE-FIX</span></div>
-      <div style={{fontSize:11,color:"rgba(255,255,255,.65)"}}>{adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}</div>
+      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:"rgba(255,255,255,.2)",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v2.2-DEBUG</span></div>
+      <div style={{fontSize:11,color:"rgba(255,255,255,.65)",display:"flex",alignItems:"center",gap:8}}>
+        {adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}
+        <button onClick={async()=>alert("Modal Test: " + (await customConfirm("Teste", "O modal está funcionando?", "🚀", "Sim!")))} style={{background:C.ou,color:C.tx,border:"none",borderRadius:4,padding:"2px 6px",fontSize:9,fontWeight:900,cursor:"pointer"}}>🛠️ TESTAR MODAL</button>
+      </div>
 
       <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
         {[["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",pr.filter(p=>p.tipo==="raspadinha"&&(p.status==="approved"||p.status==="redeemed")).length,"Metas"],["⚡",pr.filter(p=>p.tipo==="relampago"&&(p.status==="approved"||p.status==="redeemed")).length,"Relâmp."]].map(([em,v,l])=>(
