@@ -1684,7 +1684,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
         }
       }
     }
-    if(newS==="rejected" && !window.confirm("Recusar este prêmio?")) return;
+    if(newS==="rejected" && !(await customConfirm("Recusar Prêmio", "Deseja realmente RECUSAR este prêmio?", "❌", "Sim, Recusar"))) return;
     if(newS==="rejected") {
       setPr(pr.map(p=>p.id===pid?{...p, status:"rejected"}:p));
       const auth = c.auths.find(x=>x.id===a.id);
@@ -1825,8 +1825,8 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
                 <div style={{fontSize:11,fontWeight:800}}>{px.nome}</div>
                 {px.status==="pending" ? (
                   <div style={{display:"flex",gap:5,marginTop:5}}>
-                    <button onClick={()=>updPrize(px.id,"approved")} style={{background:C.vd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Prêmio</button>
-                    <button onClick={()=>updPrize(px.id,"rejected")} style={{background:C.rd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>❌ Recusar</button>
+                    <button onClick={async ()=>await updPrize(px.id,"approved")} style={{background:C.vd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>✅ Aprovar Prêmio</button>
+                    <button onClick={async ()=>await updPrize(px.id,"rejected")} style={{background:C.rd,color:"#fff",border:"none",borderRadius:6,padding:"4px 8px",fontSize:9,fontWeight:800,cursor:"pointer"}}>❌ Recusar</button>
                   </div>
                 ) : px.status==="approved" ? (
                   <div style={{display:"flex",gap:5,marginTop:5}}>
