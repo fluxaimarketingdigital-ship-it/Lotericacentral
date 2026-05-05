@@ -1383,11 +1383,8 @@ Deseja ir para a tela de Relatórios agora?`)) {
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <button onClick={()=>{setRole(null);setTela("home");}} style={BV}>← Sair</button>
-      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v2.5-UNBLOCK</span></div>
-      <div style={{fontSize:11,color:"rgba(255,255,255,.65)",display:"flex",gap:10,marginTop:10}}>
-        {adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}
-        <button onClick={()=>alert("✅ O SISTEMA DE CLIQUES ESTÁ ATIVO NESTA PARTE DA TELA!")} style={{background:C.ou,color:C.tx,border:"none",borderRadius:6,padding:"4px 10px",fontSize:10,fontWeight:900,cursor:"pointer",zIndex:999999}}>🛠️ TESTE RÁPIDO</button>
-      </div>
+      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v2.6-FINAL</span></div>
+      <div style={{fontSize:11,color:"rgba(255,255,255,.65)"}}>{adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}</div>
 
       <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
         {[["👥",cl.length,"Clientes"],["✅",totPoints,"Válidas"],["🏪",totA,"Registros"],["🎟️",pr.filter(p=>p.tipo==="raspadinha"&&(p.status==="approved"||p.status==="redeemed")).length,"Metas"],["⚡",pr.filter(p=>p.tipo==="relampago"&&(p.status==="approved"||p.status==="redeemed")).length,"Relâmp."]].map(([em,v,l])=>(
