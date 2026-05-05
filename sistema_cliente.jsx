@@ -695,7 +695,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada,setTuto}){
   </div>);}
 
 function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,setAba,setCli}){
-  const[step,  setStep]    = useState(opQR?"form":"qr");
+  const[step,  setStep]    = useState("form");
   const[controle,setControle] = useState("");
   const[dataRec,setDataRec] = useState(hoje());
   const[foto,  setFoto]    = useState(null);
@@ -888,43 +888,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
       <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{width:"100%",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:14,padding:14,fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:`0 4px 14px ${C.az}44`}}>Ver meu progresso</button>
     </div>);}
 
-  if(step==="qr"||step==="cam")return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
-    <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"22px 20px 24px",borderRadius:18,position:"relative",overflow:"hidden",color:"#fff"}}>
-      <div style={{position:"absolute",top:-40,right:-40,width:150,height:150,borderRadius:"50%",background:C.ou,opacity:.08}}/>
-      <div style={{fontWeight:900,fontSize:20}}>📷 Escanear Comprovante</div>
-      <div style={{fontSize:11,opacity:.7,marginTop:3}}>A IA fará a leitura automática dos dados</div>
-    </div>
-    
-    <input type="file" accept="image/*" ref={fileInputRef} onChange={e=>{ if(e.target.files[0]) processImage(e.target.files[0]); }} style={{display:"none"}} />
-    
-    {!camAtiva&&<div style={{background:`linear-gradient(135deg,${C.ou},${C.ou2})`,borderRadius:18,padding:"28px 18px",textAlign:"center",position:"relative",overflow:"hidden"}}>
-      <div style={{position:"absolute",top:-30,right:-30,width:110,height:110,borderRadius:"50%",background:C.ou,opacity:.08}}/>
-      <div style={{fontSize:56,marginBottom:15}}>📄</div>
-      <div style={{fontWeight:900,fontSize:18,color:C.az,marginBottom:14}}>Anexar Comprovante</div>
-      <div style={{fontSize:13,color:C.az,opacity:.8,lineHeight:1.6,marginBottom:20}}>Tire uma foto nítida do cupom fiscal da Lotérica ou anexe o arquivo para preenchimento.</div>
-      <button onClick={()=>{ fileInputRef.current.click(); }} style={{width:"100%",padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:16,cursor:"pointer",background:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",boxShadow:`0 4px 18px ${C.az}44`}}>
-        📸 Tirar Foto / Anexar Arquivo
-      </button>
-    </div>}
-    
-    {camAtiva&&<div style={{background:"#000",borderRadius:18,height:220,position:"relative",overflow:"hidden",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center"}}>
-      <div style={{width:50,height:50,borderRadius:"50%",border:`4px solid ${C.ou}`,borderTopColor:"transparent",animation:"sp .8s linear infinite"}}/>
-      <div style={{color:"#fff",fontWeight:800,marginTop:12}}>Inteligência Artificial processando...</div>
-      <div style={{color:C.ou,fontSize:11,marginTop:6}}>Efetuando OCR: {Math.round(scanProg*100)}% concluído</div>
-    </div>}
-
-    <div style={{background:"#fff",borderRadius:14,padding:"16px",border:`1.5px dashed ${C.bd}`}}>
-      <div style={{fontWeight:800,fontSize:12,color:C.tx,marginBottom:8}}>⌨️ Comprovante apagado? Digite manualmente</div>
-      <div style={{display:"flex",gap:7}}>
-        <button onClick={()=>{ setStep("form"); setSel({}); }} 
-          style={{flex:1,background:C.bg,color:C.az,border:"none",borderRadius:10,padding:"12px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>
-          Ir para Preenchimento Manual →
-        </button>
-      </div>
-      {errQR&&<div style={{marginTop:10,padding:10,background:C.rdC,borderRadius:10,fontSize:11,color:C.rd,fontWeight:700,border:`1px solid ${C.rd}44`}}>⚠️ {errQR}</div>}
-    </div>
-    <button onClick={()=>setAba("ini")} style={{background:"#fff",color:C.sb,border:`1.5px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>← Voltar ao Início</button>
-  </div>);
+  // OCR step removed
 
   if(step==="start" || step==="form"){
     return(<div style={{display:"flex",flexDirection:"column",gap:12,animation:"up .3s"}}>
