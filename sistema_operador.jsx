@@ -1383,7 +1383,7 @@ Deseja ir para a tela de Relatórios agora?`)) {
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <button onClick={()=>{setRole(null);setTela("home");}} style={BV}>← Sair</button>
-      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v2.9.1-FINAL-FIX</span></div>
+      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v3.0-FINAL</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)"}}>{adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}</div>
 
       <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
@@ -1653,7 +1653,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
   useEffect(()=>{ if(edit) setFEdit(a.detalhes||{}); },[edit, a.detalhes]);
   
   const s = a.status || (a.valida!==false?"approved":"rejected");
-  const updateStatusNative = async (newS) => {
+    const updateStatusNative = async (newS) => {
     if(newS==="rejected" && !(await customConfirm("Recusar Autenticação", "Deseja realmente RECUSAR esta autenticação?", "❌", "Sim, Recusar"))) return;
     const newAuths = c.auths.map(x=>x.id===a.id?{...x, status:newS, modificado:false, obsAdmin:newS==="rejected"?"Recusado":""}:x);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:newAuths}:x));
@@ -1662,11 +1662,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
     }
   };
   const excluirAuthNative = async () => {
-    const s = window.prompt("Tem certeza que deseja EXCLUIR permanentemente? Digite a Senha de Alteração:");
-    if(s !== (adminSel.senhaMestra || "123456")) {
-      if(s !== null) alert("❌ Senha incorreta!");
-      return;
-    }
+    if(!(await checkM("Tem certeza que deseja EXCLUIR esta autenticação permanentemente? Digite sua Senha de Alteração e Exclusão:"))) return;
     const associatedPrize = pr.find(p=>p.authId===a.id);
     setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
     setPr(pr.filter(p=>p.authId!==a.id));
