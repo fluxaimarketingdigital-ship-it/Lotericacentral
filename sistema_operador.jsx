@@ -1383,7 +1383,7 @@ Deseja ir para a tela de Relatórios agora?`)) {
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <button onClick={()=>{setRole(null);setTela("home");}} style={BV}>← Sair</button>
-      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v3.3-FINAL-BOOST</span></div>
+      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v3.4-ULTIMATE</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)"}}>{adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}</div>
 
       <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
@@ -1646,7 +1646,7 @@ function AOps({ops,setOps,cl,cfg,setCfg,opPrizes,setOpPrizes,op,checkM,adminSel}
   </div>);
 }
 
-function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,checkM}){
+function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,checkM,customConfirm}){
   const [expA, setExpA] = useState(false);
   const [edit, setEdit] = useState(false);
   const [fEdit, setFEdit] = useState(a.detalhes||{});
@@ -1843,7 +1843,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
   );
 }
 
-function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
+function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM,customConfirm}){
   const[exp,setExp]=useState(null);const[vis,setVis]=useState(15);
   const[voucherVer,setVoucherVer]=useState(null);
   const opN=id=>ops.find(o=>o.id===id)?.nome||"—";
@@ -1894,7 +1894,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
                const s = a.status || (a.valida===false?"not_counted":"approved");
                const corS = s==="approved"?C.vd : s==="pending"?C.ou : s==="not_counted"?C.sb : C.rd;
                const labelS = s==="approved"?"Aprovada" : s==="pending"?"Aguardando Auditoria" : s==="not_counted"?"Histórico" : "Recusada";
-               return <AAud key={a.id} a={a} c={c} corS={corS} labelS={labelS} opN={opN} brl={brl} fDT={fDT} cfg={cfg} setCl={setCl} cl={cl} pr={pr} setPr={setPr} setVoucherVer={setVoucherVer} checkM={checkM}/>;
+               return <AAud key={a.id} a={a} c={c} corS={corS} labelS={labelS} opN={opN} brl={brl} fDT={fDT} cfg={cfg} setCl={setCl} cl={cl} pr={pr} setPr={setPr} setVoucherVer={setVoucherVer} checkM={checkM} customConfirm={customConfirm}/>;
             })}
           </div>
         </div>}
@@ -1905,7 +1905,7 @@ function ACl({cl,setCl,ops,cfg,pr,setPr,bus,setBus,op,checkM}){
   </div>);
 }
 
-function APr({pr, cl, cfg, setPr, checkM}){
+function APr({pr, cl, cfg, setPr, checkM, customPrompt, customConfirm}){
 
   const [voucherVer, setVoucherVer] = useState(null);const [vis, setVis] = useState(15);
   const cN=id=>cl.find(c=>c.id===id)?.nome||"—";
