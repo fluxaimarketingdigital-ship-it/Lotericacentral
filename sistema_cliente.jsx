@@ -338,7 +338,7 @@ function Regulamento({setTela,cfg}){
           style={{flex:1,overflowY:"auto",background:"#fff",borderRadius:16,padding:"18px 16px",border:`1px solid ${C.bd}`,maxHeight:"calc(100vh - 240px)"}}>
           <pre style={{fontSize:12,color:C.tx,lineHeight:2,whiteSpace:"pre-wrap",fontFamily:"'Nunito',sans-serif"}}>{txt}</pre>
           {/* Marca de fim */}
-          <div style={{marginTop:20,textAlign:"center",padding:"12px",background:C.vdC,borderRadius:12,border:`1px solid ${C.vd}44`,fontSize:11,color:C.vd,fontWeight:700}}>
+          <div style={{marginTop:20,textAlign:"center",padding:"12px",background:C.vdC,borderRadius:18,border:`1px solid ${C.vd}44`,fontSize:11,color:C.vd,fontWeight:700}}>
             ✅ Você chegou ao final do regulamento!
           </div>
         </div>
@@ -469,7 +469,7 @@ function Login({setCli,clients,setTela,opQR}){
         <div style={{fontSize:52,animation:"pop .5s",marginBottom:10}}>🏆</div>
         <div style={{fontWeight:900,fontSize:22,color:"#fff"}}>{NOME}</div>
         <div style={{fontWeight:700,fontSize:10,color:C.ou,marginTop:5,letterSpacing:3,textTransform:"uppercase"}}>Área do Cliente</div>
-        {opQR&&<div style={{marginTop:13,background:"rgba(0,166,81,.22)",borderRadius:12,padding:"10px 14px",border:"1px solid rgba(0,166,81,.45)"}}><div style={{fontWeight:800,fontSize:12,color:"#fff"}}>✅ QR do Operador detectado!</div><div style={{fontSize:11,color:"rgba(255,255,255,.8)",marginTop:2}}>Operador: <strong>{opQR.nome}</strong> — faça login para registrar.</div></div>}
+        {opQR&&<div style={{marginTop:13,background:"rgba(0,166,81,.22)",borderRadius:18,padding:"10px 14px",border:"1px solid rgba(0,166,81,.45)"}}><div style={{fontWeight:800,fontSize:12,color:"#fff"}}>✅ QR do Operador detectado!</div><div style={{fontSize:11,color:"rgba(255,255,255,.8)",marginTop:2}}>Operador: <strong>{opQR.nome}</strong> — faça login para registrar.</div></div>}
       </div>
       <div style={{flex:1,padding:"26px 20px"}}>
         <div style={{background:"#fff",borderRadius:22,padding:24,boxShadow:"0 8px 36px rgba(0,52,120,.1)",animation:"up .4s"}}>
@@ -496,7 +496,7 @@ function Login({setCli,clients,setTela,opQR}){
             {load?<Sp label="Verificando…"/>:(opQR?"Entrar e Registrar →":"Entrar →")}
           </button>
           <button onClick={()=>setTela("regulamento")}
-            style={{width:"100%",marginTop:12,padding:13,borderRadius:12,background:"#fff",color:C.az,border:`1.5px solid ${C.az}33`,fontFamily:"inherit",fontWeight:800,fontSize:14,cursor:"pointer"}}>
+            style={{width:"100%",marginTop:12,padding:13,borderRadius:18,background:"#fff",color:C.az,border:`1.5px solid ${C.az}33`,fontFamily:"inherit",fontWeight:800,fontSize:14,cursor:"pointer"}}>
             Não tenho cadastro — Cadastrar
           </button>
           <div style={{textAlign:"center",marginTop:20,fontSize:12,color:C.az,fontWeight:900}}>Desenvolvido por <strong>FluxAI Marketing Digital</strong></div>
@@ -560,7 +560,7 @@ function Painel({cliente,clients,setCl,premios,setPr,ops,cfg,opQR,setOpQR,setRel
             <div style={{fontWeight:800,fontSize:15,color:"rgba(255,255,255,.6)"}}>Olá, <span style={{color:"#fff",fontWeight:900,fontSize:26}}>{c.nome?.split(" ")[0]}!</span> 👋</div>
             <div style={{fontSize:11,color:"rgba(255,255,255,.5)",marginTop:4}}>Membro desde {fD(c.cadastro)}{temPr&&<span style={{marginLeft:8,background:C.ou,color:C.az,fontWeight:800,fontSize:9,padding:"1px 7px",borderRadius:20}}>🏆 PREMIADO</span>}</div>
           </div>
-          <div style={{height:46, background:"#fff", borderRadius:12, padding:"0px 2px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 20px rgba(0,0,0,0.2)"}}>
+          <div style={{height:46, background:"#fff", borderRadius:18, padding:"0px 2px", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 8px 20px rgba(0,0,0,0.2)"}}>
             <img src={logoLoterica} style={{height:"130%", width:"auto", objectFit:"contain"}} alt="Logo"/>
           </div>
         </div>
@@ -671,7 +671,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada,setTuto}){
       <span style={{fontSize:38}}>{encerrada?"🚫":"📄"}</span>
     </button>
     {temPr&&nBadge>0&&<div onClick={()=>setAba("not")} style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:16,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
-      <div style={{width:40,height:40,borderRadius:12,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🌟</div>
+      <div style={{width:40,height:40,borderRadius:18,background:"rgba(255,255,255,.15)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,flexShrink:0}}>🌟</div>
       <div style={{flex:1}}><div style={{fontWeight:800,fontSize:13,color:"#fff"}}>Notícias exclusivas!</div><div style={{fontSize:11,color:"rgba(255,255,255,.7)",marginTop:2}}>{nBadge} especial{nBadge>1?"is":""} para clientes premiados</div></div>
       <div style={{background:C.ou,color:C.az,fontWeight:900,fontSize:12,width:26,height:26,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{nBadge}</div>
     </div>}
@@ -935,10 +935,10 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         <label style={LS}>Foto do Comprovante (opcional)</label>
         <div style={{marginTop:5,position:"relative"}}>
           <input type="file" accept="image/*" capture="environment" onChange={e=>{if(e.target.files[0]) setFoto(URL.createObjectURL(e.target.files[0]))}} style={{display:"none"}} id="foto-inp" />
-          <label htmlFor="foto-inp" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:foto?C.vdC:C.azC,color:foto?C.vd:C.az,padding:14,borderRadius:12,border:`2px dashed ${foto?C.vd:C.az}44`,cursor:"pointer",fontWeight:800,fontSize:14}}>
+          <label htmlFor="foto-inp" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:foto?C.vdC:C.azC,color:foto?C.vd:C.az,padding:14,borderRadius:18,border:`2px dashed ${foto?C.vd:C.az}44`,cursor:"pointer",fontWeight:800,fontSize:14}}>
             {foto ? "✅ Foto Selecionada" : "📸 Tirar Foto do Comprovante"}
           </label>
-          {foto && <div style={{marginTop:10,textAlign:"center"}}><img src={foto} style={{width:100,height:100,objectFit:"cover",borderRadius:12,border:`2px solid ${C.bd}`}} alt="comprovante" /><div onClick={()=>setFoto(null)} style={{fontSize:11,color:C.rd,fontWeight:700,marginTop:4,cursor:"pointer"}}>Excluir Foto</div></div>}
+          {foto && <div style={{marginTop:10,textAlign:"center"}}><img src={foto} style={{width:100,height:100,objectFit:"cover",borderRadius:18,border:`2px solid ${C.bd}`}} alt="comprovante" /><div onClick={()=>setFoto(null)} style={{fontSize:11,color:C.rd,fontWeight:700,marginTop:4,cursor:"pointer"}}>Excluir Foto</div></div>}
         </div>
       </div>
 
@@ -958,7 +958,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         </div>
 
         {/* Nudge Visita */}
-        <div style={{background:"rgba(255,255,255,.1)",borderRadius:12,padding:10,border:`1px solid ${totalPagamentos>=minV?C.vd+"88":"rgba(255,255,255,.2)"}`}}>
+        <div style={{background:"rgba(255,255,255,.1)",borderRadius:18,padding:10,border:`1px solid ${totalPagamentos>=minV?C.vd+"88":"rgba(255,255,255,.2)"}`}}>
           <div style={{display:"flex",justifyContent:"space-between",fontSize:10,fontWeight:800,color:"#fff",marginBottom:5}}>
             <span>🏢 PAGAMENTOS / DEPÓSITOS</span>
             <span>{brl(totalPagamentos)} / {brl(minV)}</span>
@@ -970,7 +970,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         </div>
 
         {/* Nudge Relâmpago */}
-        <div style={{background:"rgba(255,255,255,.1)",borderRadius:12,padding:10,border:`1px solid ${totalJogos>=minR?C.rx+"88":"rgba(255,255,255,.2)"}`}}>
+        <div style={{background:"rgba(255,255,255,.1)",borderRadius:18,padding:10,border:`1px solid ${totalJogos>=minR?C.rx+"88":"rgba(255,255,255,.2)"}`}}>
           <div style={{display:"flex",justifyContent:"space-between",fontSize:10,fontWeight:800,color:"#fff",marginBottom:5}}>
             <span>⚡ BOLÕES / JOGOS</span>
             <span>{brl(totalJogos)} / {brl(minR)}</span>
@@ -999,7 +999,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7}}>
               {cc.map(f=>{const on=f.id in sel&&sel[f.id]!==false&&sel[f.id]!=="";return(
                 <div key={f.id} style={{display:"flex",flexDirection:"column",gap:4}}>
-                  <button onClick={()=>toggle(f.id)} style={{display:"flex",alignItems:"center",gap:7,padding:"10px 10px",borderRadius:12,border:`2px solid ${on?cat.cor:C.bd}`,background:on?`${cat.cor}10`:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .18s",width:"100%"}}>
+                  <button onClick={()=>toggle(f.id)} style={{display:"flex",alignItems:"center",gap:7,padding:"10px 10px",borderRadius:18,border:`2px solid ${on?cat.cor:C.bd}`,background:on?`${cat.cor}10`:"#fff",cursor:"pointer",fontFamily:"inherit",transition:"all .18s",width:"100%"}}>
                     <span style={{fontSize:17,flexShrink:0}}>{f.emoji}</span>
                     <span style={{fontSize:11,fontWeight:700,color:on?cat.cor:C.tx,flex:1,textAlign:"left",lineHeight:1.2}}>{f.nome}</span>
                     {on&&<div style={{width:16,height:16,borderRadius:"50%",background:cat.cor,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{color:"#fff",fontSize:9,fontWeight:900}}>✓</span></div>}
@@ -1026,7 +1026,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:7}}>
           {[1,2,3,4,5,6,7,8,9,10].map(n=>{
             const cor=n>=8?C.vd:n>=5?C.ou:C.rd;const on=nota===n;
-            return(<button key={n} onClick={()=>setNota(n)} style={{padding:"10px 0",borderRadius:12,border:`2px solid ${on?cor:C.bd}`,background:on?`${cor}15`:"#fff",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center"}}>
+            return(<button key={n} onClick={()=>setNota(n)} style={{padding:"10px 0",borderRadius:18,border:`2px solid ${on?cor:C.bd}`,background:on?`${cor}15`:"#fff",cursor:"pointer",fontFamily:"inherit",display:"flex",flexDirection:"column",alignItems:"center"}}>
               <span style={{fontWeight:900,fontSize:15,color:on?cor:C.tx}}>{n}</span>
             </button>);
           })}
@@ -1040,7 +1040,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
 
       {errF&&<Alerta msg={errF}/>}
       <button onClick={gravar} style={{padding:16,borderRadius:14,border:"none",fontFamily:"inherit",fontWeight:900,fontSize:17,cursor:"pointer",background:`linear-gradient(135deg,${C.vd},#059669)`,color:"#fff",boxShadow:`0 4px 18px ${C.vd}44`}}>✅ Finalizar e Pontuar!</button>
-      <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{background:"#f9fafb",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:12,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
+      <button onClick={()=>{setAba("ini");setOpQR(null);}} style={{background:"#f9fafb",color:C.sb,border:`1px solid ${C.bd}`,borderRadius:18,padding:12,fontWeight:700,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Cancelar</button>
     </div>);
   }
 }
@@ -1057,7 +1057,7 @@ function Premios({meusPr,c,wts,setVoucherVer}){
     const isRedeemed = p.status === "redeemed";
     const isAppr = p.status === "approved";
     return(<div key={p.id} style={{background:"#fff",borderRadius:15,padding:"14px",border:`1.5px solid ${p.tipo==="relampago"?C.ou+"44":C.vd+"44"}`,display:"flex",gap:12,alignItems:"flex-start"}}>
-    <div style={{width:46,height:46,borderRadius:12,flexShrink:0,background:p.tipo==="relampago"?C.ouC:C.vdC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{p.emoji||"🎟️"}</div>
+    <div style={{width:46,height:46,borderRadius:18,flexShrink:0,background:p.tipo==="relampago"?C.ouC:C.vdC,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24}}>{p.emoji||"🎟️"}</div>
     <div style={{flex:1}}>
       <div style={{display:"flex",justifyContent:"space-between",gap:6,marginBottom:4}}>
         <div style={{fontWeight:800,fontSize:13,color:C.tx}}>{p.nome}</div>
@@ -1082,7 +1082,7 @@ function Noticias({noticias,temPr,wts}){
   const [vis, setVis] = useState(15);
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
   <Tit em="📰" t="Notícias"/>
-  {temPr&&<div style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:12,padding:"11px 14px",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:22}}>🌟</span><div><div style={{fontWeight:800,fontSize:12,color:"#fff"}}>Conteúdo exclusivo ativo</div><div style={{fontSize:10,color:"rgba(255,255,255,.7)",marginTop:1}}>Você recebe notícias especiais por ser cliente premiado!</div></div></div>}
+  {temPr&&<div style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:18,padding:"11px 14px",display:"flex",gap:10,alignItems:"center"}}><span style={{fontSize:22}}>🌟</span><div><div style={{fontWeight:800,fontSize:12,color:"#fff"}}>Conteúdo exclusivo ativo</div><div style={{fontSize:10,color:"rgba(255,255,255,.7)",marginTop:1}}>Você recebe notícias especiais por ser cliente premiado!</div></div></div>}
   {noticias.map(n=>{const excl=n.tipo==="vip";return(<div key={n.id} style={{background:"#fff",borderRadius:15,overflow:"hidden",border:`1px solid ${excl?C.rx+"44":C.bd}`}}>
     <div style={{height:4,background:excl?C.rx:C.az}}/>
     <div style={{padding:"13px 14px"}}>
@@ -1264,7 +1264,7 @@ r.readAsDataURL(f);
                }
              </div>
              {a.data <= (cfg.dataFim || "2100-01-01") && (
-               <button onClick={()=>setIsEditing(true)} style={{display:"inline-block",marginTop:10,background:C.rd,color:"#fff",border:"none",borderRadius:12,padding:"14px 16px",fontSize:13,fontWeight:900,cursor:"pointer",boxShadow:`0 4px 10px ${C.rd}44`,fontFamily:"inherit"}}>
+               <button onClick={()=>setIsEditing(true)} style={{display:"inline-block",marginTop:10,background:C.rd,color:"#fff",border:"none",borderRadius:18,padding:"14px 16px",fontSize:13,fontWeight:900,cursor:"pointer",boxShadow:`0 4px 10px ${C.rd}44`,fontFamily:"inherit"}}>
                  ✏️ Corrigir Informações
                </button>
              )}
@@ -1277,7 +1277,7 @@ r.readAsDataURL(f);
           return (
             <>
               {pLink.status==="approved" && (
-                <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pLink);}} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:12,padding:"14px",fontWeight:900,fontSize:13,cursor:"pointer",marginTop:10,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>🎫 Visualizar Cupom Digital</button>
+                <button onClick={(e)=>{e.stopPropagation();setVoucherVer(pLink);}} style={{width:"100%",background:C.az,color:"#fff",border:"none",borderRadius:18,padding:"14px",fontWeight:900,fontSize:13,cursor:"pointer",marginTop:10,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>🎫 Visualizar Cupom Digital</button>
               )}
               {pLink.status==="redeemed" && (
                 <div style={{background:C.bg,padding:8,borderRadius:8,textAlign:"center",color:C.sb,fontSize:10,fontWeight:700,marginTop:8}}>✅ Prêmio Retirado</div>
@@ -1476,7 +1476,7 @@ function VoucherCard({p, cli, cfg, onClose}){
         <div style={{fontSize:18,fontWeight:900,color:C.tx,marginBottom:15}}>{cli?.nome}</div>
         
         {p.status === "redeemed" && (
-          <div style={{background:C.vdC, color:C.vd, padding:12, borderRadius:12, marginBottom:15, border:`1px solid ${C.vd}33`}}>
+          <div style={{background:C.vdC, color:C.vd, padding:12, borderRadius:18, marginBottom:15, border:`1px solid ${C.vd}33`}}>
             <div style={{fontWeight:900, fontSize:11, textTransform:"uppercase"}}>✅ PRÊMIO JÁ RETIRADO</div>
           </div>
         )}
@@ -1487,11 +1487,11 @@ function VoucherCard({p, cli, cfg, onClose}){
         </div>
 
         <div style={{display:"flex",gap:10,marginBottom:20}}>
-          <div onClick={copy} style={{flex:1,background:C.ouC,borderRadius:12,padding:8,border:`1px solid ${C.ou}33`,cursor:"pointer"}}>
+          <div onClick={copy} style={{flex:1,background:C.ouC,borderRadius:18,padding:8,border:`1px solid ${C.ou}33`,cursor:"pointer"}}>
             <div style={{fontSize:9,fontWeight:800,color:C.ou2,textTransform:"uppercase"}}>Código</div>
             <div style={{fontSize:16,fontWeight:900,color:C.tx,fontFamily:"monospace"}}>{p.id.toUpperCase()} {copiado&&"✅"}</div>
           </div>
-          <div style={{flex:1,background:C.rdC,borderRadius:12,padding:8,border:`1px solid ${C.rd}33`}}>
+          <div style={{flex:1,background:C.rdC,borderRadius:18,padding:8,border:`1px solid ${C.rd}33`}}>
             <div style={{fontSize:9,fontWeight:800,color:C.rd,textTransform:"uppercase"}}>Validade</div>
             <div style={{fontSize:14,fontWeight:900,color:C.tx}}>{fD(dVal)}</div>
           </div>
