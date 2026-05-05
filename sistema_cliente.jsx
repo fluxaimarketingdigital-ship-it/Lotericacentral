@@ -19,30 +19,33 @@ const CFG0 = {
     {id:"r4",ativo:true, emoji:"⚡",nome:"Dobro de Visitas",  prob:12, desc:"Este registro vale 2 visitas válidas!"},
     {id:"r5",ativo:false,emoji:"🌟",nome:"Sorteio do Mês",   prob:5,  desc:"Você entrou no Sorteio do Mês! Resultado dia 01."},
   ],
-  regulamento:`REGULAMENTO — CLIENTE FIDELIZADO PREMIADO
+  regulamento: `REGULAMENTO — PROGRAMA CLIENTE FIDELIZADO
 Lotérica Central · CNPJ 20.845.956/0001-00 · Alagoinhas-BA
 
 1. PARTICIPAÇÃO
-Clientes atendidos na lotérica que realizem cadastro pelo App Fidelidade e validem suas visitas com o código dinâmico do operador de caixa.
+Destinado a clientes que realizarem transações na unidade. A participação é validada através do App Fidelidade mediante envio da foto legível do comprovante e inserção do código do operador que realizou o atendimento.
 
-2. COMO PARTICIPAR
-• Escaneie o QR Code da Promoção (painel da lotérica).
-• Leia o regulamento e faça seu cadastro.
-• A cada atendimento, peça ao operador o código dinâmico do caixa.
-• Informe o código do operador para registrar sua visita.
+2. MECÂNICA DE PONTUAÇÃO
+• Visita Válida: Cada visita com Pagamentos ou Depósitos de valor igual ou superior a R$ {minVisita} garante 01 (uma) autenticação para o prêmio principal.
+• Auditoria: Todas as visitas registradas passam por análise de auditoria humana. Comprovantes duplicados, ilegíveis, com data fora do prazo ou adulterados serão sumariamente recusados, descontando o ponto do cliente.
 
-3. PRÊMIO PRINCIPAL
-• A cada {meta} visitas autenticadas: 1 {premioNome}.
-• Retirada na lotérica em até 30 dias após notificação via WhatsApp.
+3. PRÊMIO PRINCIPAL (META)
+• Ao completar {meta} autenticações válidas, o prêmio {premioNome} será desbloqueado para auditoria final.
+• Após a aprovação da gerência, o Voucher Digital de Retirada será enviado automaticamente via WhatsApp.
+• Prazo de Retirada: O cliente tem um prazo de até 30 dias corridos para retirar o prêmio físico na unidade. Após esse período, o voucher digital irá expirar e perder a validade.
 
-4. PRÊMIO RELÂMPAGO
-• Ao incluir Jogos no registro, o cliente concorre a prêmios surpresa automáticos.
+4. PRÊMIO RELÂMPAGO (SURPRESA)
+• Clientes que incluírem Bolões ou Jogos em valor igual ou acima de R$ {minRelampago} em sua visita concorrem a um prêmio instantâneo surpresa. 
+• O sistema informará na hora se o cliente foi contemplado, mas o voucher só será enviado pelo WhatsApp após a conferência e aprovação do comprovante pela gerência.
 
-5. PRÊMIO OPERADORAS
-• Todo dia 05: as 2 operadoras com mais autenticações no mês ganham prêmio especial.
+5. PREMIAÇÃO DE OPERADORES
+• Como incentivo ao bom atendimento, as 2 operadoras com maior volume de autenticações válidas (aprovadas na auditoria) no mês serão premiadas no fechamento do ciclo de atendimento (dia 05).
 
-6. LGPD — Dados usados exclusivamente neste programa.
-7. VIGÊNCIA — Campanha válida de **{dataInicio}** a **{dataFim}**. Visitas fora deste prazo ou registradas após 7 dias não serão validadas.`,
+6. VIGÊNCIA E ENCERRAMENTO DE CAMPANHA
+• As campanhas de fidelidade possuem datas de início ({dataInicio}) e encerramento ({dataFim}) rigorosamente controladas pelo sistema.
+• Ao fim do prazo da campanha, o ciclo será encerrado. Todas as pontuações e saldos não resgatados serão zerados para dar início a um novo ciclo de prêmios.
+• Comprovantes com data de emissão superior a 7 dias ou emitidos fora da vigência da campanha atual não serão aceitos.
+• LGPD: Dados protegidos e usados exclusivamente para o programa.`,
   dataInicio: "2026-04-01",
   dataFim: "2026-12-31",
   wts:"5575999990000",
