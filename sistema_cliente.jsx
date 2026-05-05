@@ -1553,7 +1553,7 @@ function PassoAPasso({onClose}){
         <button onClick={onClose} style={{position:"absolute", top:15, right:15, background:"rgba(0,0,0,0.3)", color:"#fff", border:"none", borderRadius:"50%", width:30, height:30, fontWeight:900, cursor:"pointer", zIndex:10, display:"flex", alignItems:"center", justifyContent:"center"}}>✕</button>
         
         <div style={{height:240, overflow:"hidden", position:"relative"}}>
-          <img src={passos[passo].img} style={{width:"100%", height:"100%", objectFit:"cover"}} alt="passo"/>
+          <img src={passos[passo].img} style={{width:"100%", height:"100%", objectFit:"cover", objectPosition:"top"}} alt="passo"/>
           <div style={{position:"absolute", bottom:0, left:0, width:"100%", height:80, background:"linear-gradient(to top, #fff, transparent)"}}/>
         </div>
 
