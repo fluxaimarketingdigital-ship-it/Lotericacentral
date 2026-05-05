@@ -1673,7 +1673,7 @@ function AAud({a,c,corS,labelS,opN,brl,fDT,cfg,setCl,cl,pr,setPr,setVoucherVer,c
     setCl(cl.map(x=>x.id===c.id?{...x, auths:c.auths.filter(y=>y.id!==a.id)}:x));
     setPr(pr.filter(p=>p.authId!==a.id));
   };
-  const updPrize = (pid, newS) => {
+  const updPrize = async (pid, newS) => {
     if(newS==="approved") {
       const pObj = pr.find(x=>x.id===pid);
       if(pObj?.tipo === "raspadinha"){
