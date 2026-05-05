@@ -1034,7 +1034,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         <div style={{fontWeight:800,fontSize:13,color:C.tx,marginBottom:12,display:"flex",alignItems:"center",gap:7}}>📄 Dados do Comprovante</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:12}}>
           <div>
-            <label style={LS}>Data do Cupom *</label>
+            <label style={LS}>Data do Controle *</label>
             <input type="date" value={dataRec} onChange={e=>setDataRec(e.target.value)} style={{width:"100%",marginTop:5,...I,fontSize:13}} />
           </div>
           <div>
@@ -1046,7 +1046,7 @@ function FormAuth({c,clients,setCl,premios,setPr,cfg,ops,opQR,setOpQR,setRelamp,
         <div style={{marginTop:5,position:"relative"}}>
           <input type="file" accept="image/*" capture="environment" onChange={e=>{if(e.target.files[0]) setFoto(URL.createObjectURL(e.target.files[0]))}} style={{display:"none"}} id="foto-inp" />
           <label htmlFor="foto-inp" style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,background:foto?C.vdC:C.azC,color:foto?C.vd:C.az,padding:14,borderRadius:12,border:`2px dashed ${foto?C.vd:C.az}44`,cursor:"pointer",fontWeight:800,fontSize:14}}>
-            {foto ? "✅ Foto Selecionada" : "📸 Tirar Foto do Cupom"}
+            {foto ? "✅ Foto Selecionada" : "📸 Tirar Foto do Comprovante"}
           </label>
           {foto && <div style={{marginTop:10,textAlign:"center"}}><img src={foto} style={{width:100,height:100,objectFit:"cover",borderRadius:12,border:`2px solid ${C.bd}`}} alt="comprovante" /><div onClick={()=>setFoto(null)} style={{fontSize:11,color:C.rd,fontWeight:700,marginTop:4,cursor:"pointer"}}>Excluir Foto</div></div>}
         </div>
