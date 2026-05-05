@@ -667,7 +667,7 @@ function Inicio({c,cfg,meusPr,temPr,nBadge,setAba,premios,encerrada,setTuto}){
       </span>
     </div>
     <button onClick={()=>encerrada?alert("🚫 A campanha atual já foi encerrada. Aguarde o início do novo ciclo!"):setAba("reg")} style={{background:encerrada?C.bd:`linear-gradient(135deg,${C.az},${C.az2})`,color:"#fff",border:"none",borderRadius:18,padding:"16px 18px",fontWeight:900,fontFamily:"inherit",cursor:encerrada?"not-allowed":"pointer",textAlign:"left",display:"flex",alignItems:"center",justifyContent:"space-between",animation:encerrada?"none":"glw 2.5s infinite",boxShadow:encerrada?"none":`0 6px 22px ${C.az}44`}}>
-      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:encerrada?"#fff":C.ou}}>{encerrada?"Campanha Encerrada":"Comprovante em mãos?"}</div><div style={{fontSize:18,fontWeight:900}}>{encerrada?"🔒 Registro Suspenso":"📷 Enviar Foto do Cupom"}</div></div>
+      <div><div style={{fontSize:12,fontWeight:700,marginBottom:3,opacity:.8,color:encerrada?"#fff":C.ou}}>{encerrada?"Campanha Encerrada":"Comprovante em mãos?"}</div><div style={{fontSize:18,fontWeight:900}}>{encerrada?"🔒 Registro Suspenso":"📷 Enviar Foto ou Anexar Comprovante"}</div></div>
       <span style={{fontSize:38}}>{encerrada?"🚫":"📄"}</span>
     </button>
     {temPr&&nBadge>0&&<div onClick={()=>setAba("not")} style={{background:`linear-gradient(135deg,${C.rx},#5b21b6)`,borderRadius:16,padding:"13px 16px",cursor:"pointer",display:"flex",gap:12,alignItems:"center"}}>
