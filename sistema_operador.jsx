@@ -1383,7 +1383,7 @@ Deseja ir para a tela de Relatórios agora?`)) {
     <div style={{background:`linear-gradient(135deg,${C.az},${C.az2})`,padding:"18px 18px 22px",position:"relative",overflow:"hidden"}}>
       <div style={{position:"absolute",top:-40,right:-40,width:170,height:170,borderRadius:"50%",background:C.ou,opacity:.07}}/>
       <button onClick={()=>{setRole(null);setTela("home");}} style={BV}>← Sair</button>
-      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v3.4-ULTIMATE</span></div>
+      <div style={{marginTop:11,fontWeight:900,fontSize:20,color:"#fff"}}>🔒 Administrador <span style={{fontSize:12,fontWeight:400,opacity:.8}}>({adminSel?.nome})</span> <span style={{fontSize:9,background:C.vd,color:"#fff",padding:"2px 6px",borderRadius:5,marginLeft:5}}>v3.5-FIX-PROPS</span></div>
       <div style={{fontSize:11,color:"rgba(255,255,255,.65)"}}>{adminSel?.role==="master"?"Acesso Total (Master)":"Acesso Limitado (Gerência)"}</div>
 
       <div style={{display:"flex",gap:6,marginTop:13,overflowX:"auto",paddingBottom:5,scrollbarWidth:"none"}}>
@@ -1413,8 +1413,8 @@ Deseja ir para a tela de Relatórios agora?`)) {
       )}
 
       {aba==="ops" && <AOps ops={ops} setOps={setOps} cl={cl} cfg={cfg} setCfg={setCfg} opPrizes={opPrizes} setOpPrizes={setOpPrizes} op={null} checkM={checkM} adminSel={adminSel} />}
-      {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} />}
-      {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} checkM={checkM} />}
+      {aba==="cl"  && <ACl cl={cl} setCl={setCl} ops={ops} cfg={cfg} pr={pr} setPr={setPr} bus={bus} setBus={setBus} op={null} checkM={checkM} customConfirm={customConfirm} />}
+      {aba==="pr"  && <APr pr={pr} cl={cl} cfg={cfg} setPr={setPr} checkM={checkM} customConfirm={customConfirm} customPrompt={customPrompt} />}
 
       {aba==="rel" && <ARels cl={cl} setCl={setCl} pr={pr} setPr={setPr} ops={ops} opPrizes={opPrizes} setOpPrizes={setOpPrizes} cfg={cfg} setCfg={setCfg} campanhas={campanhas} setCampanhas={setCampanhas} adminLogs={adminLogs} setAdminLogs={setAdminLogs} checkM={checkM} adminSel={adminSel} />}
       {aba==="cfg" && <ACfg cfg={cfg} setCfg={setCfg} ops={ops} setOps={setOps} cl={cl} pr={pr} checkM={checkM} adminSel={adminSel} setAdminSel={setAdminSel} admins={admins} setAdmins={setAdmins} adminLogs={adminLogs} logAdminAction={logAdminAction} reverterAcao={reverterAcao} />}
