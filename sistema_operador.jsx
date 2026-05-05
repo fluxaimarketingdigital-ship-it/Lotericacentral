@@ -926,6 +926,7 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
   const[aba,setAba]=useState("cli");
   const[vis,setVis]=useState(15);
   const[logDate,setLogDate]=useState("");
+  const[histFilter,setHistFilter]=useState("");
   const isM = adminSel?.role === "master";
 
   const ABAS=[
@@ -1284,8 +1285,9 @@ Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "EN
 
     {aba==="hist" && (
       <div style={{display:"flex",flexDirection:"column",gap:10,animation:"up .3s"}}>
-        {campanhas.length === 0 && <V em="📚" msg="Ainda não existem campanhas encerradas no histórico." />}
-        {campanhas.map(camp => (
+        <input type="text" placeholder="🔍 Buscar campanha por nome ou data (ex: 04/2026)" value={histFilter} onChange={e=>setHistFilter(e.target.value)} style={{...I, padding:"10px 14px", fontSize:12, borderRadius:12}} />
+        {campanhas.filter(c => !histFilter || (c.nome||"").toLowerCase().includes(histFilter.toLowerCase()) || fD(c.inicio).includes(histFilter) || fDT(c.dataFechamento).includes(histFilter)).length === 0 && <V em="📚" msg={campanhas.length === 0 ? "Ainda não existem campanhas encerradas no histórico." : "Nenhuma campanha encontrada com esse filtro."} />}
+        {campanhas.filter(c => !histFilter || (c.nome||"").toLowerCase().includes(histFilter.toLowerCase()) || fD(c.inicio).includes(histFilter) || fDT(c.dataFechamento).includes(histFilter)).map(camp => (
           <div key={camp.id} style={{background:"#fff",borderRadius:14,padding:14,border:`1px solid ${C.bd}`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
               <div>
