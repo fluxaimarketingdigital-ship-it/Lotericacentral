@@ -243,7 +243,7 @@ export default function App(){
     setAdminLogs(prev => [log, ...(prev||[])].slice(0, 500)); 
   };
 
-  const reverterAcao = (logId) => {
+  const reverterAcao = async (logId) => {
     const log = adminLogs?.find(l => l.id === logId);
     if(!log || !log.payload) {
       alert("❌ Dados de restauração não encontrados ou incompatíveis.");
