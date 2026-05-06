@@ -97,7 +97,7 @@ function Ecossistema(){
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginTop:32}}>
         {[
           {emoji:"📱",titulo:"App Operador",sub:"Sistema de Gestão",cor:P.az2,items:["Gera código por operador","Dashboard de Auditoria","Ranking da equipe","Configura formulário","Edita regulamento","Exporta dados PDF"]},
-          {emoji:"🏆",titulo:"App Cliente",sub:"Portal de Fidelidade",cor:P.ou,items:["Acesso via WhatsApp","Registro com Foto","Formulário dinâmico","Avaliação 1 a 10","Progresso com selos","Voucher Digital"]},
+          {emoji:"🏆",titulo:"App Cliente",sub:"Portal de Fidelidade",cor:P.ou,items:["Onboarding com Tutorial","Acesso via WhatsApp","Registro com Foto","Histórico Transparente","Avaliação 1 a 10","Voucher Digital Premium"]},
           {emoji:"🔧",titulo:"Admin Lotérica",sub:"Controle Total",cor:P.vd,items:["Edita prêmios e metas","Configura campos","Edita regulamento","Gerencia clientes","Exporta relatórios"]},
         ].map((c,i)=>(
           <Reveal key={i} delay={i*100}>
@@ -342,7 +342,7 @@ function AppsSection(){
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
           {titulo:"App Operador",sub:"Gestão e Auditoria",emoji:"🖥️",cor:P.az2,features:["🔍 Auditoria de fotos/valores","✅ Aprovação de pontuação","🏅 Ranking de qualidade","👥 Gestão de clientes","⚙️ Configura formulário","📋 Edita regulamento","📊 Dashboard de performance","💾 Exporta dados CSV"]},
-          {titulo:"App Cliente",sub:"Portal de Fidelidade",emoji:"📱",cor:P.ou,features:["📝 Cadastro via WhatsApp","📸 Envio de foto comprovante","👩‍💼 Seleção de operadora","⭐ Avaliação obrigatória 1-10","📊 Progresso em tempo real","🎫 Voucher Digital Premium","📲 Notificações WhatsApp","📋 Regulamento dinâmico"]},
+          {titulo:"App Cliente",sub:"Portal de Fidelidade",emoji:"📱",cor:P.ou,features:["🎓 Tutorial Passo a Passo","📝 Cadastro via WhatsApp","📸 Envio de foto comprovante","📊 Histórico de Auditoria","📰 Canal de Notícias/Ofertas","⭐ Avaliação obrigatória 1-10","📊 Progresso em tempo real","🎫 Voucher Digital Premium"]},
         ].map((a,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,border:`1px solid ${a.cor}30`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
