@@ -1397,7 +1397,7 @@ function VoucherCard({p, cli, cfg, onClose}){
       const el = document.getElementById("cupom-certificado-cliente");
       if(!el) return;
       await new Promise(r => setTimeout(r, 400));
-      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff", width: 600, height: 600 });
+      const canvas = await html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" });
       canvas.toBlob(async (blob) => {
         const file = new File([blob], "cupom.png", { type: "image/png" });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {

@@ -2025,8 +2025,6 @@ function OpVoucherCard({p, cli, cfg, onClose}){
         scale: 2, 
         useCORS: true, 
         backgroundColor: "#ffffff", 
-        width: 600, 
-        height: 600,
         logging: false
       });
       
