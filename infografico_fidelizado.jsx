@@ -75,7 +75,7 @@ function Hero(){
         <span style={{color:P.br}}>Cliente</span> <span style={{color:P.ou}}>Fidelizado</span> <span style={{color:P.br}}>Premiado</span>
       </h1>
       <p style={{fontSize:14,color:P.ci,lineHeight:1.8,maxWidth:480,margin:"0 auto 26px",animation:"fadeUp .7s .2s ease both",opacity:0,animationFillMode:"forwards"}}>
-        Programa digital de fidelidade com identificação em tempo real, formulário dinâmico configurável, avaliação do atendimento e prêmios automáticos.
+        Programa digital de fidelidade com identificação simplificada, formulário com foto, avaliação do atendimento e auditoria em tempo real.
       </p>
       <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .7s .3s ease both",opacity:0,animationFillMode:"forwards"}}>
         {[["🎟️","Prêmio a cada 15 visitas"],["⚡","Prêmio Relâmpago"],["⭐","Avaliação 1–10"],["📱","2 apps digitais"]].map(([em,txt])=>(
@@ -116,14 +116,14 @@ function Ecossistema(){
 
 function FluxoCompleto(){
   const passos=[
-    {n:"01",emoji:"📢",titulo:"Início da Promoção",desc:"Acesse o App pelo link ou QR fixo no balcão para iniciar sua participação.",cor:P.az2,link:"Painel da lotérica"},
-    {n:"02",emoji:"📋",titulo:"Lê o Regulamento",desc:"O cliente rola até o final do regulamento. Só avança após ler completamente.",cor:"#0891b2",link:"App Cliente"},
-    {n:"03",emoji:"📝",titulo:"Faz o Cadastro",desc:"Nome completo, WhatsApp e e-mail. Cadastro único e protegido pela LGPD.",cor:P.rx,link:"App Cliente"},
-    {n:"04",emoji:"🏪",titulo:"Atendimento no Caixa",desc:"A cada registro, o cliente realiza seus serviços: boleto, PIX, saque, jogos.",cor:"#d97706",link:"Lotérica"},
-    {n:"05",emoji:"🏪",titulo:"Código da Operadora",desc:"Solicite o código de identificação à operadora para liberar o formulário.",cor:P.vd,link:"Código do caixa"},
-    {n:"06",emoji:"🛍️",titulo:"Preenche o Formulário",desc:"Seleciona produtos (Bancário e Jogos), informa valores e avalia o atendimento de 1 a 10.",cor:"#059669",link:"App Cliente"},
-    {n:"07",emoji:"✅",titulo:"Autenticação Confirmada",desc:"Registro realizado. Selos e progresso atualizados. Sorteio relâmpago se incluiu Jogos.",cor:P.ou,link:"App Cliente"},
-    {n:"08",emoji:"🎟️",titulo:"Acumula e Ganha!",desc:"A cada 15 visitas: 1 Raspadinha CAIXA garantida + notificação WhatsApp.",cor:"#db2777",link:"Prêmio automático"},
+    {n:"01",emoji:"📢",titulo:"Início da Promoção",desc:"Acesse o App pelo link ou QR Code no balcão para iniciar.",cor:P.az2,link:"Acesso Rápido"},
+    {n:"02",emoji:"👤",titulo:"Login Inteligente",desc:"Cadastro simplificado ou Login via WhatsApp para manter seu histórico.",cor:"#0891b2",link:"App Cliente"},
+    {n:"03",emoji:"🏪",titulo:"Atendimento",desc:"Realize seus serviços no caixa: boletos, depósitos, jogos ou saques.",cor:"#d97706",link:"Balcão Lotérica"},
+    {n:"04",emoji:"👩‍💼",titulo:"Identifica Operadora",desc:"Selecione o nome ou digite o código da operadora que te atendeu.",cor:P.vd,link:"Identificação"},
+    {n:"05",emoji:"📸",titulo:"Registro com Foto",desc:"Informe a data, nº do controle e anexe a foto do seu comprovante.",cor:P.rx,link:"App Cliente"},
+    {n:"06",emoji:"⭐",titulo:"Avalia o Atendimento",desc:"Dê sua nota de 1 a 10. Sua opinião é fundamental para nossa qualidade.",cor:"#059669",link:"Obrigatório"},
+    {n:"07",emoji:"⚖️",titulo:"Auditoria Real",desc:"O operador valida sua foto e valores para garantir sua pontuação.",cor:"#db2777",link:"Operador/Admin"},
+    {n:"08",emoji:"🎫",titulo:"Voucher Digital",desc:"Ganhou? Receba um cupom premium via WhatsApp para retirar seu prêmio.",cor:P.ou,link:"WhatsApp"},
   ];
   return(
     <div style={{padding:"52px 24px",background:P.navy}}>
@@ -161,7 +161,7 @@ function QRSection(){
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
           {emoji:"🎯",titulo:"Acesso à Promoção",sub:"Painel da lotérica — permanente",cor:P.ou,desc:"Acessado via link ou identificação fixa. Exposto no balcão e materiais de divulgação. Abre o regulamento e inicia o cadastro do cliente.",passos:["Cliente acessa o app","Lê o regulamento","Faz o cadastro","Começa a participar"]},
-          {emoji:"📲",titulo:"Código da Operadora de Caixa",sub:"Identificação por atendimento",cor:P.vd,desc:"Código exclusivo por operadora. Fornecido a cada atendimento no sistema. É a chave obrigatória para liberar o formulário de autenticação.",passos:["Operador informa código","Cliente digita no app","Formulário liberado","Visita registrada"]},
+          {emoji:"📲",titulo:"Identificação da Operadora",sub:"Atendimento Personalizado",cor:P.vd,desc:"O cliente seleciona quem o atendeu. Isso gera transparência e permite o ranking de produtividade e qualidade das operadoras.",passos:["Seleciona operadora","Digita código (se necessário)","Formulário liberado","Vincula ao atendimento"]},
         ].map((q,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.05)",borderRadius:20,border:`1px solid ${q.cor}33`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
@@ -190,7 +190,7 @@ function FormularioSection(){
       <SecTit tag="Formulário" titulo="Produtos e Serviços" icon="🛍️"/>
       <Reveal delay={100}>
         <div style={{marginTop:28,background:"rgba(255,255,255,.04)",borderRadius:18,padding:"20px",border:"1px solid rgba(255,255,255,.08)"}}>
-          <div style={{marginBottom:18,fontSize:11,color:P.ci,lineHeight:1.7,textAlign:"center"}}>Campos configurados pelo admin · Aparecem após identificar a operadora · Todos opcionais (exceto avaliação)</div>
+          <div style={{marginBottom:18,fontSize:11,color:P.ci,lineHeight:1.7,textAlign:"center"}}>Campos configurados pelo admin · Registro manual com foto · Auditoria humana para garantir integridade</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16}}>
             {[
               {cat:"Bancário",cor:"#003478",itens:[{e:"📄",n:"Boleto",v:true},{e:"💰",n:"Depósito",v:true},{e:"💵",n:"Saque",v:true},{e:"📲",n:"PIX",v:true}]},
@@ -340,8 +340,8 @@ function AppsSection(){
       <SecTit tag="Aplicativos" titulo="Os Dois Apps Digitais" icon="📱"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
-          {titulo:"App Operador",sub:"Sistema de Gestão",emoji:"🖥️",cor:P.az2,features:["📲 Gera código exclusivo","👤 Cadastra operadoras","📊 Dashboard completo","🏅 Ranking da equipe","👥 Gerencia clientes","🎁 Controle de prêmios","⚙️ Configura formulário","📋 Edita regulamento","💾 Exporta dados CSV"]},
-          {titulo:"App Cliente",sub:"Portal de Fidelidade",emoji:"📱",cor:P.ou,features:["🎯 Link único → regulamento","📝 Cadastro nome+WhatsApp+e-mail","🏠 Painel com progresso","🏪 Código operadora → formulário","⭐ Avaliação 1 a 10 obrigatória","🎁 Histórico de prêmios","📰 Notícias exclusivas","📋 Regulamento dinâmico","📲 Notificações WhatsApp"]},
+          {titulo:"App Operador",sub:"Gestão e Auditoria",emoji:"🖥️",cor:P.az2,features:["🔍 Auditoria de fotos/valores","✅ Aprovação de pontuação","🏅 Ranking de qualidade","👥 Gestão de clientes","⚙️ Configura formulário","📋 Edita regulamento","📊 Dashboard de performance","💾 Exporta dados CSV"]},
+          {titulo:"App Cliente",sub:"Portal de Fidelidade",emoji:"📱",cor:P.ou,features:["📝 Cadastro via WhatsApp","📸 Envio de foto comprovante","👩‍💼 Seleção de operadora","⭐ Avaliação obrigatória 1-10","📊 Progresso em tempo real","🎫 Voucher Digital Premium","📲 Notificações WhatsApp","📋 Regulamento dinâmico"]},
         ].map((a,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,border:`1px solid ${a.cor}30`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
@@ -416,7 +416,7 @@ function Rodape(){
         </div>
         <div>
           <div style={{fontSize:11,fontWeight:800,color:P.ci,textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Tecnologia</div>
-          <div style={{fontSize:11,color:P.ge,lineHeight:2}}>2 Apps React.js<br/>Storage compartilhado<br/>Códigos dinâmicos<br/>WhatsApp integrado</div>
+          <div style={{fontSize:11,color:P.ge,lineHeight:2}}>Arquitetura React.js<br/>Firebase Realtime DB<br/>Auditoria Multi-nível<br/>WhatsApp Voucher Engine</div>
         </div>
         <div>
           <div style={{fontSize:11,fontWeight:800,color:P.ci,textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>CAIXA</div>
@@ -424,7 +424,7 @@ function Rodape(){
         </div>
       </div>
       <div style={{borderTop:"1px solid rgba(255,255,255,.07)",paddingTop:16,display:"flex",gap:10,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
-        <div style={{fontSize:10,color:P.ci,lineHeight:1.6,maxWidth:500}}>Programa sujeito ao regulamento editável pelo administrador. A cada 15 autenticações validadas pelo código da operadora, o cliente recebe 1 Raspadinha CAIXA. Avaliação do atendimento obrigatória a cada registro.</div>
+        <div style={{fontSize:10,color:P.ci,lineHeight:1.6,maxWidth:500}}>Programa sujeito ao regulamento editável. A cada 15 autenticações validadas via auditoria, o cliente recebe 1 Raspadinha CAIXA. Avaliação do atendimento obrigatória a cada registro. Imagens e comprovantes protegidos.</div>
         <div style={{display:"flex",gap:8}}>{[P.az2,P.vd,P.ou,P.rx].map((cor,i)=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:cor}}/>)}</div>
       </div>
     </div>
