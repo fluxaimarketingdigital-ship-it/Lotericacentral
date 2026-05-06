@@ -1424,7 +1424,7 @@ function VoucherCard({p, cli, cfg, onClose}){
   return(<div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.85)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:10,backdropFilter:"blur(5px)"}} onClick={(e)=>{ if(e.target === e.currentTarget) onClose(); }}>
     {/* CAPTURA (ESCONDIDO) */}
     <div style={{position:"fixed", left: "-9999px", top: 0}}>
-      <div id="cupom-certificado-cliente" style={{background:"#fff", width: "600px", height: "600px", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block", overflow: "hidden"}}>
+      <div id="cupom-certificado-cliente" style={{background:"#fff", width: "600px", minHeight: "600px", height: "auto", fontFamily: "'Nunito', sans-serif", textAlign: "center", display: "block"}}>
         <div style={{background:`linear-gradient(160deg,${C.az},${C.az2})`,padding:"35px 25px",position:"relative", display: "flex", alignItems:"center", gap:25, justifyContent:"center"}}>
           <div style={{background:"#fff",width:130,height:130,borderRadius:24,display:"flex",alignItems:"center",justifyContent:"center",padding:6,boxShadow:"0 12px 30px rgba(0,0,0,0.2)",flexShrink:0}}>
             <img src={logoLoterica} style={{width:"100%", height:"100%", objectFit:"contain"}} alt="Logo"/>
