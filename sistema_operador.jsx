@@ -384,16 +384,22 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
   }
   async function entrarAdminNovo(){
     if(!adminLogin) return;
-    if(adminLogin.senhaAcesso === senha || !adminLogin.senhaAcesso){
+    const digitada = senha.trim();
+    const cadastrada = (adminLogin.senhaAcesso || "123456").trim();
+    
+    if(cadastrada === digitada || !adminLogin.senhaAcesso){
       let finalAdmin = {...adminLogin};
-      if(adminLogin.primeiroAcesso !== false && (adminLogin.senhaAcesso === "123456" || !adminLogin.senhaAcesso || !adminLogin.senhaMestra)) {
+      // Se for o primeiro acesso ou se não tiver as senhas configuradas
+      if(adminLogin.primeiroAcesso !== false || !adminLogin.senhaAcesso || !adminLogin.senhaMestra) {
         const nAcesso = await customPrompt("[PRIMEIRO ACESSO]", "Defina sua NOVA SENHA DE ACESSO (para logar):", "🔑", "Nova senha de acesso...");
         if(!nAcesso) return alert("Você precisa definir uma senha de acesso!");
         const nMestra = await customPrompt("[PRIMEIRO ACESSO]", "Defina sua NOVA SENHA DE ALTERAÇÃO E EXCLUSÃO (para autorizar modificações do sistema):", "🔒", "Senha mestra/gerência...");
         if(!nMestra) return alert("Você precisa definir uma senha de alteração e exclusão!");
+        
         finalAdmin.senhaAcesso = nAcesso.trim();
         finalAdmin.senhaMestra = nMestra.trim();
         finalAdmin.primeiroAcesso = false;
+        
         const updatedAdmins = admins.map(a => a.id === finalAdmin.id ? finalAdmin : a);
         if(typeof setAdmins === "function") setAdmins(updatedAdmins);
         alert("Senhas configuradas com sucesso! Bem-vindo(a).");
@@ -2195,7 +2201,7 @@ function CfgAdmins({admins,setAdmins,adminSel}){
   const[erro,setErro]=useState("");
   const salvar = () => {
     if(!nome.trim()){setErro("Nome obrigatório");return;}
-    setAdmins([...(admins||[]),{id:uid(),nome:nome.trim(),senhaAcesso:"123456",role,senhaMestra:"",cadastro:new Date().toISOString()}]);
+    setAdmins([...(admins||[]),{id:uid(),nome:nome.trim(),senhaAcesso:"123456",role,senhaMestra:"",primeiroAcesso:true,cadastro:new Date().toISOString()}]);
     setNome("");setErro("");setRole("gerencia");
     alert("Administrador criado! A senha de acesso padrão é 123456. No primeiro login, o sistema exigirá a configuração das senhas.");
   };
