@@ -408,7 +408,7 @@ function NumerosSection(){
     <div style={{padding:"52px 24px",background:P.navy}}>
       <SecTit tag="Impacto" titulo="Números do Programa" icon="📊"/>
       <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12,marginTop:32}}>
-        {[["15","Visitas para 1 prêmio","🎟️",P.vd],["5","Tipos de Relâmpago","⚡",P.rx],["2","Apps digitais","📱",P.az2],["10","Pontos de avaliação","⭐",P.ou]].map(([n,l,em,cor])=>(
+        {[["15","Visitas para 1 prêmio","🎟️",P.vd],["5","Tipos de Relâmpago","⚡",P.rx],["4","Perfis de Acesso","📱",P.az2],["10","Pontos de avaliação","⭐",P.ou]].map(([n,l,em,cor])=>(
           <Reveal key={l}>
             <div style={{textAlign:"center",background:"rgba(255,255,255,.04)",borderRadius:18,padding:"20px 10px",border:`1px solid ${cor}25`}}>
               <div style={{fontSize:24,marginBottom:8}}>{em}</div>
@@ -425,7 +425,7 @@ function NumerosSection(){
           <div style={{display:"flex",position:"relative"}}>
             <div style={{position:"absolute",top:22,left:22,right:22,height:2,background:`linear-gradient(90deg,${P.vd},${P.ou},${P.rx},${P.az2})`,opacity:.25}}/>
             {[
-              {q:"A cada visita",em:"🏪",cor:P.az2,d:"Código → autenticação"},
+              {q:"A cada visita",em:"🏪",cor:P.az2,d:"Registro → Auditoria"},
               {q:"Instantâneo",em:"⚡",cor:P.rx,d:"Sorteio Relâmpago"},
               {q:"15ª visita",em:"🎟️",cor:P.vd,d:"Raspadinha!"},
               {q:"Todo dia 05",em:"🏅",cor:P.ou,d:"Prêmio operadoras"},
