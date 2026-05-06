@@ -388,24 +388,8 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
     const cadastrada = (adminLogin.senhaAcesso || "123456").trim();
     
     if(cadastrada === digitada || !adminLogin.senhaAcesso){
-      let finalAdmin = {...adminLogin};
-      // Se for o primeiro acesso ou se não tiver as senhas configuradas
-      if(adminLogin.primeiroAcesso !== false || !adminLogin.senhaAcesso || !adminLogin.senhaMestra) {
-        const nAcesso = await customPrompt("[PRIMEIRO ACESSO]", "Defina sua NOVA SENHA DE ACESSO (para logar):", "🔑", "Nova senha de acesso...");
-        if(!nAcesso) return alert("Você precisa definir uma senha de acesso!");
-        const nMestra = await customPrompt("[PRIMEIRO ACESSO]", "Defina sua NOVA SENHA DE ALTERAÇÃO E EXCLUSÃO (para autorizar modificações do sistema):", "🔒", "Senha mestra/gerência...");
-        if(!nMestra) return alert("Você precisa definir uma senha de alteração e exclusão!");
-        
-        finalAdmin.senhaAcesso = nAcesso.trim();
-        finalAdmin.senhaMestra = nMestra.trim();
-        finalAdmin.primeiroAcesso = false;
-        
-        const updatedAdmins = admins.map(a => a.id === finalAdmin.id ? finalAdmin : a);
-        if(typeof setAdmins === "function") setAdmins(updatedAdmins);
-        alert("Senhas configuradas com sucesso! Bem-vindo(a).");
-      }
       setRole("admin");
-      setAdminSel(finalAdmin);
+      setAdminSel(adminLogin);
       setTela("admin");
     } else {
       setErroS("Senha incorreta.");
@@ -1422,6 +1406,16 @@ Deseja ir para a tela de Relatórios agora?`)) {
                 <div style={{fontSize:11, opacity:.9}}>Após as 23:59h o app cliente entrará em modo "Somente Leitura".</div>
                 <div style={{fontSize:10, fontWeight:800, marginTop:4, background:"rgba(0,0,0,.2)", padding:"2px 8px", borderRadius:4, display:"inline-block"}}>Amanhã você deverá gerar o Relatório Final para zerar o histórico.</div>
               </div>
+            </div>
+          )}
+          {(adminSel.primeiroAcesso !== false || !adminSel.senhaMestra || adminSel.senhaAcesso === "123456") && (
+            <div onClick={()=>setAba("cfg")} style={{background:C.ou, color:C.az, padding:"12px 16px", borderRadius:12, marginBottom:16, display:"flex", alignItems:"center", gap:10, cursor:"pointer", boxShadow:`0 4px 15px ${C.ou}44`, border:`1px solid ${C.ou2}44`}}>
+              <span style={{fontSize:20}}>⚠️</span>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:900, fontSize:12, textTransform:"uppercase"}}>Configuração de Segurança Pendente</div>
+                <div style={{fontSize:10, fontWeight:700, opacity:.8}}>Você ainda usa senhas padrão. Clique aqui para definir suas senhas de acesso e gerência.</div>
+              </div>
+              <span style={{fontSize:16}}>→</span>
             </div>
           )}
           <ADash ops={ops} cl={cl} pr={pr} cfg={cfg} setAba={setAba} setBus={setBus} encerrada={encerrada}/>
