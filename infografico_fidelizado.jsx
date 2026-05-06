@@ -375,7 +375,7 @@ function GestaoSection(){
             <div style={{fontFamily:"'Sora',sans-serif",fontWeight:900,fontSize:16,color:P.br,marginBottom:8}}>Relatórios e Big Data</div>
             <div style={{fontSize:11,color:P.ci,lineHeight:1.7,marginBottom:15}}>O sistema transforma cada atendimento em um ativo de marketing valioso para a lotérica.</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {[["📂","Exportação CSV/Excel completa"],["📈","Gráficos de produtividade"],["👥","Base de dados para WhatsApp Marketing"],["🔄","Relatórios de fechamento de ciclo"]].map(([em,txt])=>(
+              {[["📄","Relatórios Gerenciais em PDF"],["📈","Gráficos de produtividade"],["🎂","Fidelização: Mimo no Aniversário"],["🔄","Relatórios de fechamento de ciclo"]].map(([em,txt])=>(
                 <div key={txt} style={{display:"flex",gap:8,fontSize:11,color:P.ge}}>
                   <span style={{color:P.az2}}>{em}</span><span>{txt}</span>
                 </div>
