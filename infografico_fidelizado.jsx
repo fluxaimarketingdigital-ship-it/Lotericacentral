@@ -96,9 +96,9 @@ function Ecossistema(){
       <SecTit tag="Visão Geral" titulo="Ecossistema Digital" icon="🌐"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginTop:32}}>
         {[
-          {emoji:"📱",titulo:"App Operador",sub:"Sistema de Gestão",cor:P.az2,items:["Gera código por operador","Dashboard de Auditoria","Ranking da equipe","Configura formulário","Edita regulamento","Exporta dados PDF"]},
-          {emoji:"🏆",titulo:"App Cliente",sub:"Portal de Fidelidade",cor:P.ou,items:["Onboarding com Tutorial","Acesso via WhatsApp","Registro com Foto","Histórico Transparente","Avaliação 1 a 10","Voucher Digital Premium"]},
-          {emoji:"🔧",titulo:"Admin Lotérica",sub:"Controle Total",cor:P.vd,items:["Edita prêmios e metas","Configura campos","Edita regulamento","Gerencia clientes","Exporta relatórios"]},
+          {emoji:"📱",titulo:"Painel do Operador",sub:"Foco em Agilidade",cor:P.az2,items:["Código exclusivo por caixa","Auditoria de fotos real","Ranking de performance","Histórico de validações","Incentivo diário"]},
+          {emoji:"🛡️",titulo:"Central do Dono",sub:"Controle e Estratégia",cor:P.vd,items:["Gestão total de prêmios","Relatórios em PDF","Configura formulário","Central de Notícias","Controle de operadoras","Logs de segurança"]},
+          {emoji:"🏆",titulo:"App Cliente",sub:"Fidelidade Digital",cor:P.ou,items:["Tutorial interativo","Cadastro via WhatsApp","Envio de comprovante","Acompanha auditoria","Avaliação obrigatória","Voucher Digital Premium"]},
         ].map((c,i)=>(
           <Reveal key={i} delay={i*100}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:18,border:`1px solid ${c.cor}30`,padding:18,height:"100%",position:"relative",overflow:"hidden"}}>
@@ -341,8 +341,8 @@ function AppsSection(){
       <SecTit tag="Aplicativos" titulo="Os Dois Apps Digitais" icon="📱"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
-          {titulo:"App Operador",sub:"Gestão e Auditoria",emoji:"🖥️",cor:P.az2,features:["🔍 Auditoria de fotos/valores","✅ Aprovação de pontuação","🏅 Ranking de qualidade","👥 Gestão de clientes","⚙️ Configura formulário","📋 Edita regulamento","📊 Dashboard de performance","💾 Exporta dados CSV"]},
-          {titulo:"App Cliente",sub:"Portal de Fidelidade",emoji:"📱",cor:P.ou,features:["🎓 Tutorial Passo a Passo","📝 Cadastro via WhatsApp","📸 Envio de foto comprovante","📊 Histórico de Auditoria","📰 Canal de Notícias/Ofertas","⭐ Avaliação obrigatória 1-10","📊 Progresso em tempo real","🎫 Voucher Digital Premium"]},
+          {titulo:"Central do Dono",sub:"Gestão e Estratégia",emoji:"🖥️",cor:P.vd,features:["📊 Relatórios Gerenciais PDF","⚖️ Auditoria de fotos/valores","🏅 Ranking de qualidade","📢 Central de Notícias","⚙️ Configura formulário","📋 Edita regulamento","🛡️ Senhas de Segurança","💾 Logs de Atividade"]},
+          {titulo:"Painel do Caixa",sub:"Operacional Ágil",emoji:"👩‍💼",cor:P.az2,features:["✅ Auditoria instantânea","📈 Ranking pessoal/geral","🆔 Token de identificação","📋 Histórico de registros","⚡ Sorteios Relâmpago","🏆 Metas de atendimento"]},
         ].map((a,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,border:`1px solid ${a.cor}30`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
