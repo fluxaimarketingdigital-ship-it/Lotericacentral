@@ -920,16 +920,6 @@ function ARels({cl,setCl,pr,setPr,ops,opPrizes,setOpPrizes,cfg,setCfg,campanhas,
   const[histFilter,setHistFilter]=useState("");
   const isM = adminSel?.role === "master";
   
-  const excluirVisita = async (vId, cNome) => {
-    if(!isM) return;
-    if(!(await checkM(`⚠️ Deseja realmente EXCLUIR o registro de "${cNome}" permanentemente? Isso removerá o ponto do cliente.`, null, "EXCLUSAO_REGISTRO"))) return;
-    setCl(prev => prev.map(c => ({
-      ...c,
-      auths: (c.auths || []).filter(a => a.id !== vId)
-    })));
-    alert("✅ Registro excluído.");
-  };
-
   const excluirCampanha = async (camp) => {
     if(!isM) return;
     if(!(await checkM(`⚠️ ATENÇÃO: Deseja apagar permanentemente o histórico da campanha "${camp.nome}"? Esta ação é irreversível.`, null, "EXCLUSAO_HISTORICO"))) return;
@@ -1171,20 +1161,15 @@ Confirmar encerramento? Digite sua Senha de Alteração e Exclusão:`, null, "EN
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:8}}>
           {cl.flatMap(c=>(c.auths||[]).map(a=>({...a, cNome:c.nome}))).sort((a,b)=>new Date(b.data)-new Date(a.data)).slice(0,vis).map(a=>(
-            <div key={a.id} style={{fontSize:11, borderBottom:`1px solid ${C.bd}22`, paddingBottom:6, display:"flex", alignItems:"center", gap:10}}>
-              <div style={{flex:1, display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-                <div>
-                  <div style={{fontWeight:800}}>{a.cNome}</div>
-                  <div style={{fontSize:9, color:C.sb}}>{fDT(a.data)} · {a.opNome}</div>
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <div style={{fontWeight:900, color:C.az}}>{brl(a.total)}</div>
-                  <div style={{fontSize:9, color:a.valida!==false?C.vd:C.ou2}}>{a.valida!==false?"VÁLIDA":"PENDENTE"}</div>
-                </div>
+            <div key={a.id} style={{fontSize:11, borderBottom:`1px solid ${C.bd}22`, paddingBottom:6, display:"flex", justifyContent:"space-between"}}>
+              <div>
+                <div style={{fontWeight:800}}>{a.cNome}</div>
+                <div style={{fontSize:9, color:C.sb}}>{fDT(a.data)} · {a.opNome}</div>
               </div>
-              {isM && (
-                <button onClick={()=>excluirVisita(a.id, a.cNome)} style={{background:C.rdC, color:C.rd, border:"none", borderRadius:6, padding:5, cursor:"pointer", fontSize:10}} title="Excluir Registro">🗑️</button>
-              )}
+              <div style={{textAlign:"right"}}>
+                <div style={{fontWeight:900, color:C.az}}>{brl(a.total)}</div>
+                <div style={{fontSize:9, color:a.valida!==false?C.vd:C.ou2}}>{a.valida!==false?"VÁLIDA":"PENDENTE"}</div>
+              </div>
             </div>
           ))}
         </div>
