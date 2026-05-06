@@ -47,13 +47,13 @@ export default function Infografico(){
       <div style={{fontFamily:"'Nunito',sans-serif",background:P.navy,color:P.br,maxWidth:820,margin:"0 auto",overflowX:"hidden"}}>
         <Hero/>
         <Ecossistema/>
+        <GestaoSection/>
         <FluxoCompleto/>
         <QRSection/>
         <FormularioSection/>
         <AvaliacaoSection/>
         <PremiosSection/>
         <AppsSection/>
-        <GestaoSection/>
         <NumerosSection/>
         <Rodape/>
       </div>
@@ -454,8 +454,8 @@ function Rodape(){
           <div style={{fontSize:11,color:P.ci,marginTop:2}}>Alagoinhas · Bahia</div>
         </div>
         <div>
-          <div style={{fontSize:11,fontWeight:800,color:P.ci,textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Tecnologia</div>
-          <div style={{fontSize:11,color:P.ge,lineHeight:2}}>Arquitetura React.js<br/>Firebase Realtime DB<br/>Auditoria Multi-nível<br/>WhatsApp Voucher Engine</div>
+          <div style={{fontSize:11,fontWeight:800,color:P.ci,textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>Inovação e Suporte</div>
+          <div style={{fontSize:11,color:P.ge,lineHeight:2}}>Fidelização Inteligente<br/>Suporte FluxAI Digital<br/>Auditoria Multi-nível<br/>WhatsApp Voucher Engine</div>
         </div>
         <div>
           <div style={{fontSize:11,fontWeight:800,color:P.ci,textTransform:"uppercase",letterSpacing:1,marginBottom:10}}>CAIXA</div>
