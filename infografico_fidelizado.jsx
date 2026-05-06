@@ -96,8 +96,8 @@ function Ecossistema(){
       <SecTit tag="Visão Geral" titulo="Ecossistema Digital" icon="🌐"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginTop:32}}>
         {[
-          {emoji:"📱",titulo:"App Operador",sub:"Sistema de Gestão",cor:P.az2,items:["Gera código por operador","Dashboard de auths","Ranking da equipe","Configura formulário","Edita regulamento","Exporta dados CSV"]},
-          {emoji:"🏆",titulo:"App Cliente",sub:"Portal de Fidelidade",cor:P.ou,items:["Link único → regulamento","Cadastro + login WhatsApp","Formulário dinâmico","Avaliação 1 a 10","Progresso com selos","Notícias exclusivas"]},
+          {emoji:"📱",titulo:"App Operador",sub:"Sistema de Gestão",cor:P.az2,items:["Gera código por operador","Dashboard de Auditoria","Ranking da equipe","Configura formulário","Edita regulamento","Exporta dados PDF"]},
+          {emoji:"🏆",titulo:"App Cliente",sub:"Portal de Fidelidade",cor:P.ou,items:["Acesso via WhatsApp","Registro com Foto","Formulário dinâmico","Avaliação 1 a 10","Progresso com selos","Voucher Digital"]},
           {emoji:"🔧",titulo:"Admin Lotérica",sub:"Controle Total",cor:P.vd,items:["Edita prêmios e metas","Configura campos","Edita regulamento","Gerencia clientes","Exporta relatórios"]},
         ].map((c,i)=>(
           <Reveal key={i} delay={i*100}>
@@ -120,9 +120,9 @@ function FluxoCompleto(){
     {n:"01",emoji:"📢",titulo:"Início da Promoção",desc:"Acesse o App pelo link ou QR Code no balcão para iniciar.",cor:P.az2,link:"Acesso Rápido"},
     {n:"02",emoji:"👤",titulo:"Login Inteligente",desc:"Cadastro simplificado ou Login via WhatsApp para manter seu histórico.",cor:"#0891b2",link:"App Cliente"},
     {n:"03",emoji:"🏪",titulo:"Atendimento",desc:"Realize seus serviços no caixa: boletos, depósitos, jogos ou saques.",cor:"#d97706",link:"Balcão Lotérica"},
-    {n:"04",emoji:"👩‍💼",titulo:"Identifica Operadora",desc:"Selecione o nome ou digite o código da operadora que te atendeu.",cor:P.vd,link:"Identificação"},
+    {n:"04",emoji:"👩‍💼",titulo:"Identificação da Operadora",desc:"Selecione o nome ou digite o código da operadora que te atendeu.",cor:P.vd,link:"Identificação"},
     {n:"05",emoji:"📸",titulo:"Registro com Foto",desc:"Informe a data, nº do controle e anexe a foto do seu comprovante.",cor:P.rx,link:"App Cliente"},
-    {n:"06",emoji:"⭐",titulo:"Avalia o Atendimento",desc:"Dê sua nota de 1 a 10. Sua opinião é fundamental para nossa qualidade.",cor:"#059669",link:"Obrigatório"},
+    {n:"06",emoji:"⭐",titulo:"Avaliação do Atendimento",desc:"Dê sua nota de 1 a 10. Sua opinião é fundamental para nossa qualidade.",cor:"#059669",link:"Obrigatório"},
     {n:"07",emoji:"⚖️",titulo:"Auditoria Real",desc:"O operador valida sua foto e valores para garantir sua pontuação.",cor:"#db2777",link:"Operador/Admin"},
     {n:"08",emoji:"🎫",titulo:"Voucher Digital",desc:"Ganhou? Receba um cupom premium via WhatsApp para retirar seu prêmio.",cor:P.ou,link:"WhatsApp"},
   ];
@@ -389,7 +389,7 @@ function GestaoSection(){
             <div style={{fontFamily:"'Sora',sans-serif",fontWeight:900,fontSize:16,color:P.br,marginBottom:8}}>Segurança e LGPD</div>
             <div style={{fontSize:11,color:P.ci,lineHeight:1.7,marginBottom:15}}>Arquitetura robusta para proteção de dados sensíveis e conformidade legal.</div>
             <div style={{display:"flex",flexDirection:"column",gap:8}}>
-              {[["🔐","Criptografia de dados"],["📑","Termos de uso e privacidade"],["🚫","Prevenção contra fraudes no código"],["👤","Acesso restrito por hierarquia"]].map(([em,txt])=>(
+              {[["🔐","Criptografia de dados"],["📑","Termos de uso e privacidade"],["🚫","Prevenção contra Fraudes"],["👤","Acesso restrito por hierarquia"]].map(([em,txt])=>(
                 <div key={txt} style={{display:"flex",gap:8,fontSize:11,color:P.ge}}>
                   <span style={{color:P.vd}}>{em}</span><span>{txt}</span>
                 </div>
