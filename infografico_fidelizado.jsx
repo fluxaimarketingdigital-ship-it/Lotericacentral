@@ -96,9 +96,9 @@ function Ecossistema(){
       <SecTit tag="Visão Geral" titulo="Ecossistema Digital" icon="🌐"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginTop:32}}>
         {[
-          {emoji:"📱",titulo:"Painel do Operador",sub:"Foco em Agilidade",cor:P.az2,items:["Código exclusivo por caixa","Auditoria de fotos real","Ranking de performance","Histórico de validações","Incentivo diário"]},
-          {emoji:"🛡️",titulo:"Central do Dono",sub:"Controle e Estratégia",cor:P.vd,items:["Gestão total de prêmios","Relatórios em PDF","Configura formulário","Central de Notícias","Controle de operadoras","Logs de segurança"]},
-          {emoji:"🏆",titulo:"App Cliente",sub:"Fidelidade Digital",cor:P.ou,items:["Tutorial interativo","Cadastro via WhatsApp","Envio de comprovante","Acompanha auditoria","Avaliação obrigatória","Voucher Digital Premium"]},
+          {emoji:"👑",titulo:"Nível Master",sub:"Dono / Estratégico",cor:P.vd,items:["Configuração de Metas","Relatórios PDF Finais","Central de Notícias","Gestão de Segurança","Controle de Prêmios"]},
+          {emoji:"⚖️",titulo:"Nível Gerência",sub:"Auditoria e Controle",cor:P.ou,items:["Validação de Fotos","Auditoria de Valores","Aprovação de Visitas","Gestão de Clientes","Fidelização Ativa"]},
+          {emoji:"👩‍💼",titulo:"Nível Operador",sub:"Caixa / Atendimento",cor:P.az2,items:["Identificação (Token)","Liberação de Vouchers","Ranking da Equipe","Atendimento Ágil","Resgate no Balcão"]},
         ].map((c,i)=>(
           <Reveal key={i} delay={i*100}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:18,border:`1px solid ${c.cor}30`,padding:18,height:"100%",position:"relative",overflow:"hidden"}}>
@@ -341,8 +341,8 @@ function AppsSection(){
       <SecTit tag="Aplicativos" titulo="Os Dois Apps Digitais" icon="📱"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
-          {titulo:"Central do Dono",sub:"Gestão e Estratégia",emoji:"🖥️",cor:P.vd,features:["📊 Relatórios Gerenciais PDF","⚖️ Auditoria de fotos/valores","🏅 Ranking de qualidade","📢 Central de Notícias","⚙️ Configura formulário","📋 Edita regulamento","🛡️ Senhas de Segurança","💾 Logs de Atividade"]},
-          {titulo:"Painel do Caixa",sub:"Operacional Ágil",emoji:"👩‍💼",cor:P.az2,features:["✅ Auditoria instantânea","📈 Ranking pessoal/geral","🆔 Token de identificação","📋 Histórico de registros","⚡ Sorteios Relâmpago","🏆 Metas de atendimento"]},
+          {titulo:"Master & Gerência",sub:"Controle e Auditoria",emoji:"🖥️",cor:P.vd,features:["📊 Relatórios Gerenciais PDF","⚖️ Validação de Auditoria","🏅 Ranking de qualidade","📢 Central de Notícias","⚙️ Configura formulário","🛡️ Senhas de Segurança","👤 Gestão de Operadores","💾 Logs de Atividade"]},
+          {titulo:"Equipe de Operadores",sub:"Atendimento e Resgate",emoji:"👩‍💼",cor:P.az2,features:["🎟️ Liberação de Vouchers","🆔 Token de identificação","📈 Ranking pessoal/geral","📋 Histórico de registros","⚡ Sorteios Relâmpago","🏆 Metas de atendimento"]},
         ].map((a,i)=>(
           <Reveal key={i} delay={i*120}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,border:`1px solid ${a.cor}30`,padding:20,height:"100%",position:"relative",overflow:"hidden"}}>
