@@ -79,7 +79,7 @@ function Hero(){
         Programa digital de fidelidade com identificação simplificada, formulário com foto, avaliação do atendimento e auditoria em tempo real.
       </p>
       <div style={{display:"flex",gap:10,justifyContent:"center",flexWrap:"wrap",animation:"fadeUp .7s .3s ease both",opacity:0,animationFillMode:"forwards"}}>
-        {[["🎟️","Prêmio a cada 15 visitas"],["⚡","Prêmio Relâmpago"],["⭐","Avaliação 1–10"],["📱","2 apps digitais"]].map(([em,txt])=>(
+        {[["🎟️","Prêmio a cada 15 visitas"],["⚡","Prêmio Relâmpago"],["⭐","Avaliação 1–10"],["📱","Plataforma Multi-Acesso"]].map(([em,txt])=>(
           <div key={txt} style={{display:"flex",gap:7,alignItems:"center",background:"rgba(255,255,255,.07)",border:"1px solid rgba(255,255,255,.12)",borderRadius:24,padding:"7px 14px",fontSize:12,fontWeight:700}}>
             <span>{em}</span><span style={{color:P.ge}}>{txt}</span>
           </div>
