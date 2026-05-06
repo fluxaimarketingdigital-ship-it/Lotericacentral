@@ -281,7 +281,7 @@ function PremiosSection(){
                     <div style={{fontFamily:"'Sora',sans-serif",fontWeight:900,fontSize:22,color:P.br}}>Raspadinha CAIXA</div>
                     <span style={{background:"rgba(0,166,81,.2)",border:"1px solid rgba(0,166,81,.4)",borderRadius:20,padding:"3px 10px",fontSize:9,fontWeight:800,color:P.vd}}>PRÊMIO PRINCIPAL</span>
                   </div>
-                  <div style={{fontSize:13,color:"#86efac",lineHeight:1.7}}>A cada <strong style={{color:P.br}}>15 autenticações</strong> validadas pelo código da operadora, o cliente ganha automaticamente 1 Raspadinha CAIXA. Notificação via WhatsApp para retirada no balcão.</div>
+                  <div style={{fontSize:13,color:"#86efac",lineHeight:1.7}}>A cada <strong style={{color:P.br}}>15 autenticações</strong> validadas pela auditoria da gerência, o cliente ganha automaticamente 1 Raspadinha CAIXA. Notificação via WhatsApp para retirada no balcão.</div>
                 </div>
               </div>
               <div style={{display:"flex",gap:5,marginTop:16,flexWrap:"wrap"}}>
@@ -339,7 +339,7 @@ function PremiosSection(){
 function AppsSection(){
   return(
     <div style={{padding:"52px 24px",background:P.navy2}}>
-      <SecTit tag="Aplicativos" titulo="Os Dois Apps Digitais" icon="📱"/>
+      <SecTit tag="Aplicativos" titulo="Ecossistema de Apps e Perfis" icon="📱"/>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
         {[
           {titulo:"Master & Gerência",sub:"Controle e Auditoria",emoji:"🖥️",cor:P.vd,features:["📊 Relatórios Gerenciais PDF","⚖️ Validação de Auditoria","🏅 Ranking de qualidade","📢 Central de Notícias","⚙️ Configura formulário","🛡️ Senhas de Segurança","👤 Gestão de Operadores","💾 Logs de Atividade"]},
@@ -464,7 +464,7 @@ function Rodape(){
         </div>
       </div>
       <div style={{borderTop:"1px solid rgba(255,255,255,.07)",paddingTop:16,display:"flex",gap:10,justifyContent:"space-between",alignItems:"center",flexWrap:"wrap"}}>
-        <div style={{fontSize:10,color:P.ci,lineHeight:1.6,maxWidth:500}}>Programa sujeito ao regulamento editável. A cada 15 autenticações validadas via auditoria, o cliente recebe 1 Raspadinha CAIXA. Avaliação do atendimento obrigatória a cada registro. Imagens e comprovantes protegidos.</div>
+        <div style={{fontSize:10,color:P.ci,lineHeight:1.6,maxWidth:500}}>Programa sujeito ao regulamento editável. A cada 15 autenticações validadas via auditoria da gerência, o cliente recebe 1 Raspadinha CAIXA. Avaliação do atendimento obrigatória a cada registro. Imagens e comprovantes protegidos.</div>
         <div style={{display:"flex",gap:8}}>{[P.az2,P.vd,P.ou,P.rx].map((cor,i)=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:cor}}/>)}</div>
       </div>
     </div>
