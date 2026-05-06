@@ -485,6 +485,7 @@ function Home({ops,admins,setAdmins,cl,pr,setRole,setOpSel,setAdminSel,setTela})
               <button type="submit" style={{background:C.az,color:"#fff",border:"none",borderRadius:10,padding:"10px 16px",fontWeight:800,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>ENTRAR</button>
             </div>
             {erroS && <div style={{marginTop:7,fontSize:11,color:C.rd,fontWeight:700}}>⚠️ {erroS}</div>}
+            <div style={{fontSize:9,color:C.sb,marginTop:6,opacity:.7}}>Dica: Primeiro acesso use 123456</div>
           </form>}
         </div>}
       </div>
@@ -2210,6 +2211,14 @@ function CfgAdmins({admins,setAdmins,adminSel}){
     const updated = admins.map(x => x.id === a.id ? { ...x, senhaAcesso: "123456", senhaMestra: "", primeiroAcesso: true } : x);
     setAdmins(updated);
     alert("✅ Senhas resetadas com sucesso!");
+  };
+
+  const remover = (id) => {
+    if(id === adminSel.id) return alert("Você não pode excluir a si mesmo!");
+    if(!window.confirm("Deseja realmente REMOVER este administrador permanentemente?")) return;
+    const updated = (admins||[]).filter(a => a.id !== id);
+    setAdmins(updated);
+    alert("✅ Administrador removido.");
   };
 
   return(<div style={{display:"flex",flexDirection:"column",gap:11,animation:"up .3s"}}>
