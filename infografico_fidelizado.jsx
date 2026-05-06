@@ -53,6 +53,7 @@ export default function Infografico(){
         <AvaliacaoSection/>
         <PremiosSection/>
         <AppsSection/>
+        <GestaoSection/>
         <NumerosSection/>
         <Rodape/>
       </div>
@@ -358,6 +359,44 @@ function AppsSection(){
             </div>
           </Reveal>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function GestaoSection(){
+  return(
+    <div style={{padding:"52px 24px",background:P.navy2}}>
+      <SecTit tag="Administração" titulo="Gestão e Inteligência" icon="⚙️"/>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginTop:32}}>
+        <Reveal delay={100}>
+          <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,border:`1px solid ${P.az2}44`,padding:22,height:"100%"}}>
+            <div style={{fontSize:32,marginBottom:12}}>📊</div>
+            <div style={{fontFamily:"'Sora',sans-serif",fontWeight:900,fontSize:16,color:P.br,marginBottom:8}}>Relatórios e Big Data</div>
+            <div style={{fontSize:11,color:P.ci,lineHeight:1.7,marginBottom:15}}>O sistema transforma cada atendimento em um ativo de marketing valioso para a lotérica.</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[["📂","Exportação CSV/Excel completa"],["📈","Gráficos de produtividade"],["👥","Base de dados para WhatsApp Marketing"],["🔄","Relatórios de fechamento de ciclo"]].map(([em,txt])=>(
+                <div key={txt} style={{display:"flex",gap:8,fontSize:11,color:P.ge}}>
+                  <span style={{color:P.az2}}>{em}</span><span>{txt}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={200}>
+          <div style={{background:"rgba(255,255,255,.04)",borderRadius:20,border:`1px solid ${P.vd}44`,padding:22,height:"100%"}}>
+            <div style={{fontSize:32,marginBottom:12}}>🛡️</div>
+            <div style={{fontFamily:"'Sora',sans-serif",fontWeight:900,fontSize:16,color:P.br,marginBottom:8}}>Segurança e LGPD</div>
+            <div style={{fontSize:11,color:P.ci,lineHeight:1.7,marginBottom:15}}>Arquitetura robusta para proteção de dados sensíveis e conformidade legal.</div>
+            <div style={{display:"flex",flexDirection:"column",gap:8}}>
+              {[["🔐","Criptografia de dados"],["📑","Termos de uso e privacidade"],["🚫","Prevenção contra fraudes no código"],["👤","Acesso restrito por hierarquia"]].map(([em,txt])=>(
+                <div key={txt} style={{display:"flex",gap:8,fontSize:11,color:P.ge}}>
+                  <span style={{color:P.vd}}>{em}</span><span>{txt}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
       </div>
     </div>
   );
