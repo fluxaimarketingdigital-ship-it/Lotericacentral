@@ -94,11 +94,12 @@ function Ecossistema(){
   return(
     <div style={{padding:"52px 24px",background:P.navy2}}>
       <SecTit tag="Visão Geral" titulo="Ecossistema Digital" icon="🌐"/>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginTop:32}}>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))",gap:14,marginTop:32}}>
         {[
           {emoji:"👑",titulo:"Nível Master",sub:"Dono / Estratégico",cor:P.vd,items:["Configuração de Metas","Relatórios PDF Finais","Central de Notícias","Gestão de Segurança","Controle de Prêmios"]},
           {emoji:"⚖️",titulo:"Nível Gerência",sub:"Auditoria e Controle",cor:P.ou,items:["Validação de Fotos","Auditoria de Valores","Aprovação de Visitas","Gestão de Clientes","Fidelização Ativa"]},
           {emoji:"👩‍💼",titulo:"Nível Operador",sub:"Caixa / Atendimento",cor:P.az2,items:["Identificação (Token)","Liberação de Vouchers","Ranking da Equipe","Atendimento Ágil","Resgate no Balcão"]},
+          {emoji:"🏆",titulo:"App Cliente",sub:"Fidelidade Digital",cor:P.rx,items:["Tutorial interativo","Cadastro via WhatsApp","Envio de comprovante","Acompanha auditoria","Avaliação 1 a 10","Voucher Digital"]},
         ].map((c,i)=>(
           <Reveal key={i} delay={i*100}>
             <div style={{background:"rgba(255,255,255,.04)",borderRadius:18,border:`1px solid ${c.cor}30`,padding:18,height:"100%",position:"relative",overflow:"hidden"}}>
